@@ -1,0 +1,418 @@
+# ADR-0005 — Memory Architecture Principles
+
+| Field | Value |
+|--------|--------|
+| **Status** | Active |
+| **Version** | 1.0.0 |
+| **Owner** | Project Maintainers |
+| **Created** | 2026-07-10 |
+| **Updated** | 2026-07-10 |
+| **Decision Type** | Architecture Decision |
+
+---
+
+# Context
+
+O.R.I.O.N. is intended to become a long-lived AI Operating Network capable of assisting users across devices, conversations, and ecosystems.
+
+Unlike traditional assistants, O.R.I.O.N. should maintain continuity over time.
+
+This continuity requires a dedicated memory architecture rather than treating memory as simple persistent storage.
+
+---
+
+# Problem Statement
+
+The platform must answer several fundamental questions.
+
+- What should be remembered?
+- What should be forgotten?
+- Who owns memory?
+- Can memory evolve?
+- Can users inspect their memory?
+- Can users delete their memory?
+- How is memory protected?
+- How is memory retrieved?
+
+Without explicit principles, memory behavior would become inconsistent across Engines and Skills.
+
+---
+
+# Decision
+
+Memory is a first-class platform capability.
+
+Memory is not a database.
+
+Memory is not conversation history.
+
+Memory is an intentional knowledge system owned exclusively by the Memory Engine.
+
+No other Engine may store persistent user knowledge independently.
+
+---
+
+# Memory Philosophy
+
+Memory exists to improve future interactions.
+
+The objective is not to remember everything.
+
+The objective is to remember what is useful.
+
+Every stored memory should have purpose.
+
+Every memory should be explainable.
+
+---
+
+# Ownership
+
+Persistent memory belongs to the Memory Engine.
+
+Other Engines may:
+
+- request memory;
+- propose new memories;
+- update existing memories through Contracts.
+
+They must never bypass the Memory Engine.
+
+---
+
+# Memory Categories
+
+The platform recognizes six memory categories.
+
+## Conversation Memory
+
+Short-lived.
+
+Supports the current conversation.
+
+Automatically expires.
+
+---
+
+## Context Memory
+
+Temporary execution state.
+
+Examples:
+
+- active workflow
+- current device
+- temporary variables
+
+Expires automatically.
+
+---
+
+## Preference Memory
+
+Stable user preferences.
+
+Examples:
+
+- preferred language
+- preferred voice
+- notification preferences
+
+May be updated by the user.
+
+---
+
+## Personal Knowledge
+
+Long-term information intentionally remembered.
+
+Examples:
+
+- favorite foods
+- recurring routines
+- project preferences
+- frequently used locations
+
+Requires high confidence before storage.
+
+---
+
+## Platform Knowledge
+
+Knowledge about the platform itself.
+
+Examples:
+
+- installed Skills
+- connected services
+- registered devices
+- available capabilities
+
+Managed internally.
+
+---
+
+## System Memory
+
+Operational state required by the platform.
+
+Examples:
+
+- execution checkpoints
+- automation state
+- synchronization metadata
+
+Invisible to end users.
+
+---
+
+# Memory Lifecycle
+
+Every memory follows a lifecycle.
+
+```
+Observed
+
+↓
+
+Candidate
+
+↓
+
+Validated
+
+↓
+
+Stored
+
+↓
+
+Retrieved
+
+↓
+
+Updated
+
+↓
+
+Archived
+
+↓
+
+Deleted
+```
+
+Not every observation becomes a memory.
+
+Validation is mandatory.
+
+---
+
+# Memory Creation
+
+Memory should be created only when:
+
+- explicitly requested by the user;
+- inferred with high confidence;
+- required by platform functionality.
+
+Low-confidence observations should not become persistent memory automatically.
+
+---
+
+# Memory Retrieval
+
+Memory retrieval must be intentional.
+
+The Memory Engine retrieves only information relevant to the current context.
+
+The platform must never load the entire memory.
+
+---
+
+# Memory Evolution
+
+Memory may evolve over time.
+
+Updates should preserve continuity.
+
+Previous values may be retained for auditing when appropriate.
+
+---
+
+# User Control
+
+Users must be able to:
+
+- inspect memories;
+- search memories;
+- update memories;
+- delete memories;
+- export memories.
+
+Users remain the owners of their personal information.
+
+---
+
+# Privacy
+
+Memory access requires authorization.
+
+Sensitive memories should receive additional protection.
+
+The platform should minimize unnecessary retention.
+
+---
+
+# Explainability
+
+When practical, O.R.I.O.N. should be able to explain:
+
+- why a memory exists;
+- when it was created;
+- how it was obtained;
+- why it influenced a decision.
+
+Memory should never become a black box.
+
+---
+
+# Security
+
+Memory operations must comply with:
+
+- authentication;
+- authorization;
+- audit requirements;
+- encryption policies.
+
+Sensitive memories require elevated protection.
+
+---
+
+# Skills
+
+Skills never own persistent memory.
+
+Skills request memory through Contracts.
+
+Skills may propose new memories.
+
+The Memory Engine decides whether they are stored.
+
+---
+
+# Providers
+
+Providers do not own memory.
+
+AI providers generate responses.
+
+Only the Memory Engine determines whether generated information becomes memory.
+
+---
+
+# Adapters
+
+Adapters may synchronize external knowledge.
+
+Imported information is not automatically considered platform memory.
+
+Synchronization requires validation.
+
+---
+
+# Rationale
+
+Separating memory from storage:
+
+- improves consistency;
+- centralizes governance;
+- enables explainability;
+- supports future evolution;
+- protects user privacy.
+
+---
+
+# Alternatives Considered
+
+## Store memory inside Skills
+
+Rejected.
+
+Business capabilities should not own user knowledge.
+
+---
+
+## Store memory inside Providers
+
+Rejected.
+
+Memory would become vendor-dependent.
+
+---
+
+## Treat conversation history as memory
+
+Rejected.
+
+Conversation history and persistent memory serve different purposes.
+
+---
+
+# Consequences
+
+Positive:
+
+- centralized governance;
+- explainable behavior;
+- predictable retrieval;
+- stronger privacy;
+- easier auditing.
+
+Negative:
+
+- additional architectural complexity;
+- stricter memory validation requirements.
+
+---
+
+# Risks
+
+Excessive memory accumulation.
+
+Mitigation:
+
+Memory quality is preferred over memory quantity.
+
+Retention policies and future summarization mechanisms should prevent uncontrolled growth.
+
+---
+
+# Dependencies
+
+- ADR-0001 — Core Ownership and Dependency Direction
+- ADR-0002 — Capability-Oriented Architecture
+- ADR-0003 — Engine Communication Model
+- ADR-0004 — Separation of Skills, Providers and Adapters
+- OES-0009 — Security Standards
+
+---
+
+# Future Review
+
+Review before introducing autonomous learning, distributed memory, or multi-user shared knowledge spaces.
+
+---
+
+# Change History
+
+| Version | Date | Description |
+|----------|------|-------------|
+| 1.0.0 | 2026-07-10 | Initial architecture decision. |
+
+---
+
+# Engineering Motto
+
+> O.R.I.O.N. remembers with purpose, not by accident.
