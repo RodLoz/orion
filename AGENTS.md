@@ -1,7 +1,8 @@
 # AGENTS.md
 
 # O.R.I.O.N.
-## Omni-Responsive Intelligent Operating Network
+
+## AI Collaboration Guide
 
 Version: 1.0
 
@@ -9,89 +10,232 @@ Version: 1.0
 
 # Purpose
 
-This document defines how AI agents and human contributors collaborate while developing O.R.I.O.N.
+This document defines how AI agents collaborate while contributing to O.R.I.O.N.
 
-It establishes engineering standards, architectural boundaries, quality expectations, and contribution rules.
+It establishes the operational rules that every AI agent and human contributor must follow.
 
-Every implementation must follow this document.
+This document is intentionally concise.
 
-If any instruction conflicts with the project's Engineering Principles, the Engineering Principles take precedence.
-
----
-
-# Scope
-
-This document applies to:
-
-- AI coding agents
-- Human contributors
-- Automated code generators
-- Continuous Integration workflows
-- Future autonomous development agents
+Detailed engineering standards are defined in the O.R.I.O.N. Engineering Standards (OES).
 
 ---
 
-# Core Philosophy
+# Mission
 
-The primary responsibility of every contributor is not writing code.
+Your mission is not simply to generate code.
 
-The primary responsibility is protecting the architecture.
+Your mission is to preserve the architectural integrity of O.R.I.O.N.
 
-Features are temporary.
-
-Architecture is long-term.
-
-Every implementation should improve the platform rather than simply solving a local problem.
+Correct architecture is always more valuable than quickly implemented features.
 
 ---
 
-# AI-First Engineering
+# Before You Start
 
-O.R.I.O.N. is designed to be developed collaboratively with Artificial Intelligence.
+Before making any change, read the following documents in this order.
 
-Documentation is considered part of the source code.
+1. README.md
+2. MANIFESTO.md
+3. docs/vision.md
+4. docs/principles.md
+5. docs/architecture.md
+6. Relevant OES documents
 
-Architectural decisions must be understandable by both humans and AI systems.
-
-Every change should leave enough context for future contributors.
+Never modify the project without understanding its architectural goals.
 
 ---
 
-# Engineering Priorities
+# Core Responsibilities
 
-When multiple solutions exist, contributors should prioritize:
+Every contributor should:
+
+- Preserve architectural integrity.
+- Prefer reusable solutions.
+- Minimize coupling.
+- Document important decisions.
+- Keep the Core independent.
+- Respect engineering standards.
+
+---
+
+# Decision Checklist
+
+Before implementing any feature, ask:
+
+- Does this capability already exist?
+- Which Engine owns this responsibility?
+- Should this become a Skill?
+- Should this become a Provider?
+- Does this belong in the Core?
+- Does this require a Contract?
+- Does documentation need updating?
+- Does an ADR need to be created?
+
+If any answer is unclear, implementation should pause until the design is clarified.
+
+---
+
+# Repository Navigation
+
+Use the repository as follows.
+
+README.md
+
+Project overview.
+
+MANIFESTO.md
+
+Project philosophy.
+
+docs/
+
+Architecture and engineering documentation.
+
+engineering/
+
+Permanent engineering standards.
+
+adr/
+
+Architectural decisions.
+
+core/
+
+Business concepts.
+
+services/
+
+Engine implementations.
+
+packages/
+
+Reusable libraries.
+
+apps/
+
+Clients.
+
+specifications/
+
+Technical specifications.
+
+---
+
+# Development Priorities
+
+Always prioritize:
 
 1. Architecture
 2. Simplicity
-3. Reusability
-4. Maintainability
+3. Maintainability
+4. Reusability
 5. Testability
 6. Performance
 7. Features
 
-Never sacrifice architectural quality for short-term implementation speed.
+Never reverse this order.
 
 ---
 
-# Design Philosophy
+# Core Rules
 
-Every feature should answer the following questions before implementation.
+Never introduce business logic into clients.
 
-- Why does this capability exist?
-- Which Engine owns it?
-- Can it be reused?
-- Does it belong in the Core?
-- Should it become a Skill?
-- Should it become a Contract?
-- Does it increase coupling?
-- Does documentation need updating?
+Never couple Engines directly.
 
-If these questions cannot be answered, implementation should stop until the design becomes clear.
+Never depend directly on external providers.
+
+Never bypass Contracts.
+
+Never violate Platform First.
+
+Never duplicate existing capabilities.
+
+Never modify architecture without documenting the reason.
 
 ---
 
-# Golden Rule
+# Documentation Rules
 
-Protect the platform.
+Documentation is part of the implementation.
 
-Never optimize a feature by weakening the architecture.
+Whenever architecture changes:
+
+- Update documentation.
+- Update relevant OES.
+- Create an ADR if required.
+
+Code without documentation is incomplete.
+
+---
+
+# AI Collaboration Rules
+
+Think before coding.
+
+Prefer understanding over assumptions.
+
+Prefer architecture over shortcuts.
+
+Prefer reusable abstractions over feature-specific implementations.
+
+If uncertainty exists, request clarification instead of inventing behavior.
+
+Never fabricate APIs, providers, or capabilities.
+
+---
+
+# Quality Checklist
+
+Every completed contribution should satisfy the following.
+
+✔ Architecture preserved
+
+✔ Documentation updated
+
+✔ Contracts respected
+
+✔ Tests added or updated
+
+✔ Naming conventions respected
+
+✔ No unnecessary coupling introduced
+
+✔ No duplicated logic
+
+---
+
+# Escalation
+
+If an implementation requires changing:
+
+- Core concepts
+- Contracts
+- Engine responsibilities
+- Repository structure
+
+Stop implementation.
+
+Document the proposal.
+
+Create an ADR.
+
+Wait for approval before continuing.
+
+---
+
+# Definition of Done
+
+A contribution is complete only when:
+
+- Implementation is correct.
+- Documentation is updated.
+- Tests pass.
+- Engineering standards are respected.
+- Architectural integrity remains intact.
+
+---
+
+# Final Rule
+
+Always leave O.R.I.O.N. in a better state than you found it.
