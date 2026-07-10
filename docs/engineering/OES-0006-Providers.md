@@ -1,334 +1,326 @@
-# OES-0005 — Events
+# OES-0006 — Provider Design
 
 | Field | Value |
 |--------|--------|
 | **Status** | Active |
-| **Version** | 1.0.0 |
+| **Version** | 2.0.0 |
 | **Owner** | Project Maintainers |
 | **Created** | 2026-07-09 |
-| **Updated** | 2026-07-09 |
-| **Applies To** | Entire Platform |
+| **Updated** | 2026-07-10 |
+| **Applies To** | All Providers |
 
 ---
 
 # Purpose
 
-This standard defines how Events are designed, published, consumed, and versioned inside O.R.I.O.N.
+This standard defines the design, lifecycle, registration, selection, execution, and governance of Providers within O.R.I.O.N.
 
-Events enable loose coupling between platform components.
-
-Every Event represents a fact that has already happened.
+Providers isolate external technologies from the platform and guarantee that the Core, Engines, and Skills remain independent of vendor-specific implementations.
 
 ---
 
 # Scope
 
-This standard applies to:
+This standard applies to every Provider used by the platform.
 
-- Engines
-- Skills
-- Providers
-- Adapters
-- Automation
-- Infrastructure
+Examples include:
+
+- LLM Providers
+- Speech-to-Text Providers
+- Text-to-Speech Providers
+- Embedding Providers
+- Database Providers
+- Cache Providers
+- Storage Providers
+- Notification Providers
+- Authentication Providers
+
+---
+
+# Philosophy
+
+Providers represent technology.
+
+They never represent business capabilities.
+
+Technology changes.
+
+Architecture should not.
+
+Replacing a Provider must never require modifications to business logic.
 
 ---
 
 # Definition
 
-An Event represents an immutable fact.
+A Provider is a replaceable implementation of a Contract.
 
-Events describe completed actions.
+A Provider exists to translate a technology-specific interface into a platform Contract.
 
-Events never describe intentions.
+```
+Core
+        ↓
+Contract
+        ↓
+Provider
+        ↓
+Technology
+```
+
+The platform communicates with Contracts.
+
+Providers communicate with technologies.
 
 ---
 
-# Event Philosophy
+# Architectural Principles
 
-Events answer:
+Providers must be:
 
-"What has already happened?"
+- Replaceable
+- Observable
+- Stateless whenever possible
+- Configurable
+- Independently testable
+- Versioned
+
+Providers must never:
+
+- Contain business rules.
+- Modify platform behavior.
+- Access unrelated Engines.
+- Store domain state.
+
+---
+
+# Provider Lifecycle
+
+Every Provider follows the same lifecycle.
+
+```
+Discovered
+      ↓
+Registered
+      ↓
+Configured
+      ↓
+Validated
+      ↓
+Available
+      ↓
+Selected
+      ↓
+Executing
+      ↓
+Stopped
+```
+
+---
+
+# Registration
+
+Providers must register themselves through the Provider Registry.
+
+Registration should include:
+
+- Provider ID
+- Name
+- Version
+- Supported Contract
+- Supported Capabilities
+- Priority
+- Health Status
+
+---
+
+# Discovery
+
+Provider discovery should be automatic whenever possible.
+
+Discovery may be based on:
+
+- Configuration
+- Dependency Injection
+- Plugin loading
+- Package metadata
+
+Business logic must never manually instantiate Providers.
+
+---
+
+# Selection
+
+The Provider Registry is responsible for selecting the most appropriate Provider.
+
+Selection criteria may include:
+
+- Capability support
+- Priority
+- Health
+- Cost
+- Latency
+- Region
+- User preference
+- Organization policy
+
+Selection rules must be deterministic.
+
+---
+
+# Capabilities
+
+Providers declare the capabilities they support.
+
+Example:
+
+OpenAI Provider
+
+Capabilities:
+
+- chat
+- reasoning
+- embeddings
+
+Example:
+
+Whisper Provider
+
+Capabilities:
+
+- speech-to-text
+
+Capabilities must be discoverable at runtime.
+
+---
+
+# Configuration
+
+Providers receive configuration externally.
 
 Examples:
 
-✔ UserAuthenticated
+- API Keys
+- OAuth Credentials
+- Regions
+- Endpoints
+- Timeouts
+- Retry Policies
 
-✔ VoiceCaptured
-
-✔ MemoryStored
-
-✔ SkillExecuted
-
-Not:
-
-✘ AuthenticateUser
-
-✘ StoreMemory
-
-✘ ExecuteSkill
-
-Commands belong elsewhere.
-
-Events describe facts.
+Configuration must never be hardcoded.
 
 ---
 
-# Event Characteristics
+# Health
 
-Every Event should be:
+Every Provider exposes its health.
 
-Immutable
+Minimum states:
 
-Past tense
+- Healthy
+- Degraded
+- Unavailable
 
-Explicit
-
-Observable
-
-Serializable
-
-Versionable
+Health checks should be lightweight.
 
 ---
 
-# Event Ownership
+# Failover
 
-Every Event has one owner.
+If a Provider becomes unavailable, the Provider Registry may select another compatible Provider.
 
-Examples:
+Failover policies should be configurable.
 
-VoiceCaptured
-
-Owner:
-
-Voice Engine
+Provider replacement should be transparent whenever possible.
 
 ---
 
-MemoryStored
+# Performance
 
-Owner:
+Providers should expose:
 
-Memory Engine
+- Average latency
+- Error rate
+- Success rate
+- Retry count
+- Timeout count
 
----
-
-SkillExecuted
-
-Owner:
-
-Skill Engine
-
----
-
-# Publishing
-
-Only the owning Engine may publish its Events.
-
-Consumers never publish another Engine's Events.
-
----
-
-# Consumption
-
-Any component may subscribe to Events.
-
-Subscribers must remain independent.
-
-Publishers must never know who consumes their Events.
-
----
-
-# Event Flow
-
-Publisher
-
-↓
-
-Event Bus
-
-↓
-
-Subscribers
-
-Publishers and subscribers remain completely decoupled.
-
----
-
-# Event Structure
-
-Every Event should contain:
-
-Event ID
-
-Event Type
-
-Timestamp
-
-Correlation ID
-
-Source Engine
-
-Payload
-
-Metadata
-
-Version
-
----
-
-# Payload
-
-Payloads should contain only information necessary to understand the Event.
-
-Avoid sending unnecessary data.
-
-Large objects should be referenced rather than embedded.
-
----
-
-# Correlation
-
-Every Event should support Correlation IDs.
-
-Correlation IDs allow complete workflow tracing.
-
----
-
-# Versioning
-
-Events use Semantic Versioning.
-
-Breaking changes require new versions.
-
-Consumers should remain backward compatible whenever possible.
-
----
-
-# Naming
-
-Events use PascalCase.
-
-Examples:
-
-VoiceCaptured
-
-MemoryStored
-
-SkillInstalled
-
-WorkflowCompleted
-
-UserAuthenticated
-
----
-
-# Event Categories
-
-Examples:
-
-Identity
-
-Memory
-
-Voice
-
-Planning
-
-Automation
-
-Security
-
-Infrastructure
-
-Skill
-
-Context
-
----
-
-# Reliability
-
-Event publication should be reliable.
-
-Failed publication should be observable.
-
-Retries should be configurable.
-
-Duplicate processing should be handled safely.
-
----
-
-# Ordering
-
-Consumers should never assume Event ordering unless explicitly guaranteed.
+Performance metrics support runtime selection.
 
 ---
 
 # Security
 
-Events should never expose:
+Providers must:
 
-Secrets
-
-Credentials
-
-API Keys
-
-Sensitive personal information
-
-Private memory
+- Protect credentials.
+- Validate requests.
+- Validate responses.
+- Never log secrets.
+- Respect least privilege.
+- Support credential rotation.
 
 ---
 
 # Observability
 
-Every published Event should support:
+Every Provider should expose:
 
-Tracing
+- Health
+- Availability
+- Version
+- Metrics
+- Structured Logs
+- Correlation IDs
+- Trace IDs
 
-Logging
+---
 
-Metrics
+# Versioning
 
-Correlation
+Providers follow Semantic Versioning.
 
-Latency measurement
+Breaking changes require a major version.
+
+Minor versions must remain compatible with their Contract.
+
+---
+
+# Compatibility
+
+A Provider must explicitly declare:
+
+- Supported Contract Version
+- Supported Protocol Version
+- Supported Platform Version
+
+Compatibility must be validated during registration.
 
 ---
 
 # Testing
 
-Every Event should include:
+Every Provider requires:
 
-Serialization tests
-
-Compatibility tests
-
-Schema validation
-
-Consumer validation
+- Unit Tests
+- Contract Tests
+- Integration Tests
+- Failure Simulation
+- Timeout Tests
+- Compatibility Tests
 
 ---
 
 # Documentation
 
-Every Event must document:
+Every Provider must document:
 
-Purpose
-
-Owner
-
-Payload
-
-Consumers
-
-Publishing conditions
-
-Failure behavior
-
-Version
+- Purpose
+- Configuration
+- Authentication
+- Supported Features
+- Known Limitations
+- Compatibility
+- Failure Modes
 
 ---
 
@@ -336,37 +328,27 @@ Version
 
 Avoid:
 
-Mutable Events
-
-Command-style names
-
-Hidden payload fields
-
-Technology-specific Events
-
-Synchronous Event dependencies
-
-Undocumented Events
+- Business logic inside Providers
+- Hardcoded credentials
+- Direct SDK usage outside Providers
+- Hidden configuration
+- Provider-specific exceptions
+- Mutable global state
 
 ---
 
 # Definition of Done
 
-An Event is complete when:
+A Provider is complete when:
 
-✔ Schema documented
-
-✔ Owner identified
-
-✔ Payload defined
-
-✔ Version assigned
-
-✔ Tests implemented
-
-✔ Observability enabled
-
-✔ Documentation completed
+- ✔ Implements a Contract
+- ✔ Registers successfully
+- ✔ Supports health checks
+- ✔ Exposes metrics
+- ✔ Supports configuration
+- ✔ Includes automated tests
+- ✔ Documents compatibility
+- ✔ Handles failures gracefully
 
 ---
 
@@ -374,10 +356,11 @@ An Event is complete when:
 
 - OES-0002 — Engine Design
 - OES-0004 — Contracts
-- OES-0006 — Providers
+- OES-0005 — Events
+- OES-0007 — Adapter Design
 
 ---
 
 # Engineering Motto
 
-> Events describe facts. Contracts request behavior.
+> Providers isolate technology so the platform can evolve without rewriting its intelligence.
