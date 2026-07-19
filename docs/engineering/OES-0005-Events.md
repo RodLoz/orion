@@ -3,10 +3,10 @@
 | Field | Value |
 |--------|--------|
 | **Status** | Active |
-| **Version** | 1.0.0 |
+| **Version** | 2.0.0 |
 | **Owner** | Project Maintainers |
 | **Created** | 2026-07-09 |
-| **Updated** | 2026-07-09 |
+| **Updated** | 2026-07-19 |
 | **Applies To** | Entire Platform |
 
 ---
@@ -94,7 +94,13 @@ Versionable
 
 # Event Ownership
 
-Every Event has one owner.
+Event governance MUST distinguish:
+
+- **Schema custody**: the Core custodies shared Event Contracts, envelopes, and schemas.
+- **Semantic ownership**: exactly one capability or domain owns the meaning of an Event.
+- **Runtime publication authority**: an Engine, Adapter, or other authorized component MAY publish an Event appropriate to its event type.
+
+Domain Events are semantically owned by the applicable capability Engine or domain. Integration Events are semantically owned by the applicable Adapter or integration domain. Platform and Infrastructure Events are semantically owned by the appropriate platform domain.
 
 Examples:
 
@@ -124,9 +130,13 @@ Skill Engine
 
 # Publishing
 
-Only the owning Engine may publish its Events.
+A runtime publisher MUST publish only Events whose semantics it is authorized to represent.
 
-Consumers never publish another Engine's Events.
+An Engine MUST NOT publish another domain's Event as though it were the semantic owner. An Adapter MAY publish Adapter-owned integration Events describing facts from its integration boundary, but MUST NOT publish or impersonate an Engine-owned domain Event. Other components MAY publish platform or Infrastructure Events only when authorized by the owning platform domain.
+
+Core schema custody does not transfer Event semantic ownership or publication authority. Event consumption never grants publication authority.
+
+No component is universally required to publish an Event when no meaningful completed fact exists.
 
 ---
 
@@ -168,13 +178,19 @@ Timestamp
 
 Correlation ID
 
-Source Engine
+Source Component
 
 Payload
 
 Metadata
 
 Version
+
+When an Event is associated with Context construction, consumption, expiration, archival, or a reasoning outcome, it SHOULD include the applicable Context Revision Identity in its metadata.
+
+Context Lineage Identity MAY also be included when lineage-level correlation is required.
+
+Event correlation with Context MUST distinguish Context Revision Identity from Context Lineage Identity.
 
 ---
 
@@ -193,6 +209,8 @@ Large objects should be referenced rather than embedded.
 Every Event should support Correlation IDs.
 
 Correlation IDs allow complete workflow tracing.
+
+A reasoning outcome SHOULD be traceable to the Context Revision Identity of the Active Context Revision it consumed. Where exact replay is required, the trace MUST also identify retained immutable evidence sufficient for exact reproduction.
 
 ---
 

@@ -3,10 +3,10 @@
 | Field | Value |
 |--------|--------|
 | **Status** | Active |
-| **Version** | 1.0.0 |
+| **Version** | 2.1.0 |
 | **Owner** | Project Maintainers |
 | **Created** | 2026-07-10 |
-| **Updated** | 2026-07-10 |
+| **Updated** | 2026-07-19 |
 | **Decision Type** | Architecture Decision |
 
 ---
@@ -44,7 +44,7 @@ The Core is the architectural foundation of O.R.I.O.N.
 
 The Core owns the language of the platform.
 
-The Core defines:
+The Core is the canonical custodian of shared architectural Contracts and defines:
 
 - Domain Models
 - Value Objects
@@ -53,30 +53,26 @@ The Core defines:
 - Identifiers
 - Shared Types
 - Exceptions
-- Policies
+- Architectural Policy Definitions
+- Platform-Wide Constraints
 - Capability Definitions
 
 The Core never contains technology-specific implementations.
 
 ---
 
-# Dependency Direction
+# Source-Code Dependency Direction
 
-Dependencies always point toward the Core.
+Source-code dependencies always point inward toward Core abstractions.
 
-```
-Clients
-        ↓
-Engines
-        ↓
-Providers
-        ↓
-Contracts
-        ↓
-Core
+```text
+Clients -> Gateway / Application Boundary -> Engines / Skills -> Core Abstractions
+Providers / Adapters / Infrastructure ------------------------> Core Abstractions
 ```
 
-The Core depends on nothing.
+These arrows represent source-code dependency direction, not runtime call, data, or event flow.
+
+The Core MUST NOT depend on Engines, Skills, Providers, Adapters, Infrastructure, or Clients. Engines MUST NOT depend directly on concrete Providers, Adapters, or Infrastructure implementations. Skills MUST NOT depend directly on concrete external systems.
 
 ---
 
@@ -148,13 +144,17 @@ Client
 
 # Ownership
 
-Ownership does not imply implementation.
+Ownership does not imply implementation. Contract governance distinguishes custody, domain semantic ownership, and implementation responsibility.
 
-The Core owns definitions.
+The Core has custody of shared architectural Contract definitions and their compatibility and versioning rules.
 
-Engines own behavior.
+Engines own capability behavior and domain semantics.
 
-Providers own technology integration.
+The Core MAY define platform-wide invariants, architectural policies, and shared rule vocabulary. It MUST NOT own capability-specific business rules, semantic decisions, or behavior. Those remain with the owning capability Engine.
+
+Custody of a shared model, policy Contract, or rule type in the Core does not transfer semantic ownership of a capability decision to the Core.
+
+Providers and Adapters implement or translate Contracts without becoming semantic owners of the capability.
 
 Skills own executable capabilities.
 
@@ -166,7 +166,9 @@ Infrastructure owns operational concerns.
 
 # Contracts
 
-Contracts are defined by the Core.
+Shared architectural Contracts are defined under Core custody.
+
+Core custody includes shared schemas, identifiers, interfaces, event envelopes, and cross-capability Contract definitions. It MUST NOT imply ownership of capability behavior.
 
 Contracts describe capabilities.
 
@@ -174,15 +176,24 @@ Contracts never reference implementation technologies.
 
 Implementations must conform to Contracts.
 
+An implementation layer implements a Contract without changing its semantics.
+
 ---
 
 # Events
 
-The Core defines Event schemas.
+The Core custodies shared Event Contracts, envelopes, and schemas.
 
-Publishing responsibility belongs to the corresponding Engine.
+Event governance distinguishes schema custody, semantic ownership, and runtime publication authority:
 
-Ownership of an Event schema does not imply runtime ownership.
+- a capability Engine or domain owns the semantics of its domain Events;
+- an Adapter or integration domain owns the semantics of its integration Events;
+- the appropriate platform domain owns platform or Infrastructure Event semantics;
+- an authorized runtime publisher MAY be an Engine, Adapter, or other component appropriate to the Event type.
+
+A runtime publisher MUST publish only Events whose semantics it is authorized to represent. An Adapter MUST NOT publish an Engine-owned domain Event as though it were the semantic owner. Core schema custody does not imply semantic ownership or runtime publication authority.
+
+No Engine or other component is universally required to publish an Event when no meaningful completed fact exists.
 
 ---
 
@@ -301,6 +312,8 @@ This decision should be reviewed before Platform v2.0.0 or if the platform adopt
 | Version | Date | Description |
 |----------|------|-------------|
 | 1.0.0 | 2026-07-10 | Initial architecture decision. |
+| 2.0.0 | 2026-07-19 | Clarified Contract custody and inward dependency direction. |
+| 2.1.0 | 2026-07-19 | Distinguished platform invariants from capability behavior and clarified Event custody, semantics, and publication authority. |
 
 ---
 

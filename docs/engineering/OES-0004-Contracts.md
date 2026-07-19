@@ -3,10 +3,10 @@
 | Field | Value |
 |--------|--------|
 | **Status** | Active |
-| **Version** | 1.0.0 |
+| **Version** | 2.0.0 |
 | **Owner** | Project Maintainers |
 | **Created** | 2026-07-09 |
-| **Updated** | 2026-07-09 |
+| **Updated** | 2026-07-19 |
 | **Applies To** | All Contracts |
 
 ---
@@ -97,27 +97,21 @@ Memory Engine
 
 # Ownership
 
-Every Contract has exactly one owner.
+Contract governance MUST distinguish three responsibilities:
+
+- **Contract custody**: the Core is the canonical custodian of shared architectural Contract definitions, including shared schemas, identifiers, interfaces, event envelopes, cross-capability definitions, and their compatibility and versioning rules.
+- **Domain semantic ownership**: exactly one capability Engine owns the behavior and domain meaning expressed through a capability Contract.
+- **Implementation responsibility**: an implementation layer implements or translates the Contract without changing its semantics.
+
+Core custody MUST NOT imply ownership of capability behavior. Providers and Adapters MUST NOT become semantic owners merely because they implement or translate a Contract.
 
 Examples
 
-Voice Engine
+The Voice Engine owns Voice behavior; Core custodies shared Voice Contracts; a Provider may implement a provider-facing Contract.
 
-owns
+The Memory Engine owns Memory behavior; Core custodies shared Memory Contracts; an implementation layer may implement persistence without owning Memory semantics.
 
-SpeechToText Contract
-
-Memory Engine
-
-owns
-
-Memory Repository Contract
-
-Identity Engine
-
-owns
-
-Identity Provider Contract
+The Identity Engine owns Identity behavior; Core custodies shared Identity Contracts; an Adapter or Provider may translate or implement them without owning Identity semantics.
 
 ---
 
@@ -135,7 +129,7 @@ Possible failures
 
 Version
 
-Owner
+Domain semantic owner and schema custodian
 
 Expected guarantees
 
@@ -167,7 +161,9 @@ Dependencies always point toward Contracts.
 
 Never toward implementations.
 
-Correct
+The following is runtime interaction flow, not source-code dependency direction.
+
+Correct runtime interaction
 
 Reasoning Engine
 
@@ -178,6 +174,8 @@ Memory Contract
 ↓
 
 Memory Engine
+
+Both Engine implementations depend on the Core-custodied Memory Contract; the Contract does not source-depend on either Engine.
 
 Incorrect
 

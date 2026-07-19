@@ -8,13 +8,13 @@
 
 | \*\*Status\*\* | Active |
 
-| \*\*Version\*\* | 1.0.0 |
+| \*\*Version\*\* | 1.0.1 |
 
 | \*\*Owner\*\* | Project Maintainers |
 
 | \*\*Created\*\* | 2026-07-09 |
 
-| \*\*Updated\*\* | 2026-07-09 |
+| \*\*Updated\*\* | 2026-07-19 |
 
 | \*\*Applies To\*\* | Entire Repository |
 
@@ -237,6 +237,8 @@ Examples:
 \- Voice Engine
 
 \- Memory Engine
+
+\- Knowledge Engine
 
 \- Skill Engine
 

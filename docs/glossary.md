@@ -3,10 +3,10 @@
 | Field | Value |
 |--------|--------|
 | **Status** | Active |
-| **Version** | 1.0.0 |
+| **Version** | 1.4.0 |
 | **Owner** | Project Maintainers |
 | **Created** | 2026-07-09 |
-| **Updated** | 2026-07-09 |
+| **Updated** | 2026-07-19 |
 | **Applies To** | Entire Platform |
 
 ---
@@ -17,7 +17,7 @@ This document defines the official vocabulary of O.R.I.O.N.
 
 Every document, implementation, specification, and AI agent should use these definitions consistently.
 
-If multiple interpretations exist, the definitions in this document take precedence.
+If multiple interpretations exist, apply `DOCUMENT-AUTHORITY.md`. This glossary standardizes vocabulary but does not override ADRs, Specifications, or Engineering Standards.
 
 ---
 
@@ -45,11 +45,15 @@ Capabilities are owned by Engines.
 
 An Engine is the owner of a capability.
 
+In architectural language, an Engine is the logical capability-owning component whose behavior is realized at runtime. It is not a deployment unit or a synonym for a service.
+
 Each Engine is responsible for exactly one domain of intelligence.
 
 Engines expose Contracts.
 
-Engines publish Events.
+Capability Engines own capability behavior and domain semantics. The Core remains the canonical custodian of shared architectural Contract definitions.
+
+Engines publish domain Events when a meaningful completed fact exists and they are authorized to represent its semantics.
 
 Engines never communicate directly with other Engines.
 
@@ -58,6 +62,7 @@ Examples:
 - Brain Engine
 - Voice Engine
 - Memory Engine
+- Knowledge Engine
 - Planning Engine
 - Identity Engine
 
@@ -66,6 +71,8 @@ Examples:
 ## Skill
 
 A Skill extends the platform by orchestrating one or more capabilities.
+
+A Skill is an executable capability package that exposes operations by coordinating Engine- or Adapter-owned Contracts. It does not become the semantic owner of the Engine capabilities it invokes.
 
 Skills never own intelligence.
 
@@ -153,6 +160,10 @@ Examples:
 
 Events are immutable.
 
+The Core custodies shared Event Contracts and schemas. A capability or domain owns Event semantics. An Engine, Adapter, or other authorized component may publish only Events whose semantics it is authorized to represent.
+
+Domain Events, integration Events, and platform or Infrastructure Events retain distinct semantic owners. Runtime publication does not transfer semantic ownership.
+
 ---
 
 ## Core
@@ -169,6 +180,8 @@ The Core contains:
 - Exceptions
 
 The Core must remain independent from frameworks and providers.
+
+The Core defines shared domain language, platform-wide constraints, architectural policies, and cross-capability invariants. Capability-specific business rules, semantic decisions, and behavior remain owned by the applicable Engine.
 
 ---
 
@@ -190,7 +203,7 @@ Examples:
 
 ## Context
 
-Context represents the information required to make intelligent decisions.
+Context represents the temporary selection or projection of information relevant to the current operational or reasoning situation.
 
 Context may include:
 
@@ -202,23 +215,71 @@ Context may include:
 - Time
 - Location
 
+Context may reference or project Memory and Knowledge without transferring ownership.
+
 Context is transient.
+
+### Context Lineage
+
+A Context Lineage represents the logical evolution of related Context Revisions and has one stable Context Lineage Identity.
+
+### Context Revision
+
+A Context Revision is one immutable representation of Context within a lineage. Each revision has its own unique Context Revision Identity and a revision number or equivalent ordering semantic.
+
+### Active Context
+
+Active Context is a Context Revision in the Active lifecycle state and valid for consumption. It is not a separate identity model.
+
+### Context Snapshot
+
+A Context Snapshot is an immutable materialized representation of one Context Revision. Retention for operational evidence does not make it cognitive Memory.
+
+### Logical Reconstruction
+
+Logical Reconstruction creates a logically equivalent Context Revision from authoritative, version-identifiable source revisions when those revisions remain available.
+
+### Exact Replay
+
+Exact Replay reproduces the exact Context Revision consumed by a reasoning cycle and requires sufficient retained immutable historical evidence.
 
 ---
 
 ## Memory
 
-Memory represents persistent knowledge.
+Memory represents intentionally retained experience and user continuity.
 
 Memory is not conversation history.
 
 Memory includes:
 
+- Episodic experiences
+- Intentionally retained interaction information
 - Preferences
-- Facts
-- Relationships
-- Learned behavior
-- Long-term knowledge
+- Provenance that an assertion or interaction occurred
+
+Memory is classified by semantic role, not by persistence.
+
+---
+
+## Knowledge
+
+Knowledge represents justified claims accepted by the platform as sufficiently true for use.
+
+Knowledge includes:
+
+- Validated facts
+- Domain knowledge
+- Validated procedures
+- Stable platform definitions
+
+Knowledge preserves provenance and validation state.
+
+Knowledge is an independent platform capability owned exclusively by the Knowledge Engine.
+
+The Knowledge Engine governs claim acceptance, validation state, provenance requirements, lifecycle and version semantics, and contradiction resolution within the Knowledge domain.
+
+The Core may custody shared Knowledge definitions, but it does not own Knowledge behavior. Providers and Adapters may support or supply information, but they do not determine what becomes accepted Knowledge.
 
 ---
 
@@ -252,11 +313,21 @@ Intelligence emerges through orchestration.
 
 ## Brain
 
-The Brain Engine coordinates platform execution.
+The Brain Engine orchestrates cognitive execution across Context, Reasoning, Planning, Memory, Knowledge, and Skill invocation through Contracts.
 
-It does not own every capability.
+It manages high-level cognitive flow and may assemble the final cognitive result from capability outputs. It does not perform domain reasoning, replace the Reasoning Engine, independently generate reasoning content, or own the semantics of coordinated capabilities.
 
-It orchestrates capabilities.
+## Reasoning Engine
+
+The Reasoning Engine owns inference and reasoning over exactly one immutable Active Context Revision. It produces reasoning outcomes and may propose candidate responses, conclusions, decisions, or next actions.
+
+It does not orchestrate the full cognitive pipeline, execute Skills, own Planning or Context, or perform final transport, presentation, voice rendering, or Client delivery.
+
+## Security Engine
+
+The Security Engine owns security policy semantics, authorization decision semantics, and Security-domain rules.
+
+Engines, Gateways, Adapters, Providers, and Infrastructure may enforce applicable Security-owned decisions at protected boundaries. Enforcement does not transfer Security semantic ownership and does not require direct synchronous coupling to the Security Engine.
 
 ---
 

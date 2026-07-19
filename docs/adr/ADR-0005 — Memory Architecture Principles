@@ -3,10 +3,10 @@
 | Field | Value |
 |--------|--------|
 | **Status** | Active |
-| **Version** | 1.0.0 |
+| **Version** | 2.1.0 |
 | **Owner** | Project Maintainers |
 | **Created** | 2026-07-10 |
-| **Updated** | 2026-07-10 |
+| **Updated** | 2026-07-19 |
 | **Decision Type** | Architecture Decision |
 
 ---
@@ -46,9 +46,27 @@ Memory is not a database.
 
 Memory is not conversation history.
 
-Memory is an intentional knowledge system owned exclusively by the Memory Engine.
+Memory represents intentionally retained experience and user continuity.
 
-No other Engine may store persistent user knowledge independently.
+Memory answers:
+
+> **"What have I experienced?"**
+
+Memory MUST NOT be used as a generic synonym for persistent information or Knowledge.
+
+Knowledge represents justified claims accepted by the platform as sufficiently true for use.
+
+Knowledge answers:
+
+> **"What is accepted as true?"**
+
+Context represents the temporary selection or projection of information relevant to the current operational or reasoning situation.
+
+Context answers:
+
+> **"What is relevant right now?"**
+
+The semantic boundary between Memory, Knowledge, and Context is determined by role and authority, not by persistence.
 
 ---
 
@@ -68,7 +86,7 @@ Every memory should be explainable.
 
 # Ownership
 
-Persistent memory belongs to the Memory Engine.
+Intentionally retained experience and user continuity are governed exclusively by the Memory Engine.
 
 Other Engines may:
 
@@ -80,31 +98,64 @@ They must never bypass the Memory Engine.
 
 ---
 
-# Memory Categories
+# Cognitive Partition
 
-The platform recognizes six memory categories.
+The platform recognizes three distinct cognitive roles.
 
-## Conversation Memory
+## Memory
 
-Short-lived.
+Memory includes:
 
-Supports the current conversation.
+- episodic experiences;
+- intentionally retained interaction information;
+- user preferences learned or explicitly expressed;
+- provenance that an assertion or interaction occurred.
 
-Automatically expires.
+A user assertion is initially represented as Memory: it records that the assertion occurred. This does not make the asserted claim accepted Knowledge.
+
+## Knowledge
+
+Knowledge includes:
+
+- validated facts;
+- domain knowledge;
+- validated procedures;
+- stable platform definitions.
+
+Knowledge MUST preserve provenance and validation state.
+
+The Knowledge Engine is the single architectural owner of the Knowledge capability. It governs claim acceptance, validation state, provenance requirements, Knowledge lifecycle and version semantics, and contradiction resolution within the Knowledge domain.
+
+Memory MAY provide evidence or provenance for a claim but MUST NOT promote information into Knowledge by itself.
+
+## Context
+
+Context includes:
+
+- current capability availability;
+- current operational or system state;
+- temporary reasoning and session state;
+- the selection or projection of relevant Memory and Knowledge.
+
+Context MAY reference or project Memory and Knowledge but MUST NOT silently reclassify them or assume durable ownership of them.
 
 ---
 
-## Context Memory
+# Memory Categories
 
-Temporary execution state.
+The platform recognizes three canonical Memory categories.
+
+## Episodic Memory
+
+Intentionally retained experiences and interactions.
 
 Examples:
 
-- active workflow
-- current device
-- temporary variables
+- completed tasks;
+- important interactions;
+- historical events intentionally retained from prior operational state.
 
-Expires automatically.
+Raw conversation history and temporary conversation state are not automatically Memory.
 
 ---
 
@@ -118,51 +169,55 @@ Examples:
 - preferred voice
 - notification preferences
 
-May be updated by the user.
+May be learned or explicitly expressed and updated by the user.
 
 ---
 
-## Personal Knowledge
+## Assertion Memory
 
-Long-term information intentionally remembered.
+Provenance that a user or another authorized source made an assertion.
 
 Examples:
 
-- favorite foods
-- recurring routines
-- project preferences
-- frequently used locations
+- a user stated their profession;
+- a user identified a frequently used location;
+- a source asserted a relationship between two subjects.
 
-Requires high confidence before storage.
+Assertion Memory records the occurrence and provenance of the assertion. If the asserted claim is validated and accepted as true, that claim MAY exist separately as Knowledge.
 
 ---
 
-## Platform Knowledge
+# Classification Rules
 
-Knowledge about the platform itself.
+The following rules are canonical.
 
-Examples:
+- Episodic experience belongs to Memory.
+- User preference belongs to Memory.
+- Intentionally retained interaction information belongs to Memory.
+- A user assertion is initially represented as Memory provenance that the assertion occurred.
+- A validated claim MAY exist as Knowledge.
+- A Memory item and a Knowledge item MAY reference the same real-world subject, but MUST NOT represent the same semantic claim.
+- General or validated procedures belong to Knowledge.
+- The experience of executing a procedure belongs to Memory when intentionally retained.
+- Stable platform definitions belong to Knowledge.
+- Capability definitions MAY be Knowledge.
+- Current capability availability belongs to Context.
+- Current operational or system state belongs to Context.
+- A historical event derived from operational state MAY later be intentionally retained as Memory.
+- Verified external facts belong to Knowledge.
+- Context selects relevant Memory and Knowledge without transferring ownership.
 
-- installed Skills
-- connected services
-- registered devices
-- available capabilities
+Working Memory, when used to mean temporary reasoning or session state, is Context rather than a canonical persistent Memory category.
 
-Managed internally.
+Semantic Memory, when used to mean accepted facts or truths, is Knowledge.
 
----
+Procedural Memory, when used to mean general or validated procedures, is Knowledge.
 
-## System Memory
+System Memory is not a canonical category. System information is classified by semantic role: current operational state is Context; stable platform definitions are Knowledge; intentionally retained historical system events are Memory.
 
-Operational state required by the platform.
+Platform Knowledge is Knowledge.
 
-Examples:
-
-- execution checkpoints
-- automation state
-- synchronization metadata
-
-Invisible to end users.
+Personal Knowledge is classified by semantic role: a retained assertion or experience is Memory, while an accepted or validated claim is Knowledge.
 
 ---
 
@@ -314,11 +369,11 @@ Only the Memory Engine determines whether generated information becomes memory.
 
 # Adapters
 
-Adapters may synchronize external knowledge.
+Adapters may synchronize external claims and facts.
 
-Imported information is not automatically considered platform memory.
+Imported information is not automatically considered Memory or accepted Knowledge.
 
-Synchronization requires validation.
+Verified external facts may be proposed as Knowledge, but only the Knowledge capability governs whether they become accepted Knowledge. An imported historical event may become Memory only when it is intentionally retained as experience.
 
 ---
 
@@ -340,7 +395,7 @@ Separating memory from storage:
 
 Rejected.
 
-Business capabilities should not own user knowledge.
+Skills should not own intentionally retained user experience or accepted Knowledge.
 
 ---
 
@@ -410,6 +465,8 @@ Review before introducing autonomous learning, distributed memory, or multi-user
 | Version | Date | Description |
 |----------|------|-------------|
 | 1.0.0 | 2026-07-10 | Initial architecture decision. |
+| 2.0.0 | 2026-07-19 | Clarified the canonical semantic boundary between Memory, Knowledge, and Context. |
+| 2.1.0 | 2026-07-19 | Aligned Memory evidence and provenance with Knowledge capability authority. |
 
 ---
 

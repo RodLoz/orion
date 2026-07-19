@@ -3,10 +3,10 @@
 | Field | Value |
 |--------|--------|
 | **Status** | Active |
-| **Version** | 1.0.0 |
+| **Version** | 1.2.0 |
 | **Owner** | Project Maintainers |
 | **Created** | 2026-07-09 |
-| **Updated** | 2026-07-09 |
+| **Updated** | 2026-07-19 |
 | **Applies To** | O.R.I.O.N. Core |
 
 ---
@@ -53,20 +53,29 @@ The Core must remain completely technology independent.
 
 # Responsibilities
 
-The Core owns:
+The Core is the canonical custodian of shared architectural Contracts and owns the platform definitions listed below:
 
 - Domain Models
 - Contracts
 - Events
 - Value Objects
 - Exceptions
-- Policies
+- Architectural Policy Definitions
+- Platform-Wide Constraints
 - Types
 - Constants
 - Identifiers
 - Capability Definitions
 
 The Core never owns implementations.
+
+The Core MAY define shared domain language, cross-capability invariants, platform-wide constraints, architectural policies, and the types or Contracts through which policies are expressed.
+
+The Core MUST NOT own capability-specific business rules, semantic decisions, or behavior. Those responsibilities remain with the owning capability Engine. Custody of a shared model or policy definition does not make the Core a second semantic owner.
+
+The Core may define or custody shared Knowledge Contracts, schemas, identifiers, and domain types.
+
+The Core does not own Knowledge behavior, claim acceptance, validation state, provenance governance, lifecycle semantics, version semantics, or contradiction resolution. Those responsibilities belong to the Knowledge Engine.
 
 ---
 
@@ -115,7 +124,9 @@ version.py
 
 # Contracts
 
-The Core defines every Contract used by the platform.
+The Core custodies shared architectural Contracts used by the platform, including shared schemas, identifiers, interfaces, event envelopes, and cross-capability definitions.
+
+Contract custody governs shared definitions, compatibility, and versioning. It does not transfer capability behavior or domain semantic ownership from an Engine to the Core. Providers, Adapters, and other implementation layers implement or translate Contracts without changing their semantics.
 
 Examples:
 
@@ -171,7 +182,9 @@ Session
 
 Workflow
 
-Models contain business rules.
+Models define shared domain language and MAY enforce platform-wide or cross-capability invariants.
+
+Models MUST NOT become owners of capability-specific business behavior.
 
 Models do not depend on infrastructure.
 
@@ -205,21 +218,19 @@ Locale
 
 # Policies
 
-Policies describe platform rules.
+Policies in the Core describe architectural policies, platform-wide constraints, cross-capability invariants, or shared policy Contracts.
 
 Examples:
 
 Permission Policy
 
-Memory Policy
+Cross-Capability Compatibility Policy
 
-Security Policy
+Platform Privacy Constraint
 
-Skill Policy
+Security Policy Contract
 
-Policies contain decisions.
-
-Not implementations.
+Capability-specific policy decisions and semantic rules remain with their owning Engines. Core policy custody defines shared language and constraints, not capability behavior or implementation.
 
 ---
 
@@ -279,13 +290,15 @@ ContractViolation
 
 # Capability Registry
 
-Every capability should be registered in the Core.
+The Core defines capability identities and custodies capability-registry Contracts.
 
 Examples:
 
 VOICE
 
 MEMORY
+
+KNOWLEDGE
 
 PLANNING
 
@@ -299,11 +312,20 @@ SECURITY
 
 AUTOMATION
 
-The registry defines what O.R.I.O.N. can do.
+These stable definitions describe what O.R.I.O.N. can do. Mutable runtime availability, registration instances, selection, and health state remain outside the Core behind Core-custodied Contracts.
 
 ---
 
-# Dependency Rules
+# Source-Code Dependency Rules
+
+The canonical source-code dependency direction is:
+
+```text
+Clients -> Gateway / Application Boundary -> Engines / Skills -> Core Abstractions
+Providers / Adapters / Infrastructure ------------------------> Core Abstractions
+```
+
+These arrows do not describe runtime call, data, or event flow. The Core MUST NOT depend on Engines, Skills, Providers, Adapters, Infrastructure, or Clients. Engines MUST NOT depend directly on concrete Providers, Adapters, or Infrastructure implementations. Skills MUST NOT depend directly on concrete external systems.
 
 Allowed
 
@@ -397,7 +419,7 @@ Breaking changes should be extremely rare.
 
 The Core must maintain:
 
-100% unit test coverage for domain rules.
+Comprehensive unit test coverage for domain rules, proportionate to their criticality.
 
 Contract validation.
 

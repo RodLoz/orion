@@ -3,10 +3,10 @@
 | Field | Value |
 |--------|--------|
 | **Status** | Active |
-| **Version** | 1.0.0 |
+| **Version** | 1.1.0 |
 | **Owner** | Project Maintainers |
 | **Created** | 2026-07-10 |
-| **Updated** | 2026-07-10 |
+| **Updated** | 2026-07-19 |
 | **Applies To** | Entire Platform |
 
 ---
@@ -113,7 +113,11 @@ Authorization answers:
 
 What are you allowed to do?
 
-Authorization must be enforced by the Security Engine.
+The Security Engine owns security policy semantics, authorization decision semantics, and Security-domain rules.
+
+Enforcement occurs at the appropriate protected invocation or boundary point. Engines, Gateways, Adapters, Providers, and Infrastructure MAY enforce applicable decisions, but MUST use Security-owned policy decisions, Contracts, or governed policy artifacts and MUST NOT acquire Security semantic ownership.
+
+No component may bypass Security policy. Enforcement does not require every action to synchronously call the Security Engine and MUST NOT introduce direct Engine-to-Engine implementation coupling.
 
 ---
 

@@ -3,10 +3,10 @@
 | Field | Value |
 |--------|--------|
 | **Status** | Active |
-| **Version** | 1.0.0 |
+| **Version** | 1.1.0 |
 | **Owner** | Project Maintainers |
 | **Created** | 2026-07-10 |
-| **Updated** | 2026-07-10 |
+| **Updated** | 2026-07-19 |
 | **Applies To** | All Documentation |
 
 ---
@@ -31,6 +31,7 @@ This standard applies to:
 - Engineering Standards (OES)
 - Architecture Decision Records (ADR)
 - Architecture Specifications (ARCH)
+- Concept Specifications (CONCEPT)
 - Engine Specifications (ENGINE)
 - Flow Specifications (FLOW)
 - API Specifications
@@ -170,6 +171,12 @@ Architecture Specifications
 
 ```
 ARCH-0001-Core-Architecture.md
+```
+
+Concept Specifications
+
+```
+CONCEPT-0001-Memory-Model.md
 ```
 
 Engine Specifications

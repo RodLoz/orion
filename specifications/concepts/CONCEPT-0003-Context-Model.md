@@ -1,29 +1,13 @@
----
-title: Context Model
-id: CONCEPT-0003
-version: 1.0.0
-status: Draft
-owner: Architecture
-category: Concept Specification
-authors:
-  - O.R.I.O.N. Architecture
-created: 2026-07-11
-updated: 2026-07-11
-related:
-  - ADR-0002
-  - ADR-0005
-  - OES-0002
-  - OES-0003
-  - OES-0004
-  - MEMORY-MODEL
-  - KNOWLEDGE-MODEL
----
+# CONCEPT-0003 — Context Model
 
-# Context Model
-
-> **Status**
->
-> Draft
+| Field | Value |
+|--------|--------|
+| **Status** | Active |
+| **Version** | 3.1.0 |
+| **Owner** | O.R.I.O.N. Architecture |
+| **Created** | 2026-07-11 |
+| **Updated** | 2026-07-19 |
+| **Applies To** | Entire Platform |
 
 ---
 
@@ -31,7 +15,7 @@ related:
 
 The Context Model defines how O.R.I.O.N. represents, composes, evolves, and expires the information that is relevant at a specific moment in time.
 
-Unlike Memory, which preserves historical experience, or Knowledge, which represents durable truths, Context is intentionally ephemeral. It exists solely to enable reasoning over the current situation and is continuously reconstructed as the environment, user interactions, and system state evolve.
+Unlike Memory, which preserves intentionally retained experience and user continuity, or Knowledge, which represents justified claims accepted as sufficiently true, Context is intentionally ephemeral. It exists solely to select or project information relevant to the current situation and evolves as the environment, user interactions, and system state evolve.
 
 This specification establishes the conceptual foundations of Context within the O.R.I.O.N. architecture, defining its principles, lifecycle, composition rules, identity, metadata, relationships with other cognitive models, and its role in enabling explainable, deterministic, and capability-oriented reasoning.
 
@@ -52,7 +36,7 @@ The goal of this document is to provide a technology-independent specification t
 8. Conceptual Model
 9. Core Components
 10. Context Lifecycle
-11. Context Identity
+11. Context Lineage and Revision Identity
 12. Context Metadata
 13. Context Composition
 14. Context Resolution
@@ -76,7 +60,7 @@ Reading Guide
 
 The purpose of the Context Model is to establish a unified conceptual framework for representing the information that is relevant to reasoning at a specific moment in time.
 
-Within O.R.I.O.N., every intelligent decision depends on the ability to understand not only what is permanently true (Knowledge) or what has happened in the past (Memory), but also what is currently occurring across the user, the environment, the platform, and the execution state.
+Within O.R.I.O.N., every intelligent decision depends on the ability to understand not only what is accepted as true (Knowledge) or what has been intentionally retained as experience (Memory), but also what is relevant across the user, the environment, the platform, and the execution state right now.
 
 The Context Model provides this capability by defining a temporary, composable, and continuously evolving representation of the operational state of the system.
 
@@ -106,7 +90,7 @@ To operate effectively, the platform must continuously answer a fundamental ques
 
 The Context Model exists to provide this answer.
 
-Rather than representing permanent knowledge or historical experiences, Context captures the transient conditions under which reasoning occurs. It represents the current operational reality of the platform, combining information from the user, the environment, active workflows, system state, and external events into a unified cognitive representation.
+Rather than representing accepted Knowledge or intentionally retained experiences, Context captures the transient conditions under which reasoning occurs. It represents the current operational reality of the platform, selecting or projecting relevant information from the user, the environment, active workflows, system state, Memory, and Knowledge into a unified cognitive representation.
 
 This model enables every Engine, Skill, and planning component to reason from a shared understanding of the present moment.
 
@@ -114,7 +98,7 @@ As O.R.I.O.N. evolves toward multi-agent collaboration, distributed execution, a
 
 The long-term vision of the Context Model is to establish a technology-independent abstraction capable of representing the operational state of the platform regardless of implementation details, execution environments, providers, or artificial intelligence models.
 
-By separating temporary contextual information from historical Memory and stable Knowledge, O.R.I.O.N. ensures that reasoning remains adaptive without compromising architectural integrity or long-term maintainability.
+By separating temporary contextual information from intentionally retained Memory and accepted Knowledge, O.R.I.O.N. ensures that reasoning remains adaptive without compromising architectural integrity or long-term maintainability.
 
 # 3. Scope
 
@@ -143,16 +127,20 @@ The following definitions establish the terminology used throughout this specifi
 
 | Term | Definition |
 |------|------------|
-| **Context** | The temporary representation of all information relevant to reasoning at a specific moment in time. |
-| **Context Fragment** | An independent unit of contextual information that contributes to the construction of the Active Context. |
-| **Active Context** | The complete contextual representation currently available to the reasoning process. |
-| **Context Source** | Any component capable of providing information used to construct Context. |
+| **Context** | The temporary selection or projection of information relevant to the current operational or reasoning situation. |
+| **Context Fragment** | An independent unit of contextual information that contributes to the construction of a Context Revision. |
+| **Active Context** | A Context Revision whose lifecycle state is Active and which is valid for consumption. |
+| **Context Source** | A Context-facing role that contributes information through a domain-owned Contract while preserving the authoritative owner and source-revision semantics. |
 | **Context Resolution** | The process of resolving conflicting or overlapping contextual information from multiple sources. |
 | **Context Lifetime** | The period during which a Context remains valid for reasoning purposes. |
-| **Context Identity** | The unique identity assigned to a specific Context instance. |
-| **Context Version** | A logical revision representing the evolution of a Context over time. |
-| **Context Snapshot** | An immutable representation of Context at a specific point in time. |
-| **Reasoning Cycle** | A complete execution cycle during which a single immutable Context is consumed by the Reasoning Engine. |
+| **Context Lineage** | The logical evolution of related Context Revisions. |
+| **Context Lineage Identity** | The stable identity shared by every Context Revision in one Context Lineage. |
+| **Context Revision** | One immutable representation of Context within a Context Lineage. |
+| **Context Revision Identity** | The unique identity assigned to one Context Revision. |
+| **Context Snapshot** | An immutable materialized representation of one Context Revision. |
+| **Logical Reconstruction** | Construction of a logically equivalent Context Revision from authoritative, version-identifiable source revisions. |
+| **Exact Replay** | Exact reproduction of the Context Revision consumed by a reasoning cycle from sufficient immutable historical evidence. |
+| **Reasoning Cycle** | A complete execution cycle during which exactly one immutable Active Context Revision is consumed by the Reasoning Engine. |
 
 # 5. Terminology Conventions
 
@@ -164,7 +152,7 @@ These conventions apply to all current and future O.R.I.O.N. specifications unle
 |------------|---------|---------|
 | **PascalCase** | Architectural concepts, engines, and major platform components. | `Context`, `Memory`, `Knowledge`, `Reasoning Engine` |
 | *italic* | First introduction of a new conceptual term. | *Context Fragment* |
-| `code` | Technical identifiers, interfaces, properties, contracts, or implementation examples. | `contextId`, `ContextBuilder`, `ContextSnapshot` |
+| `code` | Technical identifiers, interfaces, properties, contracts, or implementation examples. | `lineageId`, `revisionId`, `ContextBuilder` |
 | **UPPERCASE** | Reserved keywords, logical states, or platform constants. | `ACTIVE`, `EXPIRED`, `INVALID` |
 
 ---
@@ -206,12 +194,15 @@ Unless otherwise specified, the following terminology is used consistently throu
 |------|-------------|
 | **Context** | The architectural concept representing temporary operational information. |
 | **context** | A concrete instance of Context. |
-| **Active Context** | The immutable Context currently consumed by the Reasoning Engine. |
+| **Active Context** | A Context Revision in the Active lifecycle state and valid for consumption. It is not a separate identity model. |
 | **Context Fragment** | An independently produced portion of contextual information. |
-| **Context Builder** | The component responsible for assembling Context Fragments into an Active Context. |
-| **Context Source** | Any component capable of contributing information to Context construction. |
-| **Context Snapshot** | A preserved immutable representation of a Context at a particular moment. |
-| **Context Version** | A logical revision generated after Context evolution. |
+| **Context Builder** | The component responsible for assembling Context Fragments into a Context Revision. |
+| **Context Source** | A Context-facing role that contributes information through a domain-owned Contract while preserving the authoritative owner and source-revision semantics. |
+| **Context Lineage** | The logical evolution shared by related Context Revisions. |
+| **Context Lineage Identity** | The stable identity of one Context Lineage. |
+| **Context Revision** | One immutable representation of Context within a lineage. |
+| **Context Revision Identity** | The unique identity of one Context Revision. |
+| **Context Snapshot** | An immutable materialized representation associated with one Context Revision Identity. |
 
 ---
 
@@ -223,6 +214,7 @@ Examples include:
 
 - Context Engine
 - Memory Engine
+- Knowledge Engine
 - Planning Engine
 - Identity Engine
 - Skill Engine
@@ -311,9 +303,9 @@ The platform must be capable of explaining which contextual information influenc
 
 Context SHOULD reference existing information whenever possible.
 
-Historical information belongs to Memory.
+Intentionally retained experience and user continuity belong to Memory.
 
-Permanent information belongs to Knowledge.
+Justified claims accepted as sufficiently true belong to Knowledge.
 
 Context only assembles what is currently relevant.
 
@@ -323,7 +315,7 @@ Context only assembles what is currently relevant.
 
 Context MUST evolve as new information becomes available.
 
-Instead of modifying previous Context instances, the platform generates new versions representing the updated operational state.
+Instead of modifying an existing Context Revision, the platform creates a new revision representing the updated operational state within the applicable lineage.
 
 ---
 
@@ -352,13 +344,13 @@ The following responsibilities are outside the scope of Context.
 
 Context is not responsible for preserving historical information.
 
-Historical experiences belong exclusively to the Memory Model.
+Intentionally retained historical experiences belong to the Memory Model.
 
 ---
 
 ## 6.2 NG-002 — Knowledge Representation
 
-Context does not define permanent truths, facts, or domain expertise.
+Context does not define validated facts, domain knowledge, validated procedures, or stable platform definitions.
 
 Such information belongs to the Knowledge Model.
 
@@ -449,9 +441,9 @@ It answers questions such as:
 - What capabilities are currently available?
 - Which constraints exist at this moment?
 
-Historical events belong to Memory.
+Historical events intentionally retained as experience belong to Memory.
 
-Permanent truths belong to Knowledge.
+Claims accepted as sufficiently true belong to Knowledge.
 
 ---
 
@@ -482,8 +474,8 @@ Instead, it references information originating from authoritative sources.
 
 For example:
 
-- historical information originates from Memory
-- permanent facts originate from Knowledge
+- intentionally retained experience originates from Memory
+- accepted claims originate from Knowledge
 - device state originates from Providers
 - identity information originates from the Identity Engine
 
@@ -493,29 +485,29 @@ This principle minimizes duplication and preserves consistency across the platfo
 
 ## 7.5 CP-005 — Context Is Immutable During Reasoning
 
-Once a reasoning cycle begins, the Active Context becomes immutable.
+Once a reasoning cycle begins, the Active Context Revision is immutable.
 
 No component may modify the Context currently being consumed by the Reasoning Engine.
 
-Changes occurring during execution SHALL generate a new Context Version.
+Changes occurring during execution SHALL initiate creation of a new Context Revision.
 
 This guarantees deterministic reasoning and reproducibility.
 
 ---
 
-## 7.6 CP-006 — Context Evolves Through Versioning
+## 7.6 CP-006 — Context Evolves Through Revisions
 
 Context is never modified in place.
 
-Each meaningful change results in the creation of a new logical Context Version.
+Each meaningful change results in the creation of a new Context Revision within the applicable Context Lineage.
 
-Previous versions MAY remain available for debugging, auditing, or explainability purposes.
+Each revision has its own unique Context Revision Identity while the Context Lineage Identity remains stable across related revisions.
 
 ---
 
 ## 7.7 CP-007 — Context Is Explainable
 
-Every reasoning outcome SHOULD be traceable to the Context that produced it.
+Every reasoning outcome SHOULD be traceable to the Context Revision Identity of the Active Context Revision that produced it.
 
 The platform SHOULD be capable of identifying:
 
@@ -528,13 +520,13 @@ Explainability is a first-class architectural requirement.
 
 ---
 
-## 7.8 CP-008 — Context Is Reconstructable
+## 7.8 CP-008 — Context Supports Conditional Reconstruction
 
-Context SHALL always be reconstructable from its authoritative sources.
+Context SHOULD support Logical Reconstruction when authoritative, version-identifiable source revisions remain available.
 
-Loss of an Active Context MUST NOT imply loss of information.
+Logical Reconstruction produces a logically equivalent Context Revision. It does not guarantee exact reproduction.
 
-This principle enables resilience, recovery, replay, and distributed execution.
+Exact Replay requires retained immutable historical evidence sufficient to reproduce the exact Context Revision consumed by a reasoning cycle.
 
 ---
 
@@ -571,7 +563,7 @@ Rather than existing as a monolithic object, Context is composed of multiple ind
 
 Each fragment represents a distinct perspective of the system, allowing Context to evolve incrementally while preserving loose coupling between capabilities.
 
-The resulting Active Context provides a unified representation that can be safely consumed by reasoning, planning, and execution engines.
+The resulting Active Context Revision provides a unified representation that can be safely consumed by reasoning, planning, and execution engines.
 
 At no point does Context become the authoritative owner of information.
 
@@ -643,7 +635,7 @@ Every Context Fragment contributes information from a specific domain without tr
 For example:
 
 - Identity information remains owned by the Identity Engine.
-- Historical information remains owned by the Memory Engine.
+- Intentionally retained experience remains owned by Memory.
 - Domain knowledge remains owned by the Knowledge Engine.
 - Device information remains owned by infrastructure providers.
 
@@ -655,21 +647,22 @@ This design minimizes duplication, reduces synchronization complexity, and prese
 
 ## Active Context
 
-The result of Context composition is called the **Active Context**.
+The result of successful Context composition and validation is a **Context Revision** in the Active lifecycle state, referred to as **Active Context**.
 
-The Active Context represents the complete cognitive state available to the platform during a single reasoning cycle.
+Active Context is not a separate identity model. It is an immutable Context Revision that is valid for consumption.
 
-An Active Context:
+Every Active Context Revision:
 
-- has a unique identity,
-- has a logical version,
+- has a unique Context Revision Identity,
+- belongs to one stable Context Lineage Identity,
+- has a revision number or equivalent ordering semantic,
 - is immutable,
 - contains references to authoritative sources,
 - expires when no longer relevant.
 
-Only one Active Context is consumed during a single reasoning cycle.
+Exactly one immutable Active Context Revision is consumed during a single reasoning cycle.
 
-If the operational reality changes while reasoning is in progress, a new Active Context SHALL be generated for the next reasoning cycle.
+If operational reality changes while reasoning is in progress, the current Active Context Revision remains unchanged and a new revision begins its own creation lifecycle for a subsequent reasoning cycle.
 
 ---
 
@@ -685,7 +678,7 @@ If the operational reality changes while reasoning is in progress, a new Active 
 
 # 9. Core Components
 
-The Context Model is composed of a small set of architectural components that collaborate to construct, maintain, and expose the Active Context.
+The Context Model is composed of a small set of architectural components that collaborate to construct, maintain, and expose Context Revisions.
 
 These components are conceptual and do not prescribe implementation details.
 
@@ -693,7 +686,7 @@ These components are conceptual and do not prescribe implementation details.
 
 ## Context Source
 
-A Context Source is any component capable of contributing contextual information.
+A Context Source is a Context-facing role through which an architectural component contributes contextual information under a domain-owned Contract.
 
 Examples include:
 
@@ -701,13 +694,13 @@ Examples include:
 - Memory Engine
 - Knowledge Engine
 - Identity Engine
-- Device Providers
-- External Events
-- Calendar Providers
+- Device observations exposed through the owning capability's Contract
+- External integration Events owned by their integration boundary
+- Calendar information exposed through a Calendar Adapter and domain-owned Contract
 - Running Skills
-- Platform Infrastructure
+- Infrastructure observations exposed through a domain-owned Contract
 
-Each source owns the information it contributes.
+Each source MUST identify the authoritative owner of the underlying information. When reproducibility is required, it SHOULD identify freshness and an authoritative source revision. A Provider, Adapter, Event, Skill, or Infrastructure component does not acquire domain authority merely by supplying an observation.
 
 ---
 
@@ -731,7 +724,7 @@ Fragments evolve independently and are composed dynamically.
 
 ## Context Builder
 
-The Context Builder is responsible for assembling Context Fragments into a coherent Active Context.
+The Context Builder is responsible for assembling Context Fragments into a coherent Context Revision.
 
 Its responsibilities include:
 
@@ -739,8 +732,9 @@ Its responsibilities include:
 - validating consistency,
 - resolving conflicts,
 - assigning metadata,
-- generating Context Identity,
-- creating Context Versions.
+- assigning a Context Revision Identity,
+- associating the revision with a stable Context Lineage Identity,
+- assigning a revision number or equivalent ordering semantic.
 
 The Builder never modifies authoritative information.
 
@@ -748,22 +742,37 @@ The Builder never modifies authoritative information.
 
 ## Active Context
 
-The Active Context is the final product generated by the Context Builder.
+Active Context is a Context Revision that has completed validation and entered the Active lifecycle state.
 
 It represents the complete operational situation consumed by platform engines.
 
-Only Active Context participates directly in reasoning.
+Only an Active Context Revision participates directly in reasoning.
 
 ---
 
-## Context Version
+## Context Lineage
 
-Each significant evolution of the operational state generates a new Context Version.
+A Context Lineage represents the logical evolution of contextual state across related revisions.
 
-Versions allow:
+Each lineage has one stable Context Lineage Identity shared by every revision in that logical evolution.
+
+---
+
+## Context Revision
+
+A Context Revision is one immutable representation of Context within a lineage.
+
+Every Context Revision MUST have:
+
+- a unique Context Revision Identity;
+- a Context Lineage Identity;
+- a revision number or equivalent ordering semantic;
+- creation metadata;
+- a lifecycle state.
+
+Revisions enable:
 
 - deterministic reasoning,
-- replay,
 - explainability,
 - auditing,
 - debugging.
@@ -772,7 +781,7 @@ Versions allow:
 
 ## Context Snapshot
 
-A Context Snapshot is an immutable capture of an Active Context at a particular moment.
+A Context Snapshot is an immutable materialized representation of one Context Revision and is associated with that revision's Context Revision Identity.
 
 Snapshots MAY be preserved for:
 
@@ -782,13 +791,17 @@ Snapshots MAY be preserved for:
 - auditing,
 - explainability.
 
-Snapshots are optional implementation artifacts and do not alter the conceptual model.
+Snapshots are optional. A Snapshot never becomes Active again and does not become cognitive Memory merely because it is retained.
+
+If the platform claims Exact Replay or exact historical reproducibility for a reasoning cycle, it MUST retain a Context Snapshot or an equivalent immutable representation sufficient to reproduce the exact revision consumed.
+
+The Context Engine owns the semantics of Context Snapshots and Context Lineage metadata. Physical persistence remains delegated through architectural Contracts and implementation layers. Retention MUST comply with Security and privacy governance.
 
 ---
 
 ## Context Metadata
 
-Every Active Context carries metadata describing its identity and operational characteristics.
+Every Context Revision carries metadata describing its identity and operational characteristics.
 
 Metadata is defined in Section 12.
 
@@ -804,7 +817,7 @@ Metadata is defined in Section 12.
 
 Context is inherently dynamic.
 
-Unlike Knowledge, which evolves slowly, or Memory, which accumulates over time, Context continuously changes as the operational state of the platform evolves.
+Unlike accepted Knowledge or intentionally retained Memory, Context continuously changes as the operational state of the platform evolves.
 
 This specification defines the conceptual lifecycle of Context independently of implementation details.
 
@@ -812,7 +825,7 @@ This specification defines the conceptual lifecycle of Context independently of 
 
 ## Lifecycle Overview
 
-Every Context progresses through a well-defined lifecycle.
+Every Context Revision progresses through one canonical lifecycle.
 
 ```mermaid
 stateDiagram-v2
@@ -825,15 +838,13 @@ stateDiagram-v2
 
     Validating --> Active
 
-    Active --> Updating
-
-    Updating --> Composing
-
     Active --> Expired
 
-    Expired --> Archived
+    Expired --> Archived: optional retention
 
-    Archived --> [*]
+    Expired --> [*]: deletion
+
+    Archived --> [*]: deletion
 ```
 
 The lifecycle ensures that Context remains consistent, explainable, and deterministic throughout its existence.
@@ -854,20 +865,20 @@ Examples include:
 - Knowledge references
 - Environmental conditions
 
-At this stage, Context does not yet exist as a unified representation.
+Collecting begins creation of a new Context Revision. At this stage, the revision does not yet exist as a unified representation.
 
 ---
 
 ## Composing
 
-The collected Context Fragments are assembled into a coherent representation.
+The collected Context Fragments are assembled into a coherent new Context Revision.
 
 Composition is responsible for:
 
 - aggregating fragments,
 - preserving ownership boundaries,
 - maintaining consistency,
-- preparing the Active Context.
+- preparing the Context Revision for validation and activation.
 
 Composition MUST NOT modify the authoritative information contributed by Context Sources.
 
@@ -875,7 +886,7 @@ Composition MUST NOT modify the authoritative information contributed by Context
 
 ## Validating
 
-Before becoming active, the composed Context SHALL be validated.
+Before becoming Active, the composed Context Revision SHALL be validated.
 
 Validation ensures that:
 
@@ -890,7 +901,7 @@ If validation fails, the Context MUST NOT become active.
 
 ## Active
 
-An Active Context represents the current operational state of the platform.
+An Active Context Revision represents the current operational state available for consumption.
 
 During this phase:
 
@@ -899,25 +910,15 @@ During this phase:
 - Reasoning executes.
 - Skills access contextual information.
 
-Only validated Context may enter this state.
+Only a validated Context Revision may enter this state. Once Active, the revision MUST NOT be modified in place.
 
----
-
-## Updating
-
-Operational reality continuously evolves.
-
-Whenever relevant information changes, the current Context is no longer considered fully representative.
-
-Instead of modifying the existing Context, the platform generates a new Context Version that reflects the updated state.
-
-This preserves deterministic reasoning while allowing continuous adaptation.
+Updating is not a Context Revision lifecycle state. When operational reality changes, a new revision begins its own Collecting → Composing → Validating lifecycle while the currently Active revision remains immutable.
 
 ---
 
 ## Expired
 
-A Context becomes expired when it is no longer relevant.
+A Context Revision becomes Expired when it is no longer valid for operational consumption.
 
 Expiration MAY occur due to:
 
@@ -927,13 +928,15 @@ Expiration MAY occur due to:
 - environmental changes,
 - explicit invalidation.
 
-Expired Context MUST NOT be reused for future reasoning.
+An Expired Context Revision MUST NOT be consumed as current Active Context.
+
+Expiration does not require immediate physical deletion. Operational validity, archival retention, and deletion are distinct concerns.
 
 ---
 
 ## Archived
 
-Implementations MAY preserve expired Context instances for purposes such as:
+An Expired Context Revision MAY enter the optional Archived state when immutable evidence is retained for purposes such as:
 
 - auditing,
 - diagnostics,
@@ -941,99 +944,79 @@ Implementations MAY preserve expired Context instances for purposes such as:
 - explainability,
 - testing.
 
-Archiving is optional and implementation-dependent.
+Archiving is optional.
 
-The conceptual model only requires that archived Context remains immutable.
+An Archived Context Revision remains immutable, never becomes Active again, and may be retained or deleted according to platform policy. Retention does not transform Context into cognitive Memory and MUST respect Security and privacy governance.
 
-# 11. Context Identity
+# 11. Context Lineage and Revision Identity
 
-Every Active Context SHALL possess a unique identity.
-
-Context Identity enables traceability, reproducibility, explainability, and version management across the platform.
-
-Identity is assigned when a Context is successfully composed and validated.
+Context uses two explicit identity concepts. The ambiguous generic term “Context Identity” MUST NOT be used when lineage identity or revision identity is intended.
 
 ---
 
-## Identity Requirements
+## Context Lineage Identity
 
-Every Context Identity SHALL satisfy the following requirements.
+A Context Lineage represents the logical evolution of contextual state across related revisions.
 
-### Uniqueness
-
-Each Context instance MUST be uniquely identifiable.
-
-No two Active Contexts may share the same identity.
+Each Context Lineage MUST have one stable Context Lineage Identity. That identity remains stable across every Context Revision belonging to the same logical contextual evolution.
 
 ---
 
-### Immutability
+## Context Revision Identity
 
-Once assigned, a Context Identity SHALL never change.
+Every Context Revision MUST have one unique Context Revision Identity.
 
-Any evolution of Context results in a new Context Version rather than modification of the existing identity.
+No two Context Revisions may share the same Context Revision Identity, including revisions within the same lineage.
 
----
-
-### Traceability
-
-Context Identity enables platform components to determine:
-
-- which Context participated in reasoning,
-- which decisions originated from that Context,
-- which fragments composed it,
-- which version was active during execution.
+The Revision Identity remains unchanged throughout that revision's lifecycle.
 
 ---
 
-### Independence
+## Revision Ordering
 
-Context Identity is an architectural concept.
+Every Context Revision MUST expose a revision number or equivalent ordering semantic within its lineage.
 
-Its implementation MAY use:
-
-- UUIDs,
-- ULIDs,
-- hashes,
-- internal identifiers,
-- any equivalent mechanism.
-
-The conceptual model imposes uniqueness requirements but does not prescribe a specific implementation strategy.
-
----
-
-## Context Version
-
-Identity and Version are complementary concepts.
-
-- Identity distinguishes one Context instance from another.
-- Version represents the evolution of Context over time.
-
-Every new logical revision SHALL generate a new Context Version while preserving complete traceability.
+The ordering semantic identifies logical succession without prescribing a concrete representation.
 
 ---
 
 ## Context Lineage
 
-Successive Context Versions form a logical lineage.
+Successive Context Revisions form a logical lineage.
 
 ```mermaid
 graph LR
 
-C1[Context v1]
+C1[Revision 1]
 
-C1 --> C2[Context v2]
+C1 --> C2[Revision 2]
 
-C2 --> C3[Context v3]
+C2 --> C3[Revision 3]
 
-C3 --> C4[Context v4]
+C3 --> C4[Revision 4]
 ```
 
-This lineage enables replay, debugging, auditing, and explainability without compromising immutability.
+All revisions in this example share one Context Lineage Identity and each has its own unique Context Revision Identity.
+
+---
+
+## Traceability
+
+Context Lineage Identity and Context Revision Identity enable the platform to determine:
+
+- which exact Context Revision participated in reasoning;
+- which lineage that revision belongs to;
+- which reasoning outcome originated from that revision;
+- which fragments composed it;
+- which source revisions contributed when recorded.
+
+A reasoning outcome SHOULD identify the Context Revision Identity of the Active Context Revision it consumed.
+
+Where Exact Replay is required, the trace MUST identify retained immutable evidence sufficient to reproduce that exact revision.
 
 # 12. Context Metadata
 
-Every Active Context SHALL include metadata describing its operational characteristics.
+Every Context Revision SHALL include metadata describing its operational characteristics.
 
 Metadata provides the information required to identify, validate, trace, version, and manage Context throughout its lifecycle without affecting the contextual information itself.
 
@@ -1045,9 +1028,9 @@ Metadata is considered part of the architectural contract of Context.
 
 Context Metadata exists to support:
 
-- Context identification
+- Lineage and revision identification
 - Lifecycle management
-- Version tracking
+- Revision ordering
 - Explainability
 - Auditing
 - Diagnostics
@@ -1074,7 +1057,7 @@ Business information belongs to Context Fragments.
 
 ### MD-002 — Immutability
 
-Metadata associated with an Active Context SHALL remain immutable throughout the reasoning cycle.
+Metadata associated with an Active Context Revision SHALL remain immutable throughout the reasoning cycle.
 
 ---
 
@@ -1094,18 +1077,20 @@ Implementations MAY represent metadata using any suitable format.
 
 ## Conceptual Metadata Model
 
-Every Active Context SHOULD conceptually expose metadata equivalent to the following.
+Every Context Revision SHOULD conceptually expose metadata equivalent to the following.
 
 | Property | Description |
 |----------|-------------|
-| Context Identity | Unique identifier of the Context instance. |
-| Context Version | Logical version of the Context. |
+| Context Lineage Identity | Stable identifier of the logical Context Lineage. |
+| Context Revision Identity | Unique identifier of this Context Revision. |
+| Revision Order | Revision number or equivalent ordering semantic within the lineage. |
 | Created At | Timestamp indicating when Context was created. |
 | Expires At | Timestamp indicating when Context becomes invalid. |
 | Lifecycle State | Current lifecycle stage of Context. |
 | Source Count | Number of Context Sources contributing to the Context. |
 | Fragment Count | Number of Context Fragments composing the Context. |
-| Parent Context | Previous Context from which this Context evolved, if applicable. |
+| Parent Revision Identity | Context Revision Identity of the preceding revision, if applicable. |
+| Source Revision References | Authoritative source revision identifiers when reproducibility requires them. |
 
 The conceptual model intentionally avoids prescribing concrete property names or serialization formats.
 
@@ -1113,35 +1098,36 @@ The conceptual model intentionally avoids prescribing concrete property names or
 
 ## Context State
 
-Every Context SHALL exist in one conceptual lifecycle state.
+Every Context Revision SHALL exist in one conceptual lifecycle state.
 
 Possible states include:
 
 | State | Description |
 |-------|-------------|
-| Collecting | Context is being assembled. |
-| Composing | Context Fragments are being merged. |
-| Validating | Context is undergoing validation. |
-| Active | Context is available for reasoning. |
-| Expired | Context is no longer valid. |
-| Archived | Context has been preserved for future reference. |
+| Collecting | A new Context Revision is gathering source information. |
+| Composing | Context Fragments are being assembled into the new revision. |
+| Validating | The new revision is undergoing validation. |
+| Active | The immutable revision is valid for consumption. |
+| Expired | The revision is no longer valid for operational consumption. |
+| Archived | The expired revision is optionally retained as immutable evidence. |
 
-Implementations MAY introduce additional internal states provided they preserve the conceptual lifecycle defined by this specification.
+These are the only conceptual Context Revision lifecycle states. Updating is not a lifecycle state.
 
 ---
 
 ## Metadata Evolution
 
-Metadata evolves only when a new Context Version is created.
+Revision metadata is established during creation of a new Context Revision.
 
-Once a Context becomes Active:
+Once a Context Revision becomes Active:
 
-- Identity SHALL remain unchanged.
-- Version SHALL remain unchanged.
+- Context Lineage Identity SHALL remain unchanged.
+- Context Revision Identity SHALL remain unchanged.
+- Revision Order SHALL remain unchanged.
 - Creation timestamp SHALL remain unchanged.
 - Fragment composition SHALL remain immutable.
 
-Any significant operational change SHALL produce a new Context Version with its own metadata.
+Any meaningful operational change SHALL initiate a new Context Revision with its own Revision Identity and metadata within the applicable lineage.
 
 ---
 
@@ -1161,13 +1147,54 @@ Maintaining this separation preserves conceptual clarity and minimizes coupling 
 >
 > Metadata is intentionally separated from Context Fragments to ensure that operational characteristics do not become part of the cognitive representation used for reasoning.
 
+---
+
+## Logical Reconstruction
+
+Logical Reconstruction is the ability to construct a logically equivalent Context Revision from authoritative, version-identifiable source revisions.
+
+Logical Reconstruction is possible only while the required source revisions remain available. Context SHOULD support Logical Reconstruction when source revision semantics permit it, but reconstruction is not guaranteed unconditionally.
+
+Context references or projections SHOULD identify authoritative source revisions when reproducibility is required. Such references MUST NOT imply ownership transfer. Memory, Knowledge, Identity, Planning, and other source capabilities remain owners of their underlying information.
+
+---
+
+## Exact Replay
+
+Exact Replay is distinct from Logical Reconstruction.
+
+Exact Replay requires sufficient immutable historical evidence to reproduce the exact Context Revision consumed by a reasoning cycle.
+
+If exact replay or exact historical reproducibility is claimed, the platform MUST retain either:
+
+- an immutable Context Snapshot; or
+- an equivalent immutable representation sufficient to reproduce the exact revision.
+
+Snapshots are not required for every Context Revision by this conceptual model.
+
+---
+
+## Snapshot and Lineage Retention
+
+The Context Engine owns the semantics of Context Snapshots and Context Lineage metadata. Physical persistence remains delegated through architectural Contracts and implementation layers.
+
+A retained Context Snapshot:
+
+- is associated with one Context Revision Identity;
+- remains immutable;
+- does not become Active again;
+- does not become cognitive Memory merely because it is retained;
+- exists as operational evidence for audit, diagnostics, explainability, or replay.
+
+Expiration and retention are separate. Expiration ends operational validity; archival retention preserves evidence; deletion removes retained evidence according to platform policy. Retention and deletion MUST respect Security and privacy governance.
+
 # 13. Context Composition
 
 Context does not exist as a predefined object.
 
 Instead, it is dynamically composed from multiple Context Fragments representing different aspects of the current operational reality.
 
-Composition is the process through which these independent fragments become a unified Active Context.
+Composition is the process through which these independent fragments become a unified Context Revision that may become Active after validation.
 
 ---
 
@@ -1199,7 +1226,7 @@ Examples include:
 
 ### CC-003 — Unified Representation
 
-Although fragments remain conceptually independent, the resulting Active Context SHALL provide a coherent view of the current operational state.
+Although fragments remain conceptually independent, the resulting Context Revision SHALL provide a coherent view of the current operational state.
 
 ---
 
@@ -1249,8 +1276,8 @@ Each fragment remains owned by its originating architectural component.
 | Memory References | Memory Engine |
 | Knowledge References | Knowledge Engine |
 | Capability Context | Skill Engine |
-| Device Context | Infrastructure Providers |
-| Temporal Context | Platform Infrastructure |
+| Device Context | Owning device or Identity capability; Infrastructure may supply observations |
+| Temporal Context | Owning platform capability or policy domain; Infrastructure may supply clock observations |
 
 Ownership SHALL never be transferred during Context composition.
 
@@ -1264,15 +1291,15 @@ The following constraints apply.
 - Context SHALL remain deterministic.
 - Context SHALL preserve ownership boundaries.
 - Context SHALL avoid unnecessary duplication.
-- Context SHALL remain reconstructable.
+- Context SHOULD support Logical Reconstruction when required authoritative source revisions remain available.
 
 ---
 
 ## Composition Outcome
 
-The output of Context composition is a single immutable Active Context representing the complete operational state required for one reasoning cycle.
+The output of successful Context composition and validation is one immutable Active Context Revision representing the complete operational state required for one reasoning cycle.
 
-This Active Context becomes the only contextual representation consumed by platform engines until a new Context Version is generated.
+This Active Context Revision becomes the only contextual representation consumed by the reasoning cycle. A meaningful change initiates creation of a new Context Revision.
 
 ---
 
@@ -1295,12 +1322,12 @@ This specification defines the conceptual principles governing Context Resolutio
 
 ## Resolution Objectives
 
-Context Resolution exists to ensure that the resulting Active Context is:
+Context Resolution exists to ensure that the resulting Active Context Revision is:
 
 - Consistent
 - Deterministic
 - Explainable
-- Reconstructable
+- Supports conditional Logical Reconstruction
 - Free of unresolved conflicts
 
 Resolution SHALL occur before a Context becomes Active.
@@ -1311,7 +1338,7 @@ Resolution SHALL occur before a Context becomes Active.
 
 ### 14.1 CR-001 — Deterministic Resolution
 
-Given the same Context Fragments and the same Resolution Rules, the resulting Active Context SHALL always be identical.
+Given the same Context Fragments and the same Resolution Rules, the resulting Active Context Revision SHALL always be logically equivalent.
 
 Determinism is essential for reproducibility, debugging, auditing, and explainability.
 
@@ -1333,7 +1360,7 @@ When a verified user instruction conflicts with inferred contextual information,
 
 ### 14.4 CR-004 — Resolve Before Reasoning
 
-Reasoning SHALL only consume a fully resolved Active Context.
+Reasoning SHALL only consume a fully resolved Active Context Revision.
 
 Unresolved conflicts MUST NOT propagate into the reasoning process.
 
@@ -1391,7 +1418,7 @@ C --> F[Reasoning]
 
 ## Resolution Priority
 
-When multiple Context Sources provide conflicting information, the conceptual priority SHOULD follow the order below.
+When multiple Context Sources provide conflicting information, precedence MUST be determined by the authoritative domain and applicable policy. Source type alone does not establish universal authority.
 
 | Priority | Source |
 |----------|--------|
@@ -1403,7 +1430,7 @@ When multiple Context Sources provide conflicting information, the conceptual pr
 | 6 | Knowledge References |
 | 7 | Default Values |
 
-This priority defines conceptual precedence only.
+The table above is an illustrative fallback, not a canonical universal ordering. Security and platform policy govern protected actions; Identity authority governs verified identity fields; users govern their preferences; Knowledge authority governs accepted claims; and Memory remains evidence of retained experience rather than truth authority.
 
 Implementation-specific scoring mechanisms are outside the scope of this specification.
 
@@ -1431,7 +1458,7 @@ The chosen strategy is implementation-dependent.
 
 > **IMPORTANT**
 >
-> Context Resolution determines which information becomes part of the Active Context.
+> Context Resolution determines which information becomes part of the Active Context Revision.
 >
 > It does not perform reasoning, planning, or business decision making.
 
@@ -1535,7 +1562,7 @@ It exists only while the task remains active.
 
 Reasoning Context is the smallest operational scope.
 
-It represents the immutable Active Context consumed during a single reasoning cycle.
+It represents the immutable Active Context Revision consumed during a single reasoning cycle.
 
 Every reasoning cycle SHALL consume exactly one Reasoning Context.
 
@@ -1583,7 +1610,7 @@ State Management exists to ensure that:
 
 - Context always represents the current operational reality.
 - State transitions remain deterministic.
-- Active Context remains immutable during reasoning.
+- Active Context Revisions remain immutable during reasoning.
 - Context evolution is fully traceable.
 - Invalid contextual states cannot propagate through the platform.
 
@@ -1593,7 +1620,7 @@ State Management exists to ensure that:
 
 ### 16.1 SM-001 — Controlled Evolution
 
-Context SHALL evolve only through valid state transitions.
+Each Context Revision SHALL progress only through valid state transitions.
 
 Arbitrary or implicit state modifications are prohibited.
 
@@ -1601,15 +1628,15 @@ Arbitrary or implicit state modifications are prohibited.
 
 ### 16.2 SM-002 — Immutable Active State
 
-Once a Context enters the Active state, its contextual information SHALL remain immutable until the reasoning cycle completes.
+Once a Context Revision enters the Active state, its contextual information SHALL remain immutable.
 
-Subsequent operational changes SHALL generate a new Context Version rather than modifying the existing one.
+Subsequent operational changes SHALL initiate a new Context Revision rather than modifying the existing one.
 
 ---
 
 ### 16.3 SM-003 — Explicit Transitions
 
-Every Context state transition SHALL be explicit.
+Every Context Revision state transition SHALL be explicit.
 
 Implicit state mutations reduce explainability and MUST be avoided.
 
@@ -1625,23 +1652,11 @@ No implementation may bypass mandatory lifecycle stages without preserving their
 
 ## Conceptual State Machine
 
-```mermaid
-stateDiagram-v2
+Section 10 defines the single authoritative Context Revision lifecycle:
 
-    [*] --> Collecting
+`Collecting → Composing → Validating → Active → Expired → Archived (optional)`
 
-    Collecting --> Composing
-
-    Composing --> Validating
-
-    Validating --> Active
-
-    Active --> Expired
-
-    Expired --> Archived
-
-    Archived --> [*]
-```
+This section does not define an additional state machine.
 
 ---
 
@@ -1651,10 +1666,10 @@ The following conceptual transitions are considered invalid.
 
 | Invalid Transition | Reason |
 |--------------------|--------|
-| Active → Collecting | Active Context cannot become mutable again. |
-| Archived → Active | Archived Context represents historical state only. |
-| Expired → Active | Expired Context is no longer operationally valid. |
-| Active → Composing | Active Context cannot be recomposed in place. |
+| Active → Collecting | An Active Context Revision cannot become mutable again; a new revision must begin Collecting. |
+| Archived → Active | An Archived Context Revision is retained historical evidence only. |
+| Expired → Active | An Expired Context Revision is no longer operationally valid. |
+| Active → Composing | An Active Context Revision cannot be recomposed in place. |
 
 Implementations MUST prevent logically invalid transitions.
 
@@ -1664,10 +1679,10 @@ Implementations MUST prevent logically invalid transitions.
 
 At any point in time:
 
-- every Context SHALL occupy exactly one lifecycle state,
+- every Context Revision SHALL occupy exactly one lifecycle state,
 - lifecycle states SHALL be mutually exclusive,
-- state transitions SHALL preserve Context Identity,
-- Context Version SHALL change only when a new Context is generated.
+- the Context Lineage Identity SHALL remain stable across related revisions,
+- each new Context Revision SHALL receive its own unique Context Revision Identity and revision ordering semantic.
 
 ---
 
@@ -1689,37 +1704,39 @@ This section defines the conceptual relationships between Context and the rest o
 
 ## Relationship with Memory
 
-Memory preserves historical experience.
+Memory preserves intentionally retained experience and user continuity.
 
 Context references historical information only when it is relevant to the current operational situation.
 
 Memory answers:
 
-> **"What happened?"**
+> **"What have I experienced?"**
 
 Context answers:
 
 > **"What matters now?"**
 
-Historical ownership always remains within the Memory Model.
+Ownership of intentionally retained experience always remains within the Memory Model.
 
 ---
 
 ## Relationship with Knowledge
 
-Knowledge represents durable truths that remain valid independently of any particular situation.
+Knowledge represents justified claims accepted by the platform as sufficiently true for use.
 
-Context references Knowledge whenever permanent information is required during reasoning.
+Context references or projects Knowledge whenever an accepted claim is relevant during reasoning.
 
 Knowledge answers:
 
-> **"What is true?"**
+> **"What is accepted as true?"**
 
 Context answers:
 
 > **"What is relevant right now?"**
 
-Knowledge remains the authoritative source of permanent facts.
+Knowledge retains authority for accepted claims, including validated facts, domain knowledge, validated procedures, and stable platform definitions.
+
+The Knowledge Engine is the single architectural owner of the Knowledge capability. Context may consume Knowledge references or projections but SHALL NOT govern acceptance, validation state, provenance requirements, lifecycle semantics, version semantics, contradiction resolution, or mutation of Knowledge.
 
 ---
 
@@ -1729,7 +1746,7 @@ Reasoning consumes Context.
 
 Reasoning never owns Context.
 
-Every reasoning cycle SHALL operate over exactly one immutable Active Context.
+Every reasoning cycle SHALL operate over exactly one immutable Active Context Revision.
 
 The quality of reasoning depends directly on the quality of Context.
 
@@ -1739,9 +1756,9 @@ The quality of reasoning depends directly on the quality of Context.
 
 Planning uses Context to determine current objectives, constraints, priorities, and available capabilities.
 
-Planning MAY produce new contextual information that contributes to subsequent Context Versions.
+Planning MAY produce new contextual information that contributes to subsequent Context Revisions.
 
-Planning does not directly modify Active Context.
+Planning does not directly modify an Active Context Revision.
 
 ---
 
@@ -1769,7 +1786,7 @@ Context references identity information without assuming ownership.
 
 Providers expose information originating from external technologies.
 
-Such information MAY contribute to Context through Context Sources.
+Such information MAY contribute to Context only through a domain-owned Contract or, for an external ecosystem, an Adapter boundary. Provider output does not become a domain authority or Context Source merely because it supplies data.
 
 Providers never become part of Context themselves.
 
@@ -1777,7 +1794,7 @@ Providers never become part of Context themselves.
 
 ## Relationship with Events
 
-Platform Events MAY trigger the creation of a new Context Version.
+Platform Events MAY trigger creation of a new Context Revision.
 
 Events represent changes.
 
@@ -1789,11 +1806,11 @@ Context represents the operational state resulting from those changes.
 
 | Architectural Component | Relationship |
 |--------------------------|--------------|
-| Memory | Provides historical references. |
-| Knowledge | Provides permanent references. |
+| Memory | Provides references to intentionally retained experience and user continuity. |
+| Knowledge | Provides references to accepted claims. |
 | Identity Engine | Provides identity information. |
 | Planning Engine | Consumes Context for planning. |
-| Reasoning Engine | Consumes Active Context. |
+| Reasoning Engine | Consumes one immutable Active Context Revision per reasoning cycle. |
 | Skill Engine | Uses Context to execute capabilities. |
 | Providers | Supply contextual information. |
 | Events | Trigger Context evolution. |
@@ -1828,17 +1845,17 @@ No Engine SHALL assume responsibilities belonging to another Engine.
 
 ### ER-002 — Context Ownership
 
-The Context Engine is the sole architectural owner responsible for constructing and maintaining Active Context.
+The Context Engine is the sole architectural owner responsible for constructing Context Revisions and governing Context Lineage, revision, Snapshot, and lifecycle semantics.
 
-Other Engines MAY contribute Context Fragments but SHALL NOT construct Active Context independently.
+Other Engines MAY contribute Context Fragments but SHALL NOT construct Active Context Revisions independently.
 
 ---
 
 ### ER-003 — Read-Only Consumption
 
-Engines consuming Active Context SHALL treat it as immutable.
+Engines consuming an Active Context Revision SHALL treat it as immutable.
 
-No Engine SHALL modify an Active Context during a reasoning cycle.
+No Engine SHALL modify an Active Context Revision during a reasoning cycle.
 
 ---
 
@@ -1856,9 +1873,10 @@ The Context Engine is responsible for:
 
 - collecting Context Fragments,
 - validating contextual consistency,
-- composing Active Context,
-- assigning Context Identity,
-- generating Context Versions,
+- composing Context Revisions,
+- assigning Context Revision Identity and revision ordering semantics,
+- associating revisions with a stable Context Lineage Identity,
+- governing Context Snapshot and lineage metadata semantics,
 - managing Context lifecycle.
 
 The Context Engine does not perform reasoning.
@@ -1869,12 +1887,14 @@ The Context Engine does not perform reasoning.
 
 The Reasoning Engine is responsible for:
 
-- consuming Active Context,
-- evaluating contextual information,
-- producing decisions,
-- generating reasoning outcomes.
+- consuming one immutable Active Context Revision,
+- evaluating contextual information through inference and reasoning,
+- producing conclusions or decisions,
+- generating reasoning outcomes that may include candidate responses or next actions.
 
-The Reasoning Engine SHALL NOT modify Context.
+The Reasoning Engine SHALL NOT modify Context, orchestrate the full cognitive pipeline, execute Skills, own Planning, or deliver results to Clients.
+
+The Brain Engine orchestrates cognitive execution and may assemble a final cognitive result from capability outputs, but it SHALL NOT perform domain reasoning or independently generate reasoning content that bypasses the Reasoning Engine. Final transport, presentation, and voice rendering belong outside both Engines.
 
 ---
 
@@ -1886,7 +1906,7 @@ The Planning Engine is responsible for:
 - evaluating constraints,
 - organizing future actions.
 
-Planning MAY influence future Context Versions but SHALL NOT modify the currently active Context.
+Planning MAY influence future Context Revisions but SHALL NOT modify the currently Active Context Revision.
 
 ---
 
@@ -1900,17 +1920,19 @@ Skills SHALL remain independent of Context construction mechanisms.
 
 ## Memory Engine
 
-The Memory Engine provides historical references when requested by Context.
+The Memory Engine provides references to intentionally retained experience when requested by Context.
 
-Memory remains the authoritative owner of historical information.
+Memory remains the authoritative owner of intentionally retained experience and user continuity.
 
 ---
 
 ## Knowledge Engine
 
-The Knowledge Engine provides permanent knowledge required during Context composition.
+The Knowledge Engine provides accepted Knowledge required during Context composition.
 
 Knowledge ownership always remains external to Context.
+
+Context consumes Knowledge through architectural Contracts and treats Knowledge references or projections as read-only.
 
 ---
 
@@ -1928,7 +1950,7 @@ Providers contribute contextual information originating from external systems.
 
 Providers SHALL never become direct participants in reasoning.
 
-Instead, they expose information through Context Sources.
+Instead, their observations enter through domain-owned Contracts and, where applicable, Adapter boundaries that expose a qualified Context Source.
 
 ---
 
@@ -1965,13 +1987,13 @@ These constraints preserve conceptual integrity across the platform regardless o
 
 Context SHALL never become a permanent storage mechanism.
 
-Persistent information belongs to Memory or Knowledge.
+Durable ownership remains with Memory or Knowledge according to semantic role and authority, not persistence.
 
 ---
 
 ## DC-002 — Context Must Remain Immutable
 
-Once Active, Context SHALL remain immutable until the reasoning cycle completes.
+Once Active, a Context Revision SHALL remain immutable for the rest of its lifecycle.
 
 ---
 
@@ -1983,13 +2005,15 @@ Context SHALL never assume ownership of information originating from other archi
 
 ## DC-004 — Context Must Be Explainable
 
-Every Context Version SHOULD remain traceable and explainable.
+Every Context Revision SHOULD remain traceable and explainable through its Context Revision Identity and Context Lineage Identity.
 
 ---
 
-## DC-005 — Context Must Be Reconstructable
+## DC-005 — Context Should Support Conditional Logical Reconstruction
 
-Given the same authoritative sources, the platform SHOULD be capable of reconstructing an equivalent Context.
+Given available authoritative, version-identifiable source revisions, the platform SHOULD be capable of constructing a logically equivalent Context Revision.
+
+Logical Reconstruction is not guaranteed when required source revisions are unavailable and MUST NOT be represented as Exact Replay.
 
 ---
 
@@ -2039,10 +2063,10 @@ The platform gathers contextual information from multiple sources.
 |----------------|------------------|
 | Identity Engine | User identity |
 | Session Manager | Session Context |
-| Device Provider | Device Context |
+| Device/Identity capability Contract | Device Context |
 | Platform Clock | Temporal Context |
 
-These fragments are composed into a new Active Context before the first reasoning cycle begins.
+These fragments are composed and validated into a new Active Context Revision before the first reasoning cycle begins.
 
 ---
 
@@ -2061,7 +2085,7 @@ The platform retrieves:
 
 Knowledge remains unchanged while Context adapts to the current interaction.
 
-A new Active Context is generated and consumed by the Reasoning Engine.
+A new Active Context Revision is generated and consumed by the Reasoning Engine.
 
 ---
 
@@ -2071,9 +2095,9 @@ During an active session, the user's device loses network connectivity.
 
 The Device Context changes.
 
-The current Active Context remains immutable until the reasoning cycle completes.
+The current Active Context Revision remains immutable throughout and after the reasoning cycle.
 
-A subsequent reasoning cycle generates a new Context Version reflecting the updated connectivity state.
+A new Context Revision follows Collecting → Composing → Validating and may become Active for a subsequent reasoning cycle with the updated connectivity state.
 
 ---
 
@@ -2081,9 +2105,9 @@ A subsequent reasoning cycle generates a new Context Version reflecting the upda
 
 A scheduled meeting begins.
 
-The Calendar Provider contributes a new Context Fragment.
+The Calendar Adapter supplies an external observation through a domain-owned Contract, and the qualified Context Source contributes a new Context Fragment.
 
-The Context Engine composes a new Active Context containing:
+The Context Engine composes a new Context Revision containing:
 
 - current meeting,
 - participants,
@@ -2098,7 +2122,7 @@ Reasoning proceeds using the updated contextual state.
 
 Future versions of O.R.I.O.N. may support multiple autonomous agents collaborating on the same objective.
 
-Each agent maintains its own Active Context while sharing selected Context Fragments through controlled architectural mechanisms.
+Each agent maintains its own Active Context Revision while sharing selected Context Fragments through controlled architectural mechanisms.
 
 This preserves contextual isolation while enabling coordinated reasoning.
 
@@ -2110,9 +2134,9 @@ A user completes an interaction.
 
 The Session Context expires.
 
-The Active Context transitions to the Expired state.
+The Active Context Revision transitions to the Expired state.
 
-Historical information remains available through Memory, while Context itself is discarded.
+Historical information intentionally retained as experience remains available through Memory, while Context itself is discarded.
 
 ---
 

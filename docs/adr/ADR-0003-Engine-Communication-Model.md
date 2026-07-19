@@ -3,10 +3,10 @@
 | Field | Value |
 |--------|--------|
 | **Status** | Active |
-| **Version** | 1.0.0 |
+| **Version** | 1.1.0 |
 | **Owner** | Project Maintainers |
 | **Created** | 2026-07-10 |
-| **Updated** | 2026-07-10 |
+| **Updated** | 2026-07-19 |
 | **Decision Type** | Architecture Decision |
 
 ---
@@ -257,7 +257,11 @@ Every communication must respect:
 - permission validation
 - audit requirements
 
-Security enforcement belongs to the Security Engine.
+The Security Engine owns security policy semantics, authorization decision semantics, and Security-domain rules.
+
+Enforcement occurs at the appropriate protected invocation or boundary point and MAY be performed by Engines, Gateways, Adapters, Providers, or Infrastructure as required. Every enforcing component MUST use Security-owned policy decisions, Contracts, or governed policy artifacts and MUST NOT acquire Security semantic ownership.
+
+No component may bypass Security policy. Enforcement MUST NOT require direct Engine-to-Engine implementation coupling, and this decision does not require every action to synchronously call the Security Engine.
 
 ---
 
@@ -360,6 +364,7 @@ Review before introducing distributed Engine execution or external message broke
 | Version | Date | Description |
 |----------|------|-------------|
 | 1.0.0 | 2026-07-10 | Initial architecture decision. |
+| 1.1.0 | 2026-07-19 | Distinguished Security policy and decision authority from enforcement at protected boundaries. |
 
 ---
 

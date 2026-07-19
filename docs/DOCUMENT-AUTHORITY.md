@@ -3,10 +3,10 @@
 | Field | Value |
 |--------|--------|
 | **Status** | Active |
-| **Version** | 1.0.0 |
+| **Version** | 2.0.0 |
 | **Owner** | Project Maintainers |
 | **Created** | 2026-07-10 |
-| **Updated** | 2026-07-10 |
+| **Updated** | 2026-07-19 |
 | **Applies To** | All Project Documentation |
 
 ---
@@ -54,14 +54,15 @@ The official precedence order is:
 
 1. Approved Architecture Decision Records
 2. Active Architecture Specifications
-3. Active O.R.I.O.N. Engineering Standards
-4. Active Protocol, API, and Schema Specifications
-5. Active Engine Specifications
-6. Active Flow Specifications
-7. AGENTS.md
-8. General architecture and project documentation
-9. README.md and MANIFESTO.md
-10. Examples, comments, drafts, and placeholders
+3. Active Concept Specifications
+4. Active O.R.I.O.N. Engineering Standards
+5. Active Protocol, API, and Schema Specifications
+6. Active Engine Specifications
+7. Active Flow Specifications
+8. AGENTS.md
+9. General architecture and project documentation
+10. README.md and MANIFESTO.md
+11. Examples, comments, drafts, and placeholders
 
 ---
 
@@ -97,9 +98,26 @@ Examples:
 
 Architecture Specifications must comply with approved ADRs.
 
+For shared architectural Contracts, the Core is the canonical schema custodian. This custody is distinct from the capability Engine's domain semantic ownership and from an implementation layer's responsibility to implement or translate the Contract.
+
 ---
 
-# 3. Engineering Standards
+# 3. Concept Specifications
+
+Concept Specifications define approved, technology-independent semantics for foundational platform concepts.
+
+They govern:
+
+- conceptual boundaries and ownership;
+- identity and lifecycle semantics;
+- relationships between foundational concepts;
+- constraints that implementation must preserve.
+
+An Active Concept Specification is authoritative within its conceptual scope. It must comply with approved ADRs and Active Architecture Specifications. A Draft Concept Specification remains non-authoritative.
+
+---
+
+# 4. Engineering Standards
 
 O.R.I.O.N. Engineering Standards define mandatory design and implementation rules.
 
@@ -113,11 +131,11 @@ Examples:
 - Versioning
 - Documentation
 
-Engineering Standards must not contradict approved ADRs or Architecture Specifications.
+Engineering Standards must not contradict approved ADRs, Active Architecture Specifications, or Active Concept Specifications.
 
 ---
 
-# 4. Protocol, API, and Schema Specifications
+# 5. Protocol, API, and Schema Specifications
 
 These specifications define machine-consumable or integration-facing behavior.
 
@@ -129,19 +147,19 @@ They govern:
 - Schema validation
 - Compatibility rules
 
-They must comply with ADRs, Architecture Specifications, and Engineering Standards.
+They must comply with ADRs, Architecture Specifications, Concept Specifications, and Engineering Standards.
 
 ---
 
-# 5. Engine Specifications
+# 6. Engine Specifications
 
 Engine Specifications define one Engine’s responsibilities, contracts, lifecycle, state, events, failures, security boundaries, and observability requirements.
 
-An Engine Specification may specialize a general Engineering Standard but must not contradict it.
+An Engine Specification may specialize a general Engineering Standard but must not contradict higher-authority ADRs, Architecture Specifications, Concept Specifications, or Engineering Standards.
 
 ---
 
-# 6. Flow Specifications
+# 7. Flow Specifications
 
 Flow Specifications describe runtime collaboration between components.
 
@@ -161,7 +179,7 @@ When a Flow conflicts with an Engine Specification, the Engine Specification tak
 
 ---
 
-# 7. AGENTS.md
+# 8. AGENTS.md
 
 AGENTS.md provides operational guidance for contributors and AI agents.
 
@@ -173,7 +191,7 @@ It must not override ADRs, Specifications, or Engineering Standards.
 
 ---
 
-# 8. General Documentation
+# 9. General Documentation
 
 General documentation includes:
 
@@ -190,7 +208,7 @@ They must remain consistent with authoritative ADRs, Specifications, and Enginee
 
 ---
 
-# 9. README and MANIFESTO
+# 10. README and MANIFESTO
 
 README.md introduces the project.
 
@@ -202,7 +220,7 @@ They must not be used to resolve technical conflicts.
 
 ---
 
-# 10. Drafts, Examples, and Placeholders
+# 11. Drafts, Examples, and Placeholders
 
 Draft documents, code examples, comments, diagrams, and empty placeholders are non-authoritative.
 
@@ -279,6 +297,8 @@ These responsibilities must be documented explicitly.
 
 Storing a Contract or Event schema in the Core does not make the Core its domain owner.
 
+For Knowledge, the Knowledge Engine owns domain behavior and governance. The Core may define or custody shared Knowledge Contracts, schemas, identifiers, and domain types, but this custody does not transfer Knowledge behavior or acceptance authority to the Core.
+
 ---
 
 # Source-of-Truth Rule
@@ -301,6 +321,11 @@ Examples:
 | Security | OES-0009 |
 | Versioning | OES-0010 |
 | Core architecture | ARCH-0001 |
+| Memory concept semantics | CONCEPT-0001 |
+| Knowledge concept semantics | CONCEPT-0002 |
+| Context concept semantics | CONCEPT-0003 |
+| Knowledge capability ownership | ADR-0002 |
+| Memory / Knowledge / Context semantic partition | ADR-0005 |
 | Architectural decisions | Relevant approved ADR |
 
 ---
@@ -313,3 +338,4 @@ Example:
 
 ```markdown
 - [OES-0004 — Contracts](engineering/OES-0004-Contracts.md)
+```

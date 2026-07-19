@@ -3,8 +3,8 @@
 | Field | Value |
 |--------|--------|
 | **Status** | Active |
-| **Version** | 1.0.0 |
-| **Updated** | 2026-07-11 |
+| **Version** | 1.3.0 |
+| **Updated** | 2026-07-19 |
 
 ---
 
@@ -28,11 +28,11 @@ The platform is intended to evolve beyond a conversational assistant by integrat
 
 Foundation Candidate
 
-Architecture is complete.
+The Architectural Foundation exists and has undergone correction following REVIEW-0002.
 
 Implementation has not started.
 
-The current objective is to finalize conceptual models before freezing the Foundation.
+FND-001 through FND-007 from REVIEW-0002 have been resolved. Foundation Freeze has not been approved; a new independent Foundation Review is required first.
 
 ---
 
@@ -45,15 +45,21 @@ Completed:
 - README
 - Engineering Standards (OES)
 - Architecture Decisions (ADR)
-- Architecture Review
+- REVIEW-0001 and REVIEW-0002 historical architecture reviews
 - Documentation Authority
 - Documentation Templates
 
+Completed foundation artifacts:
+
+- Memory Concept Model
+- Knowledge Concept Model
+- Context Concept Model
+- Corrections for REVIEW-0002 findings FND-001 through FND-007
+
 Pending:
 
-- Concept Models
-- Final Codex Review
-- Foundation Freeze
+- Independent Foundation re-review
+- Foundation Freeze decision
 
 ---
 
@@ -105,7 +111,7 @@ Current status:
 
 - Memory Model ✅
 - Knowledge Model ✅
-- Context Model 🔄 In Progress
+- Context Model ✅
 
 These models define the cognitive foundation of the platform.
 
@@ -119,13 +125,29 @@ Memory
 
 "What have I experienced?"
 
+Intentionally retained experience, user preferences, and provenance that an assertion or interaction occurred.
+
 Knowledge
 
-"What is true?"
+"What is accepted as true?"
+
+Validated facts, domain knowledge, validated procedures, and stable platform definitions with provenance and validation state.
+
+Knowledge is an independent capability. The Knowledge Engine is its single architectural owner and governs claim acceptance, validation state, provenance, lifecycle and version semantics, and contradiction resolution.
 
 Context
 
-"What is happening now?"
+"What is relevant right now?"
+
+The temporary selection or projection of information relevant to the current operational or reasoning situation.
+
+The boundary is based on semantic role and authority, not persistence. Context may reference Memory and Knowledge without reclassifying them or assuming durable ownership.
+
+Context evolves through lineages and immutable revisions. A Context Lineage has one stable Lineage Identity; each Context Revision has its own unique Revision Identity and ordering semantic. Active Context means a Context Revision in the Active lifecycle state.
+
+The canonical lifecycle is Collecting → Composing → Validating → Active → Expired → Archived (optional). Operational changes create new revisions rather than updating an Active revision.
+
+Logical reconstruction is conditional on version-identifiable source revisions remaining available. Exact replay requires retained immutable evidence. Expiration, archival retention, and deletion are distinct, and retained Context evidence does not become cognitive Memory.
 
 Reasoning combines all three.
 
@@ -136,6 +158,8 @@ Reasoning combines all three.
 The Core defines the language.
 
 Engines own behavior.
+
+The Knowledge Engine exclusively owns Knowledge behavior and governance.
 
 Providers implement technology.
 
@@ -157,6 +181,7 @@ Examples include:
 - Identity Engine
 - Context Engine
 - Memory Engine
+- Knowledge Engine
 - Reasoning Engine
 - Planning Engine
 - Voice Engine
@@ -194,12 +219,11 @@ schemas/
 
 # Next Milestones
 
-1. Complete Context Model
-2. Final Foundation Review (Codex)
-3. Freeze Foundation
-4. Bootstrap Implementation
-5. Engine Specifications
-6. First executable platform
+1. Conduct an independent Foundation re-review
+2. Decide Foundation Freeze based on the new review
+3. Bootstrap implementation only after approval
+4. Create Engine Specifications at the appropriate post-freeze stage
+5. Build the first executable platform
 
 ---
 
@@ -233,12 +257,15 @@ Implementation must follow Engineering Standards.
 - Context is temporary.
 - Contracts define communication.
 - Events define asynchronous collaboration.
+- Core is the canonical custodian of shared architectural Contracts; Engines retain capability behavior and semantic ownership; implementation layers implement or translate Contracts.
+- Source-code dependencies point inward toward Core abstractions. Runtime interaction, data, and event flows do not reverse that dependency direction.
+- Reasoning Engine owns inference and reasoning over an Active Context Revision. Brain Engine owns cognitive orchestration and final cognitive-result assembly, but does not independently generate reasoning content. Final transport and presentation belong outside both.
 
 ---
 
 # Current Objective
 
-Finish the conceptual layer and freeze the Foundation.
+Prepare the corrected Foundation for an independent re-review.
 
 Implementation begins only after the Foundation has been formally approved.
 

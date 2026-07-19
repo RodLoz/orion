@@ -1,0 +1,51 @@
+warning: in the working copy of 'ORION-HANDOFF.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'README.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/DOCUMENT-AUTHORITY.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/adr/ADR-0001-Core-Ownership-and-Dependency-Direction.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/adr/ADR-0002-Capability-Oriented-Architecture.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/adr/ADR-0003-Engine-Communication-Model.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/adr/ADR-0004-Separation-of-Skills-Providers-and-Adapters.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/adr/ADR-0005 — Memory Architecture Principles', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/architecture-review/REVIEW-0001-Foundation.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/architecture.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/engineering/OES-0001-Repository-Structure.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/engineering/OES-0002-Engine-Design.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/engineering/OES-0004-Contracts.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/engineering/OES-0005-Events.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/engineering/OES-0006-Providers.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/engineering/OES-0007-Adapter-Design.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/engineering/OES-0008-Documentation-Standards.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/engineering/OES-0009-Security-Standards.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/glossary.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/principles.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'specifications/architecture/ARCH-0001-Core-Architecture.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'specifications/concepts/CONCEPT-0001-Memory-Model.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'specifications/concepts/CONCEPT-0002-Knowledge-Model.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'specifications/concepts/CONCEPT-0003-Context-Model.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'specifications/flows/conversation/FLOW-0001-Voice-Interaction.md', LF will be replaced by CRLF the next time Git touches it
+ ORION-HANDOFF.md                                   |  65 [32m++[m[31m-[m
+ README.md                                          |   2 [32m+[m
+ docs/DOCUMENT-AUTHORITY.md                         |  70 [32m++[m[31m-[m
+ ...0001-Core-Ownership-and-Dependency-Direction.md |  65 [32m++[m[31m-[m
+ .../ADR-0002-Capability-Oriented-Architecture.md   |  52 [32m+[m[31m-[m
+ docs/adr/ADR-0003-Engine-Communication-Model.md    |  13 [32m+[m[31m-[m
+ ...-Separation-of-Skills-Providers-and-Adapters.md |  15 [32m+[m[31m-[m
+ ...05 \342\200\224 Memory Architecture Principles" | 153 [32m++++[m[31m--[m
+ docs/architecture-review/REVIEW-0001-Foundation.md |   6 [32m+[m[31m-[m
+ docs/architecture.md                               | 107 [32m+++[m[31m-[m
+ docs/engineering/OES-0001-Repository-Structure.md  |   6 [32m+[m[31m-[m
+ docs/engineering/OES-0002-Engine-Design.md         |  76 [32m++[m[31m-[m
+ docs/engineering/OES-0004-Contracts.md             |  38 [32m+[m[31m-[m
+ docs/engineering/OES-0005-Events.md                |  32 [32m+[m[31m-[m
+ docs/engineering/OES-0006-Providers.md             |  28 [32m+[m[31m-[m
+ docs/engineering/OES-0007-Adapter-Design.md        |  16 [32m+[m[31m-[m
+ .../OES-0008-Documentation-Standards.md            |  13 [32m+[m[31m-[m
+ docs/engineering/OES-0009-Security-Standards.md    |  12 [32m+[m[31m-[m
+ docs/glossary.md                                   |  99 [32m+++[m[31m-[m
+ docs/principles.md                                 |  30 [32m+[m[31m-[m
+ .../architecture/ARCH-0001-Core-Architecture.md    |  58 [32m+[m[31m-[m
+ .../concepts/CONCEPT-0001-Memory-Model.md          | 109 [32m++[m[31m--[m
+ .../concepts/CONCEPT-0002-Knowledge-Model.md       |  98 [32m+++[m[31m-[m
+ .../concepts/CONCEPT-0003-Context-Model.md         | 592 [32m+++++++++++[m[31m----------[m
+ .../conversation/FLOW-0001-Voice-Interaction.md    |  68 [32m++[m[31m-[m
+ 25 files changed, 1165 insertions(+), 658 deletions(-)

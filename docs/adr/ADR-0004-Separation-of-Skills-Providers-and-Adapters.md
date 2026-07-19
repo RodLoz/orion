@@ -3,10 +3,10 @@
 | Field | Value |
 |--------|--------|
 | **Status** | Active |
-| **Version** | 1.0.0 |
+| **Version** | 1.1.0 |
 | **Owner** | Project Maintainers |
 | **Created** | 2026-07-10 |
-| **Updated** | 2026-07-10 |
+| **Updated** | 2026-07-19 |
 | **Decision Type** | Architecture Decision |
 
 ---
@@ -131,7 +131,9 @@ Adapters own authentication details for external systems.
 
 ---
 
-# Dependency Direction
+# Runtime Interaction Flow
+
+The following diagrams describe runtime interaction through Contracts. Their arrows do not represent source-code dependency direction.
 
 ```
 Skill
@@ -161,9 +163,13 @@ Technology
 
 Neither Providers nor Adapters may call Skills.
 
+Canonical source-code dependency direction remains defined by ADR-0001: Skills, Providers, and Adapters depend inward on Core Contracts or abstractions where applicable. Core Contracts MUST NOT source-depend on Skills, Providers, Adapters, external platforms, or technologies. Skills MUST NOT source-depend on concrete Provider or Adapter implementations.
+
 ---
 
 # Collaboration Example
+
+The following examples describe Runtime Interaction Flow, not source-code dependency direction.
 
 User:
 
@@ -323,6 +329,7 @@ Review when introducing plugin-based ecosystem integrations or distributed Skill
 | Version | Date | Description |
 |----------|------|-------------|
 | 1.0.0 | 2026-07-10 | Initial architecture decision. |
+| 1.1.0 | 2026-07-19 | Distinguished runtime Skill/Contract interactions from inward source-code dependency direction. |
 
 ---
 

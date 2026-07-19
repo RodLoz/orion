@@ -34,6 +34,7 @@ Examples:
 
 - Voice
 - Memory
+- Knowledge
 - Planning
 - Reasoning
 - Identity
@@ -48,6 +49,8 @@ Capabilities evolve independently.
 # 4. The Core Must Remain Pure
 
 The Core defines business concepts.
+
+The Core may define platform-wide invariants, architectural policies, shared policy Contracts, and cross-capability constraints. Capability-specific business rules and semantic decisions belong to the owning Engine. Core custody of shared language must never create a second owner of capability behavior.
 
 The Core never depends on:
 
@@ -65,6 +68,10 @@ Dependencies always point toward the Core.
 # 5. Contracts Before Implementations
 
 Every interaction between components must happen through contracts.
+
+The Core is the canonical custodian of shared architectural Contracts. Capability Engines own capability behavior and domain semantics; implementation layers implement or translate Contracts without changing those semantics.
+
+Source-code dependencies point inward toward Core abstractions. Runtime call, data, and event-flow arrows must be labeled and must not be interpreted as source-code dependencies. The Core must not depend on Engines, Skills, Providers, Adapters, Infrastructure, or Clients; Engines and Skills must not depend on concrete external implementations.
 
 Components communicate through interfaces rather than concrete implementations.
 
@@ -103,16 +110,19 @@ its design should be reconsidered.
 
 Memory is not conversation history.
 
-Memory represents knowledge.
+Memory represents intentionally retained experience and user continuity.
 
 O.R.I.O.N. should distinguish between:
 
-- Short-term memory
-- Long-term memory
-- User profile
-- Context
-- Learned preferences
-- Device knowledge
+- Memory: what the platform has experienced
+- Knowledge: what the platform accepts as true
+- Context: what is relevant right now
+
+This distinction is based on semantic role and authority, not persistence.
+
+Knowledge is an independent platform capability owned by the Knowledge Engine.
+
+Only the Knowledge capability governs whether a claim becomes accepted Knowledge. Memory may provide evidence or provenance, and external components may provide observations, but none of them may promote information into Knowledge independently.
 
 ---
 
@@ -146,6 +156,8 @@ Never an afterthought.
 
 Identity, permissions, auditability, and encryption must be considered from the beginning.
 
+The Security Engine owns security policy and authorization decision semantics. Protected boundaries enforce those decisions through Contracts or governed policy artifacts without acquiring Security ownership or requiring direct Engine coupling.
+
 ---
 
 # 11. Privacy First
@@ -163,6 +175,8 @@ Users should always be able to inspect, export, and delete their data.
 Whenever possible, components communicate through events rather than direct dependencies.
 
 Loose coupling improves scalability and maintainability.
+
+The Core custodies shared Event schemas; the applicable capability or domain owns Event semantics; and an authorized runtime component publishes only Events it is permitted to represent. Event publication is required only when a meaningful completed fact exists.
 
 ---
 

@@ -130,6 +130,8 @@ More details can be found in the documentation.
 
 \## High-Level Architecture
 
+The following is a runtime interaction flow, not source-code dependency direction. Source-code dependencies point inward toward Core abstractions; Core does not depend on Engines, Skills, Providers, Adapters, Infrastructure, or Clients.
+
 
 
 ```text

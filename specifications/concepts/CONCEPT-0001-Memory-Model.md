@@ -2,11 +2,11 @@
 
 | Field | Value |
 |--------|--------|
-| **Status** | Draft |
-| **Version** | 1.0.0 |
+| **Status** | Active |
+| **Version** | 2.3.0 |
 | **Owner** | Project Maintainers |
 | **Created** | 2026-07-11 |
-| **Updated** | 2026-07-11 |
+| **Updated** | 2026-07-19 |
 | **Applies To** | Entire Platform |
 
 ---
@@ -23,7 +23,11 @@ Its purpose is to provide continuity, personalization, explainability, and long-
 
 # Definition
 
-Memory is the structured representation of information that O.R.I.O.N. intentionally retains over time in order to improve future reasoning, planning, personalization, and execution.
+Memory is the structured representation of experience and user continuity that O.R.I.O.N. intentionally retains in order to improve future reasoning, planning, personalization, and execution.
+
+Memory answers:
+
+> **"What have I experienced?"**
 
 Memory is not:
 
@@ -33,6 +37,10 @@ Memory is not:
 - an AI provider context window.
 
 Memory is a managed cognitive resource.
+
+Memory is not a generic synonym for persistent information or Knowledge. Its boundary is determined by semantic role and authority, not persistence.
+
+Memory is governed exclusively by the Memory Engine.
 
 ---
 
@@ -56,46 +64,17 @@ The objective is to remember what matters.
 
 # Memory Taxonomy
 
-O.R.I.O.N. classifies memory into six categories.
+O.R.I.O.N. classifies Memory into three canonical categories.
 
 ```
 Memory
 │
-├── Working Memory
 ├── Episodic Memory
-├── Semantic Memory
 ├── Preference Memory
-├── Procedural Memory
-└── System Memory
+└── Assertion Memory
 ```
 
 Each category has different responsibilities, retention policies, and retrieval strategies.
-
----
-
-# Working Memory
-
-## Purpose
-
-Stores information required for the current execution.
-
-Examples:
-
-- active conversation
-- temporary variables
-- unresolved references
-- intermediate reasoning
-- active workflow
-
-## Lifetime
-
-Minutes.
-
-Automatically discarded.
-
-## Owner
-
-Context Engine.
 
 ---
 
@@ -113,6 +92,7 @@ Examples:
 - completed tasks
 - important conversations
 - project milestones
+- intentionally retained historical system events
 
 ## Lifetime
 
@@ -123,26 +103,6 @@ May be summarized over time.
 ## Owner
 
 Memory Engine.
-
----
-
-# Semantic Memory
-
-## Purpose
-
-Stores facts.
-
-Examples:
-
-- user profession
-- known locations
-- connected accounts
-- installed capabilities
-- learned concepts
-
-Semantic Memory answers:
-
-"What is true?"
 
 ---
 
@@ -166,37 +126,42 @@ Preference history may be retained.
 
 ---
 
-# Procedural Memory
+# Assertion Memory
 
 ## Purpose
 
-Stores knowledge about how something is performed.
+Stores provenance that an assertion or interaction occurred without treating the asserted claim as accepted Knowledge.
 
 Examples:
 
-- deployment workflows
-- recurring automation
-- user-defined procedures
-- execution recipes
+- a user stated their profession
+- a user identified a preferred location
+- an authorized source asserted a relationship
 
-Procedural Memory supports automation and planning.
+A validated claim may exist separately as Knowledge. A Memory item and Knowledge item may reference the same real-world subject, but they must not represent the same semantic claim.
 
 ---
 
-# System Memory
+# Boundary with Knowledge and Context
 
-## Purpose
+The following classification rules apply.
 
-Stores operational platform information.
+- Working Memory, when referring to temporary reasoning or session state, belongs to Context.
+- Semantic Memory, when referring to accepted facts or truths, belongs to Knowledge.
+- Procedural Memory, when referring to general or validated procedures, belongs to Knowledge.
+- Current operational or system state belongs to Context.
+- Stable platform definitions and capability definitions belong to Knowledge.
+- Current capability availability belongs to Context.
+- An intentionally retained historical system event belongs to Memory.
+- Platform Knowledge belongs to Knowledge.
+- Personal information representing a retained assertion or experience belongs to Memory; an accepted or validated claim belongs to Knowledge.
+- The experience of executing a procedure may be intentionally retained as Memory; the validated procedure itself belongs to Knowledge.
 
-Examples:
+Context may select or project relevant Memory and Knowledge but does not reclassify them or assume durable ownership.
 
-- installed Skills
-- Provider metadata
-- runtime capabilities
-- synchronization state
+Memory may provide evidence or provenance for a claim, but the Memory capability cannot promote information into Knowledge by itself. Only the Knowledge capability governs whether a claim becomes accepted Knowledge.
 
-System Memory is generally not exposed to end users.
+A retained Context Snapshot or equivalent replay evidence remains Context operational evidence. It does not become cognitive Memory merely because it is retained.
 
 ---
 

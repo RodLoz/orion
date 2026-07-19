@@ -3,10 +3,10 @@
 | Field | Value |
 |--------|--------|
 | **Status** | Active |
-| **Version** | 1.0.0 |
+| **Version** | 1.1.0 |
 | **Owner** | Project Maintainers |
 | **Created** | 2026-07-09 |
-| **Updated** | 2026-07-09 |
+| **Updated** | 2026-07-19 |
 | **Applies To** | All Adapters |
 
 ---
@@ -84,7 +84,9 @@ Adapters absorb ecosystem changes so the rest of the platform remains stable.
 
 ---
 
-# Dependency Direction
+# Runtime Interaction Flow
+
+The following diagram describes runtime interaction through a Contract. Its arrows do not represent source-code dependency direction.
 
 Correct
 
@@ -109,6 +111,8 @@ Skill
 ↓
 
 GitHub REST API
+
+Canonical source-code dependency direction is inward: an Adapter implementation depends on the applicable Core Contract or abstraction. The Contract and Core MUST NOT source-depend on the Adapter or external API, and a Skill MUST NOT source-depend on a concrete Adapter.
 
 ---
 
@@ -186,7 +190,9 @@ Consumers should never receive ecosystem-specific errors.
 
 # Events
 
-Adapters may publish Events.
+Adapters may publish Events when a meaningful completed integration fact exists and the Adapter or integration domain is the semantic owner.
+
+Such Events are Adapter-owned integration Events. An Adapter MUST NOT publish or impersonate an Engine-owned domain Event; domain facts must enter the owning capability through its Contracts. Core custody of the shared Event schema does not transfer semantic ownership or publication authority.
 
 Examples:
 

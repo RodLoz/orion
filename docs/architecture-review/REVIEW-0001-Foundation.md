@@ -2,7 +2,7 @@
 
 | Field | Value |
 |--------|--------|
-| **Status** | Open |
+| **Status** | Superseded |
 | **Version** | 1.0.0 |
 | **Review Type** | Architecture Review |
 | **Author** | Codex |
@@ -10,6 +10,8 @@
 | **Created** | 2026-07-10 |
 | **Scope** | Foundation Architecture |
 | **Repository Version** | Foundation v0.1 |
+
+> Historical status note (2026-07-19): This review is superseded by `REVIEW-0002-FINAL-FOUNDATION.md`. Its original findings and action plan are preserved as historical evidence and must not be interpreted as the current project state. FR-001 and FR-002 were resolved by the OES and ADR baseline; FR-005 and FR-006 were resolved by the documented FND-004 through FND-006 corrections. Remaining naming, formatting, and taxonomy observations are either addressed by later authoritative documents or tracked as non-blocking cleanup. Foundation Freeze remains unapproved pending a new independent review.
 
 ---
 

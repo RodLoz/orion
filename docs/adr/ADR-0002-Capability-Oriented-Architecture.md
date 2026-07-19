@@ -3,10 +3,10 @@
 | Field | Value |
 |--------|--------|
 | **Status** | Active |
-| **Version** | 1.0.0 |
+| **Version** | 2.0.0 |
 | **Owner** | Project Maintainers |
 | **Created** | 2026-07-10 |
-| **Updated** | 2026-07-10 |
+| **Updated** | 2026-07-19 |
 | **Decision Type** | Architecture Decision |
 
 ---
@@ -50,6 +50,7 @@ Examples of capabilities include:
 - Voice
 - Identity
 - Memory
+- Knowledge
 - Context
 - Reasoning
 - Planning
@@ -75,6 +76,7 @@ Examples:
 | Voice | Voice Engine |
 | Identity | Identity Engine |
 | Memory | Memory Engine |
+| Knowledge | Knowledge Engine |
 | Context | Context Engine |
 | Reasoning | Reasoning Engine |
 | Planning | Planning Engine |
@@ -84,6 +86,45 @@ Examples:
 | Security | Security Engine |
 
 Ownership implies responsibility for behavior, lifecycle, validation, and runtime execution.
+
+---
+
+# Knowledge Capability Ownership
+
+Knowledge is an independent platform capability.
+
+The Knowledge Engine is the single architectural owner of the Knowledge capability.
+
+Knowledge answers:
+
+> **"What is accepted as sufficiently true?"**
+
+The Knowledge Engine:
+
+- owns Knowledge domain behavior;
+- governs whether claims are accepted as Knowledge;
+- governs validation state and provenance requirements;
+- governs Knowledge lifecycle and version semantics;
+- governs contradiction resolution within the Knowledge domain;
+- exposes Knowledge through architectural Contracts;
+- provides Knowledge references or projections to Context.
+
+The Knowledge Engine MUST NOT:
+
+- own storage technology;
+- own or mutate Context;
+- own or mutate Memory;
+- perform Reasoning or Planning.
+
+The Core MAY define or custody shared Knowledge Contracts, schemas, identifiers, and domain types according to Core ownership rules. The Core MUST NOT own Knowledge behavior.
+
+Providers MAY implement technology required by Knowledge persistence, retrieval, indexing, validation support, or enrichment. Providers MUST NOT determine what is accepted as Knowledge.
+
+Adapters MAY supply information from external ecosystems. Imported information MUST NOT become Knowledge automatically.
+
+Reasoning MAY propose claims. Memory MAY provide evidence or provenance. Adapters and Providers MAY provide external observations. Only the Knowledge capability governs whether a claim becomes accepted Knowledge.
+
+Semantic ownership and governance remain with the Knowledge Engine regardless of the physical persistence mechanism.
 
 ---
 
@@ -113,6 +154,10 @@ An Engine is the runtime implementation responsible for one capability.
 Engines collaborate through Contracts and Events.
 
 No Engine should assume ownership of another capability.
+
+Capability Engines own capability behavior and domain semantics. The Core is the canonical custodian of shared architectural Contracts and their compatibility and versioning rules. Providers, Adapters, and other implementation layers implement or translate Contracts without becoming semantic owners.
+
+Source-code dependencies point inward toward Core abstractions. Runtime call, data, and event flows do not reverse that direction. Engines and Skills MUST NOT depend on concrete Providers, Adapters, Infrastructure, or external systems.
 
 ---
 
@@ -218,6 +263,7 @@ Review before Platform v2.0.0 or when introducing distributed execution across m
 | Version | Date | Description |
 |----------|------|-------------|
 | 1.0.0 | 2026-07-10 | Initial architecture decision. |
+| 2.0.0 | 2026-07-19 | Established Knowledge as an independent capability owned by the Knowledge Engine. |
 
 ---
 

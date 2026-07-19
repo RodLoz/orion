@@ -20,6 +20,8 @@ The platform must be designed so that the Core remains independent from clients,
 
 # 2. High-Level Overview
 
+The following diagram is a Runtime Interaction Flow. Its arrows do not represent source-code dependency direction.
+
 ```text
 Clients
   Mobile
@@ -39,6 +41,7 @@ Intelligence Layer
   Identity Engine
   Context Engine
   Memory Engine
+  Knowledge Engine
   Reasoning Engine
   Planning Engine
   Skill Engine
@@ -60,6 +63,7 @@ Infrastructure Layer
   Message Bus
   AI Providers
   Monitoring
+```
 
 ---
 
@@ -84,6 +88,8 @@ The Core must not depend on infrastructure.
 
 The Core must not know which AI provider, database, or client is being used.
 
+The Core may define shared domain language, architectural policies, platform-wide constraints, and cross-capability invariants. Capability-specific business rules, semantic decisions, and behavior belong exclusively to the owning Engine; placing a shared model or policy Contract in Core does not transfer that ownership.
+
 ---
 
 #4. Engines
@@ -94,14 +100,17 @@ An Engine is responsible for one domain of intelligence.
 
 Brain Engine
 
-Coordinates the complete intelligence workflow.
+Orchestrates cognitive execution across capabilities through Contracts.
 
 Responsibilities:
 
 Receive normalized requests.
-Coordinate other engines.
-Maintain execution flow.
-Decide whether a response, action, or skill execution is required.
+Coordinate Context, Reasoning, Planning, Memory, Knowledge, and Skill invocation.
+Maintain the high-level cognitive execution flow.
+Select or coordinate the appropriate cognitive capability according to architectural rules.
+Assemble the final cognitive result from capability outputs.
+
+The Brain Engine does not perform domain reasoning, replace the Reasoning Engine, independently generate reasoning content, or own the semantics of the capabilities it coordinates. It does not own final transport, presentation, voice rendering, or Client delivery.
 Voice Engine
 
 Handles speech input and speech output.
@@ -135,29 +144,54 @@ Device context.
 Location context.
 Conversation context.
 Active task context.
+Context Lineage and Revision identity semantics.
+Context Revision lifecycle.
+Context Snapshot and lineage metadata semantics.
+
+Each Context Lineage has one stable Lineage Identity. Each Context Revision has a unique Revision Identity and is immutable once Active. A reasoning cycle consumes exactly one Active Context Revision.
+
+The canonical lifecycle is Collecting, Composing, Validating, Active, Expired, and optionally Archived. A meaningful change begins a new revision; it does not update an Active revision in place.
+
+Logical reconstruction is conditional on authoritative source revisions remaining available. Exact replay requires retained immutable evidence. Expiration ends operational validity but does not itself require immediate deletion or classify retained Context as Memory.
 Memory Engine
 
 Manages memory as a first-class capability.
 
 Responsibilities:
 
-Short-term memory.
-Long-term memory.
+Intentionally retained episodic experiences.
+Intentionally retained interaction information.
 User preferences.
-Stored facts.
+Assertion and interaction provenance.
 Memory retrieval.
 Memory deletion.
+Knowledge Engine
+
+Owns Knowledge as an independent platform capability.
+
+Responsibilities:
+
+Claim acceptance.
+Validation state governance.
+Provenance requirements.
+Knowledge lifecycle and version semantics.
+Contradiction resolution within Knowledge.
+Knowledge Contracts and references for Context.
+
+The Knowledge Engine does not own storage technology, Memory, Context, Reasoning, or Planning.
 Reasoning Engine
 
-Interprets intent and decides what should happen next.
+Evaluates the Active Context Revision and owns inference and reasoning.
 
 Responsibilities:
 
 Intent analysis.
-Decision making.
-Response generation.
+Inference, conclusions, and decisions.
+Candidate response or next-action generation as reasoning outcomes.
 Risk evaluation.
 Clarification requests.
+
+The Reasoning Engine does not orchestrate the full cognitive pipeline, execute Skills, own Planning or Context, or deliver results to Clients.
 Planning Engine
 
 Breaks complex objectives into executable steps.
@@ -185,11 +219,14 @@ Protects users, data, and actions.
 
 Responsibilities:
 
-Authorization.
-Permission enforcement.
-Policy checks.
+Security policy semantics.
+Authorization decision semantics.
+Security-domain rules.
+Policy decision Contracts and governed policy artifacts.
 Audit requirements.
 Sensitive action validation.
+
+Protected invocation boundaries enforce applicable Security-owned decisions. Enforcement may occur in Engines, Gateways, Adapters, Providers, or Infrastructure without transferring Security semantic ownership and without requiring a direct synchronous Security Engine dependency.
 Automation Engine
 
 Executes scheduled, conditional, and event-driven workflows.
@@ -285,6 +322,8 @@ Infrastructure must implement contracts defined by the Core.
 
 #6. Request Lifecycle
 
+This section describes Runtime Interaction Flow, not source-code dependency direction.
+
 A typical voice interaction follows this flow:
 
 User speaks
@@ -297,19 +336,21 @@ Voice Engine transcribes speech
   ↓
 Identity Engine identifies speaker
   ↓
-Context Engine builds context
+Context Engine begins Context collection for a new revision
   ↓
-Memory Engine retrieves relevant memory
+Memory and Knowledge Engines provide relevant references or projections as required during collection
+  ↓
+Context Engine composes, validates, and activates the immutable Context Revision
   ↓
 Reasoning Engine interprets intent
   ↓
 Planning Engine creates plan if needed
   ↓
-Security Engine validates permissions
+Security-owned authorization decision is obtained or evaluated; the protected boundary enforces it
   ↓
 Skill Engine executes required Skill
   ↓
-Brain Engine prepares response
+Brain Engine assembles the final cognitive result from capability outputs
   ↓
 Voice Engine generates spoken output
   ↓
@@ -400,21 +441,27 @@ AutomationTriggered
 
 Events allow systems to evolve without direct dependencies.
 
+The Core custodies shared Event Contracts, envelopes, and schemas. The applicable capability or domain owns Event semantics. Runtime publishers may be Engines, Adapters, or other authorized components appropriate to the Event type, but may publish only Events whose semantics they are authorized to represent.
+
+Domain Events belong semantically to their capability domain; integration Events belong to their Adapter or integration domain; platform and Infrastructure Events belong to the appropriate platform domain. No component is required to invent an Event when no meaningful completed fact exists.
+
 ---
 
 #10. Provider Abstraction
 
 O.R.I.O.N. must never depend directly on one provider.
 
-Instead of this:
+Forbidden source-code dependency:
 
 OpenAI → Brain Engine
 
-Use this:
+Runtime interaction through a Contract:
 
 LLM Provider Contract
         ↓
 OpenAI Provider Implementation
+
+In source code, the Provider implementation depends inward on the Core-custodied Contract. The runtime arrow above MUST NOT be interpreted as the Contract or Core depending on the Provider.
 
 The same applies to:
 
@@ -430,7 +477,7 @@ Integrations
 
 #11. Security Model
 
-Every action must be evaluated by the Security Engine.
+Every protected action must be evaluated under Security-owned authorization policy. Enforcement occurs at invocation boundaries through Contracts or governed policy artifacts; this does not require a direct synchronous dependency on the Security Engine.
 
 Security must consider:
 
@@ -460,13 +507,19 @@ Memory must be intentional and manageable.
 
 Memory categories:
 
-Conversation memory
-User profile memory
+Episodic memory
 Preference memory
-Device memory
-Skill memory
-Long-term knowledge
-Temporary context
+Assertion memory
+
+Memory represents intentionally retained experience and user continuity.
+
+Validated facts, domain knowledge, validated procedures, and stable platform definitions belong to Knowledge.
+
+Temporary reasoning state, current capability availability, and current operational or system state belong to Context.
+
+The boundary is determined by semantic role and authority, not persistence.
+
+The Knowledge Engine is the single architectural owner of Knowledge behavior and governance. Memory may provide evidence or provenance, while Reasoning, Providers, and Adapters may propose or supply claims and observations. Only the Knowledge capability determines whether a claim becomes accepted Knowledge.
 
 Users must be able to inspect, update, export, and delete memory.
 

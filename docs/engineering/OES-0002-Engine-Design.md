@@ -3,10 +3,10 @@
 | Field | Value |
 |--------|--------|
 | **Status** | Active |
-| **Version** | 1.0.0 |
+| **Version** | 1.2.0 |
 | **Owner** | Project Maintainers |
 | **Created** | 2026-07-09 |
-| **Updated** | 2026-07-09 |
+| **Updated** | 2026-07-19 |
 | **Applies To** | All Engines |
 
 ---
@@ -28,6 +28,7 @@ Examples include:
 - Brain Engine
 - Voice Engine
 - Memory Engine
+- Knowledge Engine
 - Context Engine
 - Planning Engine
 - Reasoning Engine
@@ -59,11 +60,11 @@ Every Engine must:
 
 - Own a single capability.
 - Have a clearly defined responsibility.
-- Expose contracts.
+- Expose cross-boundary interaction through Contracts under Core custody and governance.
 - Be replaceable.
 - Be independently testable.
 - Be observable.
-- Publish meaningful events.
+- Publish an Event when a meaningful completed domain fact exists; never invent Events solely to satisfy a lifecycle checklist.
 - Never depend directly on another Engine.
 
 ---
@@ -88,9 +89,32 @@ Not responsible for reasoning.
 
 Memory Engine
 
-Responsible for storing and retrieving knowledge.
+Responsible for storing and retrieving intentionally retained experience and user continuity.
 
-Not responsible for deciding what to remember.
+Responsible for governing whether a proposed Memory candidate is intentionally retained, consistent with ADR-0005.
+
+Physical persistence is implemented through Contracts and implementation layers; this does not transfer Memory domain ownership from the Memory Engine.
+
+---
+
+Knowledge Engine
+
+Responsible for the semantics and governance of Knowledge.
+
+The Knowledge Engine:
+
+- governs acceptance of claims as Knowledge;
+- governs validation state and provenance requirements;
+- governs Knowledge lifecycle and version semantics;
+- resolves contradictions within the Knowledge domain;
+- exposes Knowledge through Contracts;
+- provides Knowledge references or projections to Context.
+
+The Knowledge Engine does not own storage technology, Context, or Memory.
+
+The Knowledge Engine does not perform Reasoning or Planning.
+
+Providers and Adapters may supply observations or technical support, but they never determine what is accepted as Knowledge.
 
 ---
 
@@ -102,11 +126,29 @@ Not responsible for executing them.
 
 ---
 
+Brain Engine
+
+Responsible for orchestrating cognitive execution across Context, Reasoning, Planning, Memory, Knowledge, and Skill invocation through Contracts.
+
+The Brain Engine manages the high-level cognitive execution flow and coordinates the appropriate capability. It does not perform domain reasoning, replace the Reasoning Engine, own the semantics of coordinated capabilities, or independently generate reasoning content.
+
+Reasoning Engine
+
+Responsible for evaluating exactly one Active Context Revision, performing inference and reasoning, and producing reasoning outcomes.
+
+A reasoning outcome may include a candidate response, conclusion, decision, or next action. The Reasoning Engine does not orchestrate the full cognitive pipeline, execute Skills, own Planning or Context, or deliver results to Clients.
+
+The Brain Engine may assemble the final cognitive result from capability outputs. Final transport, presentation, voice rendering, and client delivery belong outside both Engines.
+
+---
+
 # Communication
 
 Engines communicate through Contracts and Events.
 
 Never through direct implementation dependencies.
+
+The following diagrams describe Runtime Interaction Flow. Their arrows do not represent source-code dependency direction.
 
 Correct
 
@@ -138,11 +180,11 @@ Skill Engine
 
 ---
 
-# Dependencies
+# Source-Code Dependencies
 
-Dependencies always point toward Contracts.
+Source-code dependencies always point toward Core-custodied Contracts.
 
-Never toward implementations.
+Never toward implementations. Runtime interaction arrows do not change this dependency direction.
 
 Correct
 
@@ -150,11 +192,7 @@ Brain Engine
 
 ↓
 
-SpeechToTextProvider
-
-↓
-
-OpenAI Provider
+Core Contract
 
 Incorrect
 
@@ -240,7 +278,7 @@ Engines should be stateless whenever possible.
 
 When state is required, ownership must be explicit.
 
-Persistent state belongs outside the Engine.
+Physical persistence belongs outside the Engine behind Contracts. The capability Engine retains semantic ownership and lifecycle governance of its domain state.
 
 ---
 
@@ -286,7 +324,9 @@ Contracts should remain stable.
 
 # Events
 
-Engines should publish meaningful events.
+Engines should publish meaningful domain Events only when a meaningful completed domain fact exists and the Engine is authorized to represent that Event's semantics.
+
+The Core custodies shared Event schemas. The capability or domain owns Event semantics, and runtime publication authority remains distinct. An Engine MUST NOT publish another domain's Event as though it were the semantic owner.
 
 Examples:
 
@@ -444,7 +484,7 @@ An Engine is complete when it provides:
 
 ✔ Public Contracts
 
-✔ Event publication
+✔ Event publication when a meaningful completed domain fact exists
 
 ✔ Tests
 

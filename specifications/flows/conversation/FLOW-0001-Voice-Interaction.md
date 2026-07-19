@@ -3,10 +3,10 @@
 | Field | Value |
 |--------|--------|
 | **Status** | Active |
-| **Version** | 1.0.0 |
+| **Version** | 1.1.0 |
 | **Owner** | Project Maintainers |
 | **Created** | 2026-07-09 |
-| **Updated** | 2026-07-09 |
+| **Updated** | 2026-07-19 |
 | **Applies To** | Voice Conversations |
 
 ---
@@ -36,6 +36,8 @@ This flow applies to every voice-enabled client, including:
 
 # High-Level Flow
 
+This diagram describes Runtime Interaction Flow. Its arrows do not represent source-code dependency direction.
+
 ```text
 User
     │
@@ -52,10 +54,16 @@ Speaker Identification
 Speech-to-Text
     │
     ▼
-Context Assembly
+Context Collection
     │
     ▼
-Memory Retrieval
+Memory / Knowledge Retrieval as Required
+    │
+    ▼
+Context Composition and Validation
+    │
+    ▼
+Context Activation
     │
     ▼
 Reasoning
@@ -70,7 +78,7 @@ Skill Resolution
 Skill Execution (optional)
     │
     ▼
-Response Generation
+Final Cognitive Result Assembly
     │
     ▼
 Text-to-Speech
@@ -166,7 +174,7 @@ Normalized transcript.
 
 ---
 
-# Step 5 — Context Assembly
+# Step 5 — Context Collection and Source Retrieval
 
 ## Responsible Engine
 
@@ -174,7 +182,7 @@ Context Engine
 
 ## Responsibilities
 
-Build a complete execution context including:
+Begin a new Context Revision in the Collecting state and gather the information required for the current reasoning cycle, including:
 
 - Active user
 - Device
@@ -184,19 +192,34 @@ Build a complete execution context including:
 - Active workflow
 - Current permissions
 
+When relevant Memory is required, the Context Engine requests authorized Memory references or projections through the Memory Contract during Collecting. The Memory Engine remains the semantic owner of the underlying Memory.
+
+When relevant Knowledge is required, the Context Engine requests authorized Knowledge references or projections through the Knowledge Contract during Collecting. The Knowledge Engine remains the semantic owner of the underlying Knowledge.
+
+Identity, device, environmental, Planning, and other qualified Context Sources follow the same rule: information required for this reasoning cycle is collected before the revision becomes Active, and source ownership is not transferred to Context.
+
 ---
 
-# Step 6 — Memory Retrieval
+# Step 6 — Context Composition, Validation, and Activation
 
 ## Responsible Engine
 
-Memory Engine
+Context Engine
 
-Retrieve only relevant knowledge for the current context.
+Responsibilities:
 
-Memory retrieval should remain intentional.
+- Compose the collected Context Fragments, references, and projections into one Context Revision.
+- Validate the revision before activation.
+- Activate the validated revision.
+- Preserve the Context Lineage Identity and assign a unique Context Revision Identity and ordering semantic.
 
-The entire memory must never be loaded.
+All Memory and Knowledge information required for this reasoning cycle MUST be retrieved before activation. Context contains only the relevant references or projections; Memory and Knowledge ownership remains with their respective Engines.
+
+Memory retrieval remains intentional and limited to relevant, authorized information. The entire Memory MUST NOT be loaded indiscriminately.
+
+Once Active, the Context Revision is immutable. The Reasoning Engine consumes exactly that one immutable Active Context Revision.
+
+If relevant Memory, Knowledge, Identity, device, environmental, or other contextual information arrives after activation, the current Active Context Revision remains unchanged. The Context Engine MUST create, compose, validate, and activate a new Context Revision before that information may participate in subsequent reasoning.
 
 ---
 
@@ -208,10 +231,14 @@ Reasoning Engine
 
 Responsibilities:
 
-- Understand intent.
+- Evaluate exactly one immutable Active Context Revision.
+- Understand intent and perform inference.
 - Detect ambiguity.
 - Assess confidence.
 - Decide whether clarification is required.
+- Produce reasoning outcomes, which may include a candidate response, conclusion, decision, or next action.
+
+The Reasoning Engine does not orchestrate the full cognitive pipeline, execute Skills, own Planning or Context, or deliver results to the Client.
 
 ---
 
@@ -242,7 +269,7 @@ Responsibilities:
 - Select best candidate.
 - Prepare execution.
 
-If no Skill is required, continue directly to Response Generation.
+If no Skill is required, continue directly to Final Cognitive Result Assembly.
 
 ---
 
@@ -260,7 +287,7 @@ Responsibilities:
 
 ---
 
-# Step 11 — Response Generation
+# Step 11 — Final Cognitive Result Assembly
 
 ## Responsible Engine
 
@@ -268,10 +295,11 @@ Brain Engine
 
 Responsibilities:
 
-- Combine reasoning.
-- Combine Skill output.
-- Generate natural response.
-- Preserve conversation continuity.
+- Orchestrate assembly of the final cognitive result from Reasoning, Planning, Skill, and other capability outputs.
+- Use any candidate response as a Reasoning outcome rather than independently generating reasoning content.
+- Preserve execution continuity without assuming ownership of Memory or Context semantics.
+
+The Brain Engine does not perform reasoning or final transport, presentation, voice rendering, or Client delivery.
 
 ---
 

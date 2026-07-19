@@ -57,19 +57,21 @@ A Provider is a replaceable implementation of a Contract.
 
 A Provider exists to translate a technology-specific interface into a platform Contract.
 
-```
-Core
-        ↓
-Contract
-        ↓
-Provider
-        ↓
-Technology
+Canonical source-code dependency direction:
+
+```text
+Provider Implementation -> Core Contract / Abstraction
 ```
 
-The platform communicates with Contracts.
+An Engine or Skill MUST NOT depend on a concrete Provider or external system. Runtime flow through a Contract does not reverse this source-code dependency rule.
 
-Providers communicate with technologies.
+Runtime Interaction Flow:
+
+```text
+Engine or Skill -> Contract -> Provider -> External Technology
+```
+
+The platform communicates through Contracts. Providers communicate with technologies. These runtime arrows do not represent source-code dependency direction.
 
 ---
 
@@ -150,7 +152,7 @@ Business logic must never manually instantiate Providers.
 
 # Selection
 
-The Provider Registry is responsible for selecting the most appropriate Provider.
+The Provider Registry executes Provider selection using policy supplied by the consuming capability or applicable platform-policy authority. The Registry does not own business or policy semantics.
 
 Selection criteria may include:
 
@@ -163,7 +165,7 @@ Selection criteria may include:
 - User preference
 - Organization policy
 
-Selection rules must be deterministic.
+Selection rules must be deterministic and must not transfer semantic ownership to the Provider layer.
 
 ---
 
