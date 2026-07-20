@@ -37,6 +37,15 @@ importers:
       '@orion/core':
         specifier: workspace:*
         version: link:../../core
+      '@orion/identity':
+        specifier: workspace:*
+        version: link:../identity
+
+  services/identity:
+    dependencies:
+      '@orion/core':
+        specifier: workspace:*
+        version: link:../../core
 
 packages:
 

@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "@orion/core": "workspace:*"
+    "@orion/core": "workspace:*",
+    "@orion/identity": "workspace:*"
   }
 }

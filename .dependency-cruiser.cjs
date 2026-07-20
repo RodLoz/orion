@@ -29,6 +29,34 @@ module.exports = {
       },
     },
     {
+      name: "identity-engine-must-not-depend-on-concrete-outer-layers",
+      comment:
+        "Identity Engine owns domain behavior and may depend only inward on Core abstractions.",
+      severity: "error",
+      from: { path: "^services/identity/(src|architecture-fixtures)" },
+      to: {
+        path: "^(services/bootstrap|apps|packages|infrastructure|infraestructure)/",
+      },
+    },
+    {
+      name: "identity-engine-must-not-depend-on-external-packages",
+      comment:
+        "Identity Engine is framework-free and M1 permits no external npm package imports.",
+      severity: "error",
+      from: { path: "^services/identity/(src|architecture-fixtures)" },
+      to: {
+        dependencyTypes: [
+          "npm",
+          "npm-dev",
+          "npm-no-pkg",
+          "npm-optional",
+          "npm-peer",
+          "npm-bundled",
+        ],
+        pathNot: "^@orion/core$",
+      },
+    },
+    {
       name: "bootstrap-must-not-depend-on-outer-layers",
       comment:
         "The M0 composition root may assemble Core and bootstrap implementations but cannot depend on clients or infrastructure.",

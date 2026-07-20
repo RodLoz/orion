@@ -19,10 +19,16 @@ describe("M0 diagnostic runtime", () => {
         runtimeStarted: true,
         configurationLoaded: true,
         capabilityRegistryInitialized: true,
-        registeredCapabilityCount: 1,
+        registeredCapabilityCount: 2,
+        identityCapability: {
+          initialized: true,
+          anonymousResolutionSucceeded: true,
+          authenticatedResolutionSucceeded: true,
+        },
         architecturalDiagnosticStatus: "ok",
       });
       expect(result.registeredCapabilities.map(({ id }) => id)).toEqual([
+        "orion.identity",
         "orion.runtime.diagnostics",
       ]);
       expect(diagnosticOutput).toHaveLength(1);
@@ -33,10 +39,23 @@ describe("M0 diagnostic runtime", () => {
           runtimeStarted: true,
           configurationLoaded: true,
           capabilityRegistryInitialized: true,
-          registeredCapabilityCount: 1,
+          registeredCapabilityCount: 2,
+          identityCapability: {
+            initialized: true,
+            anonymousResolutionSucceeded: true,
+            authenticatedResolutionSucceeded: true,
+          },
           architecturalDiagnosticStatus: "ok",
         },
       });
+      const serializedDiagnostic = diagnosticOutput[0] ?? "";
+      expect(serializedDiagnostic).not.toContain("m1-demonstration-reference");
+      expect(serializedDiagnostic).not.toContain(
+        "orion.identity.demonstration",
+      );
+      expect(serializedDiagnostic).not.toMatch(
+        /credential|password|secret|token/i,
+      );
       expect(logOutput).toHaveLength(logLevel === "debug" ? 1 : 0);
     },
   );

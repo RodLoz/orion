@@ -11,6 +11,14 @@ export {
 } from "./console-structured-logger.js";
 export { composeDiagnosticRuntime } from "./diagnostic.js";
 export {
+  composeIdentityCapability,
+  type IdentityCapabilityComposition,
+} from "./identity/identity-composition.js";
+export {
+  InMemoryIdentitySource,
+  type InMemoryIdentityRecord,
+} from "./identity/in-memory-identity-source.js";
+export {
   emitDiagnosticResult,
   type DiagnosticResultRecord,
   type DiagnosticResultSink,
