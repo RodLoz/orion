@@ -29,6 +29,18 @@ export interface MemoryCapabilityDiagnostic {
   readonly retainedCountAfterForget: number;
 }
 
+export interface KnowledgeCapabilityDiagnostic {
+  readonly operational: true;
+  readonly acceptanceSucceeded: true;
+  readonly retrievalSucceeded: true;
+  readonly referenceCount: number;
+  readonly contradictionRejected: true;
+  readonly supersessionSucceeded: true;
+  readonly versionAdvanced: true;
+  readonly predecessorRetrievable: true;
+  readonly successorCurrent: true;
+}
+
 export interface DiagnosticResult {
   readonly runtimeStarted: true;
   readonly configurationLoaded: true;
@@ -38,5 +50,6 @@ export interface DiagnosticResult {
   readonly identityCapability: IdentityCapabilityDiagnostic;
   readonly contextCapability: ContextCapabilityDiagnostic;
   readonly memoryCapability: MemoryCapabilityDiagnostic;
+  readonly knowledgeCapability: KnowledgeCapabilityDiagnostic;
   readonly architecturalDiagnosticStatus: ArchitecturalDiagnosticStatus;
 }

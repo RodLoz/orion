@@ -43,6 +43,9 @@ importers:
       '@orion/identity':
         specifier: workspace:*
         version: link:../identity
+      '@orion/knowledge':
+        specifier: workspace:*
+        version: link:../knowledge
       '@orion/memory':
         specifier: workspace:*
         version: link:../memory
@@ -54,6 +57,12 @@ importers:
         version: link:../../core
 
   services/identity:
+    dependencies:
+      '@orion/core':
+        specifier: workspace:*
+        version: link:../../core
+
+  services/knowledge:
     dependencies:
       '@orion/core':
         specifier: workspace:*

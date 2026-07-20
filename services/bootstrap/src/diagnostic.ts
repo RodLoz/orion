@@ -7,6 +7,7 @@ import {
 import { RuntimeCapabilityRegistry } from "./capability-registry.js";
 import { composeContextCapability } from "./context/context-composition.js";
 import { composeIdentityCapability } from "./identity/identity-composition.js";
+import { composeKnowledgeCapability } from "./knowledge/knowledge-composition.js";
 import { composeMemoryCapability } from "./memory/memory-composition.js";
 
 const DIAGNOSTIC_CAPABILITY: CapabilityDescriptor = Object.freeze({
@@ -37,12 +38,20 @@ const MEMORY_CAPABILITY: CapabilityDescriptor = Object.freeze({
   availability: "available",
 });
 
+const KNOWLEDGE_CAPABILITY: CapabilityDescriptor = Object.freeze({
+  id: capabilityIdentifier("orion.knowledge"),
+  name: "Knowledge",
+  version: "1.0.0",
+  availability: "available",
+});
+
 export function composeDiagnosticRuntime(): DiagnosticResult {
   const registry = new RuntimeCapabilityRegistry();
   registry.register(DIAGNOSTIC_CAPABILITY);
   registry.register(IDENTITY_CAPABILITY);
   registry.register(CONTEXT_CAPABILITY);
   registry.register(MEMORY_CAPABILITY);
+  registry.register(KNOWLEDGE_CAPABILITY);
 
   const identity = composeIdentityCapability();
   const anonymousIdentity =
@@ -98,6 +107,93 @@ export function composeDiagnosticRuntime(): DiagnosticResult {
     retainedAfter.length !== 0
   ) {
     throw new Error("Memory capability diagnostic failed.");
+  }
+
+  const knowledge = composeKnowledgeCapability();
+  const initialDecision =
+    knowledge.evaluateKnowledgeClaim.evaluateKnowledgeClaim({
+      intent: "evaluate",
+      claim: "A controlled M4 diagnostic claim is accepted.",
+      acceptanceEvidence: {
+        method: "explicit-authority-review",
+        authorityIdentifier: "orion.diagnostic.authority",
+        decision: "accept",
+        reason: "Verify explicit M4 acceptance.",
+      },
+      provenance: {
+        sourceType: "approved-internal-source",
+        originatingCapability: "orion.runtime.diagnostics",
+        observedAt: "2026-07-20T12:59:00.000Z",
+      },
+    });
+  if (initialDecision.outcome !== "accepted") {
+    throw new Error("Knowledge capability diagnostic failed.");
+  }
+  const retrievedKnowledge = knowledge.getKnowledge.getKnowledge({
+    knowledgeIdentity: initialDecision.record.knowledgeIdentity,
+  });
+  const initialReferences =
+    knowledge.listKnowledgeReferences.listKnowledgeReferences({});
+  const rejectedContradiction =
+    knowledge.evaluateKnowledgeClaim.evaluateKnowledgeClaim({
+      intent: "evaluate",
+      claim: "A controlled conflicting candidate is rejected.",
+      acceptanceEvidence: {
+        method: "explicit-authority-review",
+        authorityIdentifier: "orion.diagnostic.authority",
+        decision: "accept",
+        reason: "Exercise explicit contradiction rejection.",
+      },
+      provenance: {
+        sourceType: "approved-internal-source",
+        originatingCapability: "orion.runtime.diagnostics",
+        observedAt: "2026-07-20T12:59:30.000Z",
+      },
+      contradictsKnowledgeIdentity: initialDecision.record.knowledgeIdentity,
+      contradictionDecision: "reject-candidate",
+      contradictionReason: "Preserve the accepted diagnostic fixture.",
+    });
+  const successorDecision =
+    knowledge.evaluateKnowledgeClaim.evaluateKnowledgeClaim({
+      intent: "evaluate",
+      claim: "A controlled M4 diagnostic claim is explicitly superseded.",
+      acceptanceEvidence: {
+        method: "explicit-authority-review",
+        authorityIdentifier: "orion.diagnostic.authority",
+        decision: "accept",
+        reason: "Verify deterministic M4 supersession.",
+      },
+      provenance: {
+        sourceType: "approved-internal-source",
+        originatingCapability: "orion.runtime.diagnostics",
+        observedAt: "2026-07-20T13:00:30.000Z",
+      },
+      contradictsKnowledgeIdentity: initialDecision.record.knowledgeIdentity,
+      contradictionDecision: "supersede-existing",
+      contradictionReason: "Replace the controlled diagnostic fixture.",
+    });
+  if (successorDecision.outcome !== "accepted") {
+    throw new Error("Knowledge capability diagnostic failed.");
+  }
+  const historicalKnowledge = knowledge.getKnowledge.getKnowledge({
+    knowledgeIdentity: initialDecision.record.knowledgeIdentity,
+  });
+  const currentReferences =
+    knowledge.listKnowledgeReferences.listKnowledgeReferences({});
+
+  if (
+    retrievedKnowledge.knowledge.knowledgeIdentity !==
+      initialDecision.record.knowledgeIdentity ||
+    initialReferences.length !== 1 ||
+    rejectedContradiction.outcome !== "rejected" ||
+    rejectedContradiction.category !== "contradiction-preserved" ||
+    successorDecision.record.version !== initialDecision.record.version + 1 ||
+    historicalKnowledge.reference.currency !== "superseded" ||
+    currentReferences.length !== 1 ||
+    currentReferences[0]?.knowledgeIdentity !==
+      successorDecision.record.knowledgeIdentity
+  ) {
+    throw new Error("Knowledge capability diagnostic failed.");
   }
 
   const context = composeContextCapability();
@@ -167,6 +263,17 @@ export function composeDiagnosticRuntime(): DiagnosticResult {
       retainedCountBeforeForget: retainedBefore.length,
       forgettingSucceeded: true,
       retainedCountAfterForget: retainedAfter.length,
+    }),
+    knowledgeCapability: Object.freeze({
+      operational: true,
+      acceptanceSucceeded: true,
+      retrievalSucceeded: true,
+      referenceCount: initialReferences.length,
+      contradictionRejected: true,
+      supersessionSucceeded: true,
+      versionAdvanced: true,
+      predecessorRetrievable: true,
+      successorCurrent: true,
     }),
     architecturalDiagnosticStatus: "ok",
   });

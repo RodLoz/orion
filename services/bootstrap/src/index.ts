@@ -6,6 +6,12 @@ export {
 export { DeterministicContextConstructionValues } from "./context/deterministic-context-construction-values.js";
 export { DeterministicMemoryConstructionValues } from "./memory/deterministic-memory-construction-values.js";
 export { InMemoryMemoryStore } from "./memory/in-memory-memory-store.js";
+export { DeterministicKnowledgeConstructionValues } from "./knowledge/deterministic-knowledge-construction-values.js";
+export { InMemoryKnowledgeStore } from "./knowledge/in-memory-knowledge-store.js";
+export {
+  composeKnowledgeCapability,
+  type KnowledgeCapabilityComposition,
+} from "./knowledge/knowledge-composition.js";
 export {
   composeMemoryCapability,
   type MemoryCapabilityComposition,

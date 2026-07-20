@@ -5,6 +5,7 @@
     { "path": "./services/identity" },
     { "path": "./services/context" },
     { "path": "./services/memory" },
+    { "path": "./services/knowledge" },
     { "path": "./services/bootstrap" }
   ]
 }

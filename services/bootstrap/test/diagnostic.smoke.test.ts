@@ -19,7 +19,7 @@ describe("M0 diagnostic runtime", () => {
         runtimeStarted: true,
         configurationLoaded: true,
         capabilityRegistryInitialized: true,
-        registeredCapabilityCount: 4,
+        registeredCapabilityCount: 5,
         identityCapability: {
           initialized: true,
           anonymousResolutionSucceeded: true,
@@ -44,11 +44,23 @@ describe("M0 diagnostic runtime", () => {
           forgettingSucceeded: true,
           retainedCountAfterForget: 0,
         },
+        knowledgeCapability: {
+          operational: true,
+          acceptanceSucceeded: true,
+          retrievalSucceeded: true,
+          referenceCount: 1,
+          contradictionRejected: true,
+          supersessionSucceeded: true,
+          versionAdvanced: true,
+          predecessorRetrievable: true,
+          successorCurrent: true,
+        },
         architecturalDiagnosticStatus: "ok",
       });
       expect(result.registeredCapabilities.map(({ id }) => id)).toEqual([
         "orion.context",
         "orion.identity",
+        "orion.knowledge",
         "orion.memory",
         "orion.runtime.diagnostics",
       ]);
@@ -60,7 +72,7 @@ describe("M0 diagnostic runtime", () => {
           runtimeStarted: true,
           configurationLoaded: true,
           capabilityRegistryInitialized: true,
-          registeredCapabilityCount: 4,
+          registeredCapabilityCount: 5,
           identityCapability: {
             initialized: true,
             anonymousResolutionSucceeded: true,
@@ -85,6 +97,17 @@ describe("M0 diagnostic runtime", () => {
             forgettingSucceeded: true,
             retainedCountAfterForget: 0,
           },
+          knowledgeCapability: {
+            operational: true,
+            acceptanceSucceeded: true,
+            retrievalSucceeded: true,
+            referenceCount: 1,
+            contradictionRejected: true,
+            supersessionSucceeded: true,
+            versionAdvanced: true,
+            predecessorRetrievable: true,
+            successorCurrent: true,
+          },
           architecturalDiagnosticStatus: "ok",
         },
       });
@@ -100,6 +123,16 @@ describe("M0 diagnostic runtime", () => {
         "A controlled M3 diagnostic milestone occurred.",
       );
       expect(serializedDiagnostic).not.toContain("2026-07-20T11:59:00.000Z");
+      expect(serializedDiagnostic).not.toContain("orion.knowledge.m4.1");
+      expect(serializedDiagnostic).not.toContain("orion.knowledge.m4.2");
+      expect(serializedDiagnostic).not.toContain(
+        "A controlled M4 diagnostic claim is accepted.",
+      );
+      expect(serializedDiagnostic).not.toContain("orion.diagnostic.authority");
+      expect(serializedDiagnostic).not.toContain(
+        "Verify explicit M4 acceptance.",
+      );
+      expect(serializedDiagnostic).not.toContain("2026-07-20T12:59:00.000Z");
       expect(serializedDiagnostic).not.toMatch(
         /credential|password|secret|token/i,
       );
