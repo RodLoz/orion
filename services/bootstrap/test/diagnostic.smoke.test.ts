@@ -19,15 +19,25 @@ describe("M0 diagnostic runtime", () => {
         runtimeStarted: true,
         configurationLoaded: true,
         capabilityRegistryInitialized: true,
-        registeredCapabilityCount: 2,
+        registeredCapabilityCount: 3,
         identityCapability: {
           initialized: true,
           anonymousResolutionSucceeded: true,
           authenticatedResolutionSucceeded: true,
         },
+        contextCapability: {
+          operational: true,
+          lineageContinuity: true,
+          revisionOrderingEvolution: true,
+          previousRevisionExpired: true,
+          activeLifecycleState: "active",
+          initialIdentityState: "anonymous",
+          activeIdentityState: "authenticated",
+        },
         architecturalDiagnosticStatus: "ok",
       });
       expect(result.registeredCapabilities.map(({ id }) => id)).toEqual([
+        "orion.context",
         "orion.identity",
         "orion.runtime.diagnostics",
       ]);
@@ -39,11 +49,20 @@ describe("M0 diagnostic runtime", () => {
           runtimeStarted: true,
           configurationLoaded: true,
           capabilityRegistryInitialized: true,
-          registeredCapabilityCount: 2,
+          registeredCapabilityCount: 3,
           identityCapability: {
             initialized: true,
             anonymousResolutionSucceeded: true,
             authenticatedResolutionSucceeded: true,
+          },
+          contextCapability: {
+            operational: true,
+            lineageContinuity: true,
+            revisionOrderingEvolution: true,
+            previousRevisionExpired: true,
+            activeLifecycleState: "active",
+            initialIdentityState: "anonymous",
+            activeIdentityState: "authenticated",
           },
           architecturalDiagnosticStatus: "ok",
         },
@@ -53,6 +72,8 @@ describe("M0 diagnostic runtime", () => {
       expect(serializedDiagnostic).not.toContain(
         "orion.identity.demonstration",
       );
+      expect(serializedDiagnostic).not.toContain("orion.context.lineage");
+      expect(serializedDiagnostic).not.toContain("orion.context.revision");
       expect(serializedDiagnostic).not.toMatch(
         /credential|password|secret|token/i,
       );

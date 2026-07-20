@@ -1,5 +1,10 @@
 export { RuntimeCapabilityRegistry } from "./capability-registry.js";
 export {
+  composeContextCapability,
+  type ContextCapabilityComposition,
+} from "./context/context-composition.js";
+export { DeterministicContextConstructionValues } from "./context/deterministic-context-construction-values.js";
+export {
   BootstrapConfigurationError,
   loadBootstrapConfiguration,
   type BootstrapConfiguration,

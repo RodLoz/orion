@@ -3,6 +3,7 @@
   "references": [
     { "path": "./core" },
     { "path": "./services/identity" },
+    { "path": "./services/context" },
     { "path": "./services/bootstrap" }
   ]
 }

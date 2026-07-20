@@ -34,12 +34,21 @@ importers:
 
   services/bootstrap:
     dependencies:
+      '@orion/context':
+        specifier: workspace:*
+        version: link:../context
       '@orion/core':
         specifier: workspace:*
         version: link:../../core
       '@orion/identity':
         specifier: workspace:*
         version: link:../identity
+
+  services/context:
+    dependencies:
+      '@orion/core':
+        specifier: workspace:*
+        version: link:../../core
 
   services/identity:
     dependencies:

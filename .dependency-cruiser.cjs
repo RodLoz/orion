@@ -57,6 +57,42 @@ module.exports = {
       },
     },
     {
+      name: "context-engine-must-not-depend-on-bootstrap-or-infrastructure",
+      comment:
+        "Context Engine owns domain behavior and cannot depend on Bootstrap or concrete outer layers.",
+      severity: "error",
+      from: { path: "^services/context/(src|architecture-fixtures)" },
+      to: {
+        path: "^(services/bootstrap|apps|packages|infrastructure|infraestructure)/",
+      },
+    },
+    {
+      name: "context-engine-must-not-depend-on-identity-implementation",
+      comment:
+        "Context consumes Identity through Core-custodied Contracts, never the Identity Engine implementation.",
+      severity: "error",
+      from: { path: "^services/context/(src|architecture-fixtures)" },
+      to: { path: "^services/identity/" },
+    },
+    {
+      name: "context-engine-must-not-depend-on-external-packages",
+      comment:
+        "Context Engine is framework-free and M2 permits no external npm package imports.",
+      severity: "error",
+      from: { path: "^services/context/(src|architecture-fixtures)" },
+      to: {
+        dependencyTypes: [
+          "npm",
+          "npm-dev",
+          "npm-no-pkg",
+          "npm-optional",
+          "npm-peer",
+          "npm-bundled",
+        ],
+        pathNot: "^@orion/core$",
+      },
+    },
+    {
       name: "bootstrap-must-not-depend-on-outer-layers",
       comment:
         "The M0 composition root may assemble Core and bootstrap implementations but cannot depend on clients or infrastructure.",

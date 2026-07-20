@@ -11,9 +11,47 @@ export {
 } from "./capability-registry.js";
 export type {
   ArchitecturalDiagnosticStatus,
+  ContextCapabilityDiagnostic,
   DiagnosticResult,
   IdentityCapabilityDiagnostic,
 } from "./diagnostic.js";
+export {
+  ContextLineageNotFoundError,
+  ContextValidationFailureError,
+  InvalidContextInputError,
+  InvalidContextLifecycleTransitionError,
+  InvalidIdentityContextProjectionError,
+  NoActiveContextRevisionError,
+  type ComposeContextRevision,
+  type ComposeContextRevisionRequest,
+  type ComposeContextTarget,
+  type ContextConstructionValues,
+  type GetActiveContextRevision,
+  type GetActiveContextRevisionRequest,
+} from "./context-contracts.js";
+export {
+  contextCreatedAt,
+  contextLifecycleState,
+  contextLineageIdentity,
+  contextRevisionIdentity,
+  contextRevisionNumber,
+  InvalidContextCreatedAtError,
+  InvalidContextLifecycleStateError,
+  InvalidContextLineageIdentityError,
+  InvalidContextRevisionIdentityError,
+  InvalidContextRevisionNumberError,
+  type ActiveContextRevision,
+  type ContextCreatedAt,
+  type ContextFragment,
+  type ContextLifecycleState,
+  type ContextLineageIdentity,
+  type ContextRevision,
+  type ContextRevisionCreationMetadata,
+  type ContextRevisionIdentity,
+  type ContextRevisionNumber,
+  type IdentityContextFragment,
+  type IdentityContextProjection,
+} from "./context.js";
 export {
   IdentitySourceUnavailableError,
   InvalidIdentityInputError,
