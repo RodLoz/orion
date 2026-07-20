@@ -9,15 +9,15 @@
     "node": ">=24 <25"
   },
   "scripts": {
-    "architecture": "depcruise core/src services/identity/src services/context/src services/bootstrap/src --config .dependency-cruiser.cjs && node tools/verify-forbidden-core-dependency.mjs && node tools/verify-forbidden-identity-dependencies.mjs && node tools/verify-forbidden-context-dependencies.mjs",
+    "architecture": "depcruise core/src services/identity/src services/context/src services/memory/src services/bootstrap/src --config .dependency-cruiser.cjs && node tools/verify-forbidden-core-dependency.mjs && node tools/verify-forbidden-identity-dependencies.mjs && node tools/verify-forbidden-context-dependencies.mjs && node tools/verify-forbidden-memory-dependencies.mjs",
     "build": "tsc -b --pretty false",
     "diagnostic": "pnpm build && pnpm diagnostic:run",
     "diagnostic:run": "node services/bootstrap/dist/cli.js",
-    "format": "prettier --write package.json pnpm-workspace.yaml tsconfig.json tsconfig.base.json vitest.config.ts eslint.config.mjs .dependency-cruiser.cjs .github/workflows/validate.yml core services tools IMPLEMENTATION-M0.md IMPLEMENTATION-M1.md IMPLEMENTATION-M2.md",
-    "format:check": "prettier --check package.json pnpm-workspace.yaml tsconfig.json tsconfig.base.json vitest.config.ts eslint.config.mjs .dependency-cruiser.cjs .github/workflows/validate.yml core services tools IMPLEMENTATION-M0.md IMPLEMENTATION-M1.md IMPLEMENTATION-M2.md",
+    "format": "prettier --write package.json pnpm-workspace.yaml tsconfig.json tsconfig.base.json vitest.config.ts eslint.config.mjs .dependency-cruiser.cjs .github/workflows/validate.yml core services tools IMPLEMENTATION-M0.md IMPLEMENTATION-M1.md IMPLEMENTATION-M2.md IMPLEMENTATION-M3.md",
+    "format:check": "prettier --check package.json pnpm-workspace.yaml tsconfig.json tsconfig.base.json vitest.config.ts eslint.config.mjs .dependency-cruiser.cjs .github/workflows/validate.yml core services tools IMPLEMENTATION-M0.md IMPLEMENTATION-M1.md IMPLEMENTATION-M2.md IMPLEMENTATION-M3.md",
     "lint": "eslint core services tools vitest.config.ts",
     "test": "pnpm build && vitest run",
-    "typecheck": "tsc -b --pretty false && tsc -p core/tsconfig.test.json --pretty false && tsc -p services/identity/tsconfig.test.json --pretty false && tsc -p services/context/tsconfig.test.json --pretty false && tsc -p services/bootstrap/tsconfig.test.json --pretty false",
+    "typecheck": "tsc -b --pretty false && tsc -p core/tsconfig.test.json --pretty false && tsc -p services/identity/tsconfig.test.json --pretty false && tsc -p services/context/tsconfig.test.json --pretty false && tsc -p services/memory/tsconfig.test.json --pretty false && tsc -p services/bootstrap/tsconfig.test.json --pretty false",
     "validate": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm architecture && pnpm diagnostic:run"
   },
   "devDependencies": {

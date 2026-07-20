@@ -6,7 +6,7 @@ module.exports = {
       comment:
         "Core must remain independent from services, clients, shared implementation packages, and infrastructure.",
       severity: "error",
-      from: { path: "^core/src" },
+      from: { path: "^core/(src|architecture-fixtures)" },
       to: {
         path: "^(services|apps|packages|infrastructure|infraestructure)/",
       },
@@ -80,6 +80,46 @@ module.exports = {
         "Context Engine is framework-free and M2 permits no external npm package imports.",
       severity: "error",
       from: { path: "^services/context/(src|architecture-fixtures)" },
+      to: {
+        dependencyTypes: [
+          "npm",
+          "npm-dev",
+          "npm-no-pkg",
+          "npm-optional",
+          "npm-peer",
+          "npm-bundled",
+        ],
+        pathNot: "^@orion/core$",
+      },
+    },
+    {
+      name: "memory-engine-must-not-depend-on-bootstrap-or-infrastructure",
+      comment:
+        "Memory Engine owns Memory behavior and cannot depend on Bootstrap or concrete outer layers.",
+      severity: "error",
+      from: { path: "^services/memory/(src|architecture-fixtures)" },
+      to: {
+        path: "^(services/bootstrap|apps|packages|infrastructure|infraestructure)/",
+        pathNot:
+          "^services/bootstrap/src/memory/in-memory-memory-store(?:\\.ts)?$",
+      },
+    },
+    {
+      name: "memory-engine-must-not-depend-on-concrete-memory-store",
+      comment:
+        "Memory Engine depends on the Core-custodied Store Contract, never the bootstrap-selected concrete Store.",
+      severity: "error",
+      from: { path: "^services/memory/(src|architecture-fixtures)" },
+      to: {
+        path: "^services/bootstrap/src/memory/in-memory-memory-store",
+      },
+    },
+    {
+      name: "memory-engine-must-not-depend-on-external-packages",
+      comment:
+        "Memory Engine is framework-free and M3 permits no external npm package imports.",
+      severity: "error",
+      from: { path: "^services/memory/(src|architecture-fixtures)" },
       to: {
         dependencyTypes: [
           "npm",

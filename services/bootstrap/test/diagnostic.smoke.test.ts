@@ -19,7 +19,7 @@ describe("M0 diagnostic runtime", () => {
         runtimeStarted: true,
         configurationLoaded: true,
         capabilityRegistryInitialized: true,
-        registeredCapabilityCount: 3,
+        registeredCapabilityCount: 4,
         identityCapability: {
           initialized: true,
           anonymousResolutionSucceeded: true,
@@ -34,11 +34,22 @@ describe("M0 diagnostic runtime", () => {
           initialIdentityState: "anonymous",
           activeIdentityState: "authenticated",
         },
+        memoryCapability: {
+          operational: true,
+          retentionSucceeded: true,
+          retrievalSucceeded: true,
+          retrievalReceiptCreated: true,
+          lastUsedAvailable: true,
+          retainedCountBeforeForget: 1,
+          forgettingSucceeded: true,
+          retainedCountAfterForget: 0,
+        },
         architecturalDiagnosticStatus: "ok",
       });
       expect(result.registeredCapabilities.map(({ id }) => id)).toEqual([
         "orion.context",
         "orion.identity",
+        "orion.memory",
         "orion.runtime.diagnostics",
       ]);
       expect(diagnosticOutput).toHaveLength(1);
@@ -49,7 +60,7 @@ describe("M0 diagnostic runtime", () => {
           runtimeStarted: true,
           configurationLoaded: true,
           capabilityRegistryInitialized: true,
-          registeredCapabilityCount: 3,
+          registeredCapabilityCount: 4,
           identityCapability: {
             initialized: true,
             anonymousResolutionSucceeded: true,
@@ -64,6 +75,16 @@ describe("M0 diagnostic runtime", () => {
             initialIdentityState: "anonymous",
             activeIdentityState: "authenticated",
           },
+          memoryCapability: {
+            operational: true,
+            retentionSucceeded: true,
+            retrievalSucceeded: true,
+            retrievalReceiptCreated: true,
+            lastUsedAvailable: true,
+            retainedCountBeforeForget: 1,
+            forgettingSucceeded: true,
+            retainedCountAfterForget: 0,
+          },
           architecturalDiagnosticStatus: "ok",
         },
       });
@@ -74,6 +95,11 @@ describe("M0 diagnostic runtime", () => {
       );
       expect(serializedDiagnostic).not.toContain("orion.context.lineage");
       expect(serializedDiagnostic).not.toContain("orion.context.revision");
+      expect(serializedDiagnostic).not.toContain("orion.memory.m3.1");
+      expect(serializedDiagnostic).not.toContain(
+        "A controlled M3 diagnostic milestone occurred.",
+      );
+      expect(serializedDiagnostic).not.toContain("2026-07-20T11:59:00.000Z");
       expect(serializedDiagnostic).not.toMatch(
         /credential|password|secret|token/i,
       );

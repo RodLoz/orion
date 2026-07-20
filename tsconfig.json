@@ -4,6 +4,7 @@
     { "path": "./core" },
     { "path": "./services/identity" },
     { "path": "./services/context" },
+    { "path": "./services/memory" },
     { "path": "./services/bootstrap" }
   ]
 }

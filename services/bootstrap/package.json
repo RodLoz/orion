@@ -6,6 +6,7 @@
   "dependencies": {
     "@orion/context": "workspace:*",
     "@orion/core": "workspace:*",
-    "@orion/identity": "workspace:*"
+    "@orion/identity": "workspace:*",
+    "@orion/memory": "workspace:*"
   }
 }

@@ -18,6 +18,17 @@ export interface ContextCapabilityDiagnostic {
   readonly activeIdentityState: "authenticated";
 }
 
+export interface MemoryCapabilityDiagnostic {
+  readonly operational: true;
+  readonly retentionSucceeded: true;
+  readonly retrievalSucceeded: true;
+  readonly retrievalReceiptCreated: true;
+  readonly lastUsedAvailable: true;
+  readonly retainedCountBeforeForget: number;
+  readonly forgettingSucceeded: true;
+  readonly retainedCountAfterForget: number;
+}
+
 export interface DiagnosticResult {
   readonly runtimeStarted: true;
   readonly configurationLoaded: true;
@@ -26,5 +37,6 @@ export interface DiagnosticResult {
   readonly registeredCapabilities: readonly CapabilityDescriptor[];
   readonly identityCapability: IdentityCapabilityDiagnostic;
   readonly contextCapability: ContextCapabilityDiagnostic;
+  readonly memoryCapability: MemoryCapabilityDiagnostic;
   readonly architecturalDiagnosticStatus: ArchitecturalDiagnosticStatus;
 }

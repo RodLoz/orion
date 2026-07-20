@@ -7,6 +7,7 @@ import {
 import { RuntimeCapabilityRegistry } from "./capability-registry.js";
 import { composeContextCapability } from "./context/context-composition.js";
 import { composeIdentityCapability } from "./identity/identity-composition.js";
+import { composeMemoryCapability } from "./memory/memory-composition.js";
 
 const DIAGNOSTIC_CAPABILITY: CapabilityDescriptor = Object.freeze({
   id: capabilityIdentifier("orion.runtime.diagnostics"),
@@ -29,11 +30,19 @@ const CONTEXT_CAPABILITY: CapabilityDescriptor = Object.freeze({
   availability: "available",
 });
 
+const MEMORY_CAPABILITY: CapabilityDescriptor = Object.freeze({
+  id: capabilityIdentifier("orion.memory"),
+  name: "Memory",
+  version: "1.0.0",
+  availability: "available",
+});
+
 export function composeDiagnosticRuntime(): DiagnosticResult {
   const registry = new RuntimeCapabilityRegistry();
   registry.register(DIAGNOSTIC_CAPABILITY);
   registry.register(IDENTITY_CAPABILITY);
   registry.register(CONTEXT_CAPABILITY);
+  registry.register(MEMORY_CAPABILITY);
 
   const identity = composeIdentityCapability();
   const anonymousIdentity =
@@ -48,6 +57,47 @@ export function composeDiagnosticRuntime(): DiagnosticResult {
     authenticatedIdentity.state !== "authenticated"
   ) {
     throw new Error("Identity capability diagnostic failed.");
+  }
+
+  const memory = composeMemoryCapability();
+  const retained = memory.retainMemory.retainMemory({
+    intent: "retain",
+    kind: "episodic",
+    content: "A controlled M3 diagnostic milestone occurred.",
+    retentionReason: "Verify explicit M3 retention.",
+    provenance: {
+      sourceType: "capability-outcome",
+      originatingCapability: "orion.runtime.diagnostics",
+      observedAt: "2026-07-20T11:59:00.000Z",
+      occurrenceEvidence: "observed",
+    },
+  });
+  const retrieved = memory.getMemory.getMemory({
+    memoryIdentity: retained.memoryIdentity,
+    purpose: "diagnostic",
+  });
+  const lastUsed = memory.lastUsedInspection.lastUsedAt(
+    retained.memoryIdentity,
+  );
+  const retainedBefore =
+    memory.listRetainedMemoryReferences.listRetainedMemoryReferences({});
+  const forgotten = memory.forgetMemory.forgetMemory({
+    intent: "forget",
+    memoryIdentity: retained.memoryIdentity,
+  });
+  const retainedAfter =
+    memory.listRetainedMemoryReferences.listRetainedMemoryReferences({});
+
+  if (
+    retrieved.memory.memoryIdentity !== retained.memoryIdentity ||
+    retrieved.receipt.memoryReference.memoryIdentity !==
+      retained.memoryIdentity ||
+    lastUsed !== retrieved.receipt.retrievedAt ||
+    retainedBefore.length !== 1 ||
+    forgotten.outcome !== "deleted" ||
+    retainedAfter.length !== 0
+  ) {
+    throw new Error("Memory capability diagnostic failed.");
   }
 
   const context = composeContextCapability();
@@ -107,6 +157,16 @@ export function composeDiagnosticRuntime(): DiagnosticResult {
       activeLifecycleState: "active",
       initialIdentityState: "anonymous",
       activeIdentityState: "authenticated",
+    }),
+    memoryCapability: Object.freeze({
+      operational: true,
+      retentionSucceeded: true,
+      retrievalSucceeded: true,
+      retrievalReceiptCreated: true,
+      lastUsedAvailable: true,
+      retainedCountBeforeForget: retainedBefore.length,
+      forgettingSucceeded: true,
+      retainedCountAfterForget: retainedAfter.length,
     }),
     architecturalDiagnosticStatus: "ok",
   });

@@ -7,14 +7,19 @@ const executable = fileURLToPath(
     import.meta.url,
   ),
 );
+
 const fixtures = [
   {
-    path: "core/architecture-fixtures/external-package.ts",
-    rule: "core-must-not-depend-on-external-packages",
+    path: "services/memory/architecture-fixtures/bootstrap-dependency.ts",
+    rule: "memory-engine-must-not-depend-on-bootstrap-or-infrastructure",
   },
   {
-    path: "core/architecture-fixtures/memory-engine-dependency.ts",
-    rule: "core-must-not-depend-outward",
+    path: "services/memory/architecture-fixtures/concrete-store-dependency.ts",
+    rule: "memory-engine-must-not-depend-on-concrete-memory-store",
+  },
+  {
+    path: "services/memory/architecture-fixtures/external-package.ts",
+    rule: "memory-engine-must-not-depend-on-external-packages",
   },
 ];
 
@@ -33,12 +38,12 @@ for (const fixture of fixtures) {
   );
   const output = `${verification.stdout ?? ""}${verification.stderr ?? ""}`;
   if (verification.status === 0 || !output.includes(fixture.rule)) {
-    console.error(`Core architecture rule was not enforced: ${fixture.rule}`);
+    console.error(`Memory architecture rule was not enforced: ${fixture.rule}`);
     if (output.length > 0) console.error(output);
     process.exitCode = 1;
   }
 }
 
 if (process.exitCode !== 1) {
-  console.log("Core dependency prohibitions verified.");
+  console.log("Memory Engine dependency prohibitions verified.");
 }

@@ -4,6 +4,12 @@ export {
   type ContextCapabilityComposition,
 } from "./context/context-composition.js";
 export { DeterministicContextConstructionValues } from "./context/deterministic-context-construction-values.js";
+export { DeterministicMemoryConstructionValues } from "./memory/deterministic-memory-construction-values.js";
+export { InMemoryMemoryStore } from "./memory/in-memory-memory-store.js";
+export {
+  composeMemoryCapability,
+  type MemoryCapabilityComposition,
+} from "./memory/memory-composition.js";
 export {
   BootstrapConfigurationError,
   loadBootstrapConfiguration,
