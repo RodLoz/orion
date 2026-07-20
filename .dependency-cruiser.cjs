@@ -1,0 +1,54 @@
+/** @type {import('dependency-cruiser').IConfiguration} */
+module.exports = {
+  forbidden: [
+    {
+      name: "core-must-not-depend-outward",
+      comment:
+        "Core must remain independent from services, clients, shared implementation packages, and infrastructure.",
+      severity: "error",
+      from: { path: "^core/src" },
+      to: {
+        path: "^(services|apps|packages|infrastructure|infraestructure)/",
+      },
+    },
+    {
+      name: "core-must-not-depend-on-external-packages",
+      comment:
+        "Core must remain technology-independent and framework-free, so M0 permits no external package imports.",
+      severity: "error",
+      from: { path: "^core/(src|architecture-fixtures)" },
+      to: {
+        dependencyTypes: [
+          "npm",
+          "npm-dev",
+          "npm-no-pkg",
+          "npm-optional",
+          "npm-peer",
+          "npm-bundled",
+        ],
+      },
+    },
+    {
+      name: "bootstrap-must-not-depend-on-outer-layers",
+      comment:
+        "The M0 composition root may assemble Core and bootstrap implementations but cannot depend on clients or infrastructure.",
+      severity: "error",
+      from: { path: "^services/bootstrap/src" },
+      to: { path: "^(apps|infrastructure|infraestructure)/" },
+    },
+    {
+      name: "no-circular-dependencies",
+      severity: "error",
+      from: {},
+      to: { circular: true },
+    },
+  ],
+  options: {
+    doNotFollow: { path: "node_modules" },
+    enhancedResolveOptions: {
+      conditionNames: ["types", "import", "default"],
+      exportsFields: ["exports"],
+    },
+    tsPreCompilationDeps: true,
+  },
+};

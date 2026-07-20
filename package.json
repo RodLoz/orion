@@ -1,0 +1,32 @@
+{
+  "name": "orion",
+  "version": "0.0.0",
+  "private": true,
+  "description": "O.R.I.O.N. modular monorepo",
+  "type": "module",
+  "packageManager": "pnpm@11.15.0",
+  "engines": {
+    "node": ">=24 <25"
+  },
+  "scripts": {
+    "architecture": "depcruise core/src services/bootstrap/src --config .dependency-cruiser.cjs && node tools/verify-forbidden-core-dependency.mjs",
+    "build": "tsc -b --pretty false",
+    "diagnostic": "pnpm build && pnpm diagnostic:run",
+    "diagnostic:run": "node services/bootstrap/dist/cli.js",
+    "format": "prettier --write package.json pnpm-workspace.yaml tsconfig.json tsconfig.base.json vitest.config.ts eslint.config.mjs .dependency-cruiser.cjs .github/workflows/validate.yml core services tools IMPLEMENTATION-M0.md",
+    "format:check": "prettier --check package.json pnpm-workspace.yaml tsconfig.json tsconfig.base.json vitest.config.ts eslint.config.mjs .dependency-cruiser.cjs .github/workflows/validate.yml core services tools IMPLEMENTATION-M0.md",
+    "lint": "eslint core services tools vitest.config.ts",
+    "test": "pnpm build && vitest run",
+    "typecheck": "tsc -b --pretty false && tsc -p core/tsconfig.test.json --pretty false && tsc -p services/bootstrap/tsconfig.test.json --pretty false",
+    "validate": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm architecture && pnpm diagnostic:run"
+  },
+  "devDependencies": {
+    "@types/node": "24.13.3",
+    "dependency-cruiser": "18.1.0",
+    "eslint": "10.7.0",
+    "prettier": "3.9.5",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.64.0",
+    "vitest": "4.1.10"
+  }
+}
