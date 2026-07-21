@@ -12,6 +12,7 @@
     { "path": "../context" },
     { "path": "../memory" },
     { "path": "../knowledge" },
-    { "path": "../reasoning" }
+    { "path": "../reasoning" },
+    { "path": "../planning" }
   ]
 }

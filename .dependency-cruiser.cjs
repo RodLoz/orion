@@ -213,6 +213,38 @@ module.exports = {
       },
     },
     {
+      name: "planning-engine-must-not-depend-on-bootstrap-or-infrastructure",
+      severity: "error",
+      from: { path: "^services/planning/(src|architecture-fixtures)" },
+      to: {
+        path: "^(services/bootstrap|apps|packages|infrastructure|infraestructure)/",
+      },
+    },
+    {
+      name: "planning-engine-must-not-depend-on-other-engines",
+      severity: "error",
+      from: { path: "^services/planning/(src|architecture-fixtures)" },
+      to: {
+        path: "^services/(identity|context|memory|knowledge|reasoning|brain|skills?|execution)/",
+      },
+    },
+    {
+      name: "planning-engine-must-not-depend-on-external-packages",
+      severity: "error",
+      from: { path: "^services/planning/(src|architecture-fixtures)" },
+      to: {
+        dependencyTypes: [
+          "npm",
+          "npm-dev",
+          "npm-no-pkg",
+          "npm-optional",
+          "npm-peer",
+          "npm-bundled",
+        ],
+        pathNot: "^@orion/core$",
+      },
+    },
+    {
       name: "bootstrap-must-not-depend-on-outer-layers",
       comment:
         "The M0 composition root may assemble Core and bootstrap implementations but cannot depend on clients or infrastructure.",

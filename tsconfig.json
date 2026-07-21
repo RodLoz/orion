@@ -7,6 +7,7 @@
     { "path": "./services/memory" },
     { "path": "./services/knowledge" },
     { "path": "./services/reasoning" },
+    { "path": "./services/planning" },
     { "path": "./services/bootstrap" }
   ]
 }

@@ -16,6 +16,7 @@ export type {
   IdentityCapabilityDiagnostic,
   KnowledgeCapabilityDiagnostic,
   MemoryCapabilityDiagnostic,
+  PlanningCapabilityDiagnostic,
   ReasoningCapabilityDiagnostic,
 } from "./diagnostic.js";
 export {
@@ -273,3 +274,25 @@ export {
   type ReasoningQuery,
   type ReasoningRuleCategory,
 } from "./reasoning.js";
+export {
+  InvalidPlanningInputError,
+  InvalidPlanningStateError,
+  InvalidReasoningOutcomeError,
+  PlanningRuleFailureError,
+  type CreateCandidatePlan,
+  type CreateCandidatePlanRequest,
+} from "./planning-contracts.js";
+export {
+  createCandidatePlan,
+  createCandidatePlanStep,
+  createPlanningExplainabilitySummary,
+  createReasoningConsumptionReference,
+  type CandidatePlan,
+  type CandidatePlanCategory,
+  type CandidatePlanStep,
+  type PlanningExplainabilitySummary,
+  type PlanningRuleCategory,
+  type ReasoningConsumptionReference,
+  type RequestMoreContextCandidatePlanStep,
+  type RespondCandidatePlanStep,
+} from "./planning.js";

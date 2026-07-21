@@ -9,6 +9,7 @@ import { composeContextCapability } from "./context/context-composition.js";
 import { composeIdentityCapability } from "./identity/identity-composition.js";
 import { composeKnowledgeCapability } from "./knowledge/knowledge-composition.js";
 import { composeMemoryCapability } from "./memory/memory-composition.js";
+import { composePlanningCapability } from "./planning/planning-composition.js";
 import { composeReasoningCapability } from "./reasoning/reasoning-composition.js";
 
 const DIAGNOSTIC_CAPABILITY: CapabilityDescriptor = Object.freeze({
@@ -53,6 +54,13 @@ const REASONING_CAPABILITY: CapabilityDescriptor = Object.freeze({
   availability: "available",
 });
 
+const PLANNING_CAPABILITY: CapabilityDescriptor = Object.freeze({
+  id: capabilityIdentifier("orion.planning"),
+  name: "Planning",
+  version: "1.0.0",
+  availability: "available",
+});
+
 export function composeDiagnosticRuntime(): DiagnosticResult {
   const registry = new RuntimeCapabilityRegistry();
   registry.register(DIAGNOSTIC_CAPABILITY);
@@ -61,6 +69,7 @@ export function composeDiagnosticRuntime(): DiagnosticResult {
   registry.register(MEMORY_CAPABILITY);
   registry.register(KNOWLEDGE_CAPABILITY);
   registry.register(REASONING_CAPABILITY);
+  registry.register(PLANNING_CAPABILITY);
 
   const identity = composeIdentityCapability();
   const anonymousIdentity =
@@ -288,6 +297,21 @@ export function composeDiagnosticRuntime(): DiagnosticResult {
     throw new Error("Reasoning capability diagnostic failed.");
   }
 
+  const planning = composePlanningCapability();
+  const candidatePlan = planning.createCandidatePlan.createCandidatePlan({
+    intent: "create-candidate-plan",
+    reasoningOutcome: knowledgeOutcome,
+  });
+  if (
+    planning.engineState() !== "running" ||
+    candidatePlan.category !== "respond" ||
+    candidatePlan.steps.length !== 1 ||
+    candidatePlan.explainability.planningRuleCategory !==
+      "reasoning-produced-response"
+  ) {
+    throw new Error("Planning capability diagnostic failed.");
+  }
+
   const registeredCapabilities = registry.inspect();
   const result: DiagnosticResult = Object.freeze({
     runtimeStarted: true,
@@ -339,6 +363,13 @@ export function composeDiagnosticRuntime(): DiagnosticResult {
       authenticatedContextOnlyRuleSucceeded: true,
       precedenceRuleSucceeded: true,
       candidateResponseProduced: true,
+    }),
+    planningCapability: Object.freeze({
+      planningCapabilityOperational: true,
+      planningSucceeded: true,
+      planCategory: "respond",
+      stepCount: 1,
+      planningRuleCategory: "reasoning-produced-response",
     }),
     architecturalDiagnosticStatus: "ok",
   });

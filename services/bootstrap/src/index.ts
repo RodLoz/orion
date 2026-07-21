@@ -45,3 +45,7 @@ export {
   composeReasoningCapability,
   type ReasoningCapabilityComposition,
 } from "./reasoning/reasoning-composition.js";
+export {
+  composePlanningCapability,
+  type PlanningCapabilityComposition,
+} from "./planning/planning-composition.js";

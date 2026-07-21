@@ -19,7 +19,7 @@ describe("M0 diagnostic runtime", () => {
         runtimeStarted: true,
         configurationLoaded: true,
         capabilityRegistryInitialized: true,
-        registeredCapabilityCount: 6,
+        registeredCapabilityCount: 7,
         identityCapability: {
           initialized: true,
           anonymousResolutionSucceeded: true,
@@ -65,6 +65,13 @@ describe("M0 diagnostic runtime", () => {
           precedenceRuleSucceeded: true,
           candidateResponseProduced: true,
         },
+        planningCapability: {
+          planningCapabilityOperational: true,
+          planningSucceeded: true,
+          planCategory: "respond",
+          stepCount: 1,
+          planningRuleCategory: "reasoning-produced-response",
+        },
         architecturalDiagnosticStatus: "ok",
       });
       expect(result.registeredCapabilities.map(({ id }) => id)).toEqual([
@@ -72,6 +79,7 @@ describe("M0 diagnostic runtime", () => {
         "orion.identity",
         "orion.knowledge",
         "orion.memory",
+        "orion.planning",
         "orion.reasoning",
         "orion.runtime.diagnostics",
       ]);
@@ -83,7 +91,7 @@ describe("M0 diagnostic runtime", () => {
           runtimeStarted: true,
           configurationLoaded: true,
           capabilityRegistryInitialized: true,
-          registeredCapabilityCount: 6,
+          registeredCapabilityCount: 7,
           identityCapability: {
             initialized: true,
             anonymousResolutionSucceeded: true,
@@ -129,6 +137,13 @@ describe("M0 diagnostic runtime", () => {
             precedenceRuleSucceeded: true,
             candidateResponseProduced: true,
           },
+          planningCapability: {
+            planningCapabilityOperational: true,
+            planningSucceeded: true,
+            planCategory: "respond",
+            stepCount: 1,
+            planningRuleCategory: "reasoning-produced-response",
+          },
           architecturalDiagnosticStatus: "ok",
         },
       });
@@ -159,6 +174,9 @@ describe("M0 diagnostic runtime", () => {
       );
       expect(serializedDiagnostic).not.toContain(
         "The active context identifies an anonymous actor.",
+      );
+      expect(serializedDiagnostic).not.toContain(
+        "Accepted Knowledge context is available for further orchestration.",
       );
       expect(serializedDiagnostic).not.toMatch(
         /credential|password|secret|token/i,

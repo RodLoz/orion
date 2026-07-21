@@ -52,6 +52,14 @@ export interface ReasoningCapabilityDiagnostic {
   readonly candidateResponseProduced: true;
 }
 
+export interface PlanningCapabilityDiagnostic {
+  readonly planningCapabilityOperational: true;
+  readonly planningSucceeded: true;
+  readonly planCategory: "respond";
+  readonly stepCount: 1;
+  readonly planningRuleCategory: "reasoning-produced-response";
+}
+
 export interface DiagnosticResult {
   readonly runtimeStarted: true;
   readonly configurationLoaded: true;
@@ -63,5 +71,6 @@ export interface DiagnosticResult {
   readonly memoryCapability: MemoryCapabilityDiagnostic;
   readonly knowledgeCapability: KnowledgeCapabilityDiagnostic;
   readonly reasoningCapability: ReasoningCapabilityDiagnostic;
+  readonly planningCapability: PlanningCapabilityDiagnostic;
   readonly architecturalDiagnosticStatus: ArchitecturalDiagnosticStatus;
 }
