@@ -41,6 +41,17 @@ export interface KnowledgeCapabilityDiagnostic {
   readonly successorCurrent: true;
 }
 
+export interface ReasoningCapabilityDiagnostic {
+  readonly operational: true;
+  readonly evaluationSucceeded: true;
+  readonly anonymousRuleSucceeded: true;
+  readonly authenticatedKnowledgeRuleSucceeded: true;
+  readonly authenticatedMemoryRuleSucceeded: true;
+  readonly authenticatedContextOnlyRuleSucceeded: true;
+  readonly precedenceRuleSucceeded: true;
+  readonly candidateResponseProduced: true;
+}
+
 export interface DiagnosticResult {
   readonly runtimeStarted: true;
   readonly configurationLoaded: true;
@@ -51,5 +62,6 @@ export interface DiagnosticResult {
   readonly contextCapability: ContextCapabilityDiagnostic;
   readonly memoryCapability: MemoryCapabilityDiagnostic;
   readonly knowledgeCapability: KnowledgeCapabilityDiagnostic;
+  readonly reasoningCapability: ReasoningCapabilityDiagnostic;
   readonly architecturalDiagnosticStatus: ArchitecturalDiagnosticStatus;
 }

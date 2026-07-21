@@ -49,6 +49,9 @@ importers:
       '@orion/memory':
         specifier: workspace:*
         version: link:../memory
+      '@orion/reasoning':
+        specifier: workspace:*
+        version: link:../reasoning
 
   services/context:
     dependencies:
@@ -69,6 +72,12 @@ importers:
         version: link:../../core
 
   services/memory:
+    dependencies:
+      '@orion/core':
+        specifier: workspace:*
+        version: link:../../core
+
+  services/reasoning:
     dependencies:
       '@orion/core':
         specifier: workspace:*

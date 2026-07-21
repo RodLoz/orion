@@ -11,6 +11,7 @@
     { "path": "../identity" },
     { "path": "../context" },
     { "path": "../memory" },
-    { "path": "../knowledge" }
+    { "path": "../knowledge" },
+    { "path": "../reasoning" }
   ]
 }

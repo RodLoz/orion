@@ -9,6 +9,7 @@ import { composeContextCapability } from "./context/context-composition.js";
 import { composeIdentityCapability } from "./identity/identity-composition.js";
 import { composeKnowledgeCapability } from "./knowledge/knowledge-composition.js";
 import { composeMemoryCapability } from "./memory/memory-composition.js";
+import { composeReasoningCapability } from "./reasoning/reasoning-composition.js";
 
 const DIAGNOSTIC_CAPABILITY: CapabilityDescriptor = Object.freeze({
   id: capabilityIdentifier("orion.runtime.diagnostics"),
@@ -45,6 +46,13 @@ const KNOWLEDGE_CAPABILITY: CapabilityDescriptor = Object.freeze({
   availability: "available",
 });
 
+const REASONING_CAPABILITY: CapabilityDescriptor = Object.freeze({
+  id: capabilityIdentifier("orion.reasoning"),
+  name: "Reasoning",
+  version: "1.0.0",
+  availability: "available",
+});
+
 export function composeDiagnosticRuntime(): DiagnosticResult {
   const registry = new RuntimeCapabilityRegistry();
   registry.register(DIAGNOSTIC_CAPABILITY);
@@ -52,6 +60,7 @@ export function composeDiagnosticRuntime(): DiagnosticResult {
   registry.register(CONTEXT_CAPABILITY);
   registry.register(MEMORY_CAPABILITY);
   registry.register(KNOWLEDGE_CAPABILITY);
+  registry.register(REASONING_CAPABILITY);
 
   const identity = composeIdentityCapability();
   const anonymousIdentity =
@@ -207,6 +216,12 @@ export function composeDiagnosticRuntime(): DiagnosticResult {
     context.getActiveContextRevision.getActiveContextRevision({
       lineageIdentity: initialRevision.lineageIdentity,
     });
+  const reasoning = composeReasoningCapability();
+  const anonymousOutcome = reasoning.evaluateReasoning.evaluateReasoning({
+    intent: "evaluate",
+    activeContextRevision: initialRevision,
+    query: "Evaluate anonymous diagnostic grounding.",
+  });
   const successorRevision =
     context.composeContextRevision.composeContextRevision({
       target: {
@@ -220,6 +235,35 @@ export function composeDiagnosticRuntime(): DiagnosticResult {
     context.getActiveContextRevision.getActiveContextRevision({
       lineageIdentity: successorRevision.lineageIdentity,
     });
+  const memoryReference = retainedBefore[0];
+  const knowledgeReference = currentReferences[0];
+  if (memoryReference === undefined || knowledgeReference === undefined) {
+    throw new Error("Reasoning diagnostic input preparation failed.");
+  }
+  const knowledgeOutcome = reasoning.evaluateReasoning.evaluateReasoning({
+    intent: "evaluate",
+    activeContextRevision: successorRevision,
+    query: "Evaluate Knowledge diagnostic grounding.",
+    knowledgeReferences: [knowledgeReference],
+  });
+  const memoryOutcome = reasoning.evaluateReasoning.evaluateReasoning({
+    intent: "evaluate",
+    activeContextRevision: successorRevision,
+    query: "Evaluate Memory diagnostic grounding.",
+    memoryReferences: [memoryReference],
+  });
+  const contextOnlyOutcome = reasoning.evaluateReasoning.evaluateReasoning({
+    intent: "evaluate",
+    activeContextRevision: successorRevision,
+    query: "Evaluate Context-only diagnostic grounding.",
+  });
+  const precedenceOutcome = reasoning.evaluateReasoning.evaluateReasoning({
+    intent: "evaluate",
+    activeContextRevision: successorRevision,
+    query: "Evaluate combined diagnostic grounding.",
+    memoryReferences: [memoryReference],
+    knowledgeReferences: [knowledgeReference],
+  });
 
   if (
     retrievedInitial.revisionIdentity !== initialRevision.revisionIdentity ||
@@ -231,6 +275,17 @@ export function composeDiagnosticRuntime(): DiagnosticResult {
     retrievedSuccessor.revisionIdentity !== successorRevision.revisionIdentity
   ) {
     throw new Error("Context capability diagnostic failed.");
+  }
+  if (
+    reasoning.engineState() !== "running" ||
+    anonymousOutcome.category !== "anonymous-context" ||
+    knowledgeOutcome.category !== "knowledge-grounded-context" ||
+    memoryOutcome.category !== "experience-informed-context" ||
+    contextOnlyOutcome.category !== "context-only" ||
+    precedenceOutcome.category !== "knowledge-grounded-context" ||
+    precedenceOutcome.response.length === 0
+  ) {
+    throw new Error("Reasoning capability diagnostic failed.");
   }
 
   const registeredCapabilities = registry.inspect();
@@ -274,6 +329,16 @@ export function composeDiagnosticRuntime(): DiagnosticResult {
       versionAdvanced: true,
       predecessorRetrievable: true,
       successorCurrent: true,
+    }),
+    reasoningCapability: Object.freeze({
+      operational: true,
+      evaluationSucceeded: true,
+      anonymousRuleSucceeded: true,
+      authenticatedKnowledgeRuleSucceeded: true,
+      authenticatedMemoryRuleSucceeded: true,
+      authenticatedContextOnlyRuleSucceeded: true,
+      precedenceRuleSucceeded: true,
+      candidateResponseProduced: true,
     }),
     architecturalDiagnosticStatus: "ok",
   });

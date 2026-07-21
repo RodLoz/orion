@@ -41,3 +41,7 @@ export {
   type DiagnosticResultSink,
 } from "./diagnostic-result-output.js";
 export { runDiagnosticRuntime, type DiagnosticRuntimeOptions } from "./run.js";
+export {
+  composeReasoningCapability,
+  type ReasoningCapabilityComposition,
+} from "./reasoning/reasoning-composition.js";

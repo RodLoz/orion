@@ -20,6 +20,10 @@ const fixtures = [
     path: "core/architecture-fixtures/knowledge-engine-dependency.ts",
     rule: "core-must-not-depend-outward",
   },
+  {
+    path: "core/architecture-fixtures/reasoning-engine-dependency.ts",
+    rule: "core-must-not-depend-outward",
+  },
 ];
 
 for (const fixture of fixtures) {

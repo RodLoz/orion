@@ -8,6 +8,7 @@
     "@orion/core": "workspace:*",
     "@orion/identity": "workspace:*",
     "@orion/knowledge": "workspace:*",
-    "@orion/memory": "workspace:*"
+    "@orion/memory": "workspace:*",
+    "@orion/reasoning": "workspace:*"
   }
 }

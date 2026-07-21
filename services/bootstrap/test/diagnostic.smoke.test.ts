@@ -19,7 +19,7 @@ describe("M0 diagnostic runtime", () => {
         runtimeStarted: true,
         configurationLoaded: true,
         capabilityRegistryInitialized: true,
-        registeredCapabilityCount: 5,
+        registeredCapabilityCount: 6,
         identityCapability: {
           initialized: true,
           anonymousResolutionSucceeded: true,
@@ -55,6 +55,16 @@ describe("M0 diagnostic runtime", () => {
           predecessorRetrievable: true,
           successorCurrent: true,
         },
+        reasoningCapability: {
+          operational: true,
+          evaluationSucceeded: true,
+          anonymousRuleSucceeded: true,
+          authenticatedKnowledgeRuleSucceeded: true,
+          authenticatedMemoryRuleSucceeded: true,
+          authenticatedContextOnlyRuleSucceeded: true,
+          precedenceRuleSucceeded: true,
+          candidateResponseProduced: true,
+        },
         architecturalDiagnosticStatus: "ok",
       });
       expect(result.registeredCapabilities.map(({ id }) => id)).toEqual([
@@ -62,6 +72,7 @@ describe("M0 diagnostic runtime", () => {
         "orion.identity",
         "orion.knowledge",
         "orion.memory",
+        "orion.reasoning",
         "orion.runtime.diagnostics",
       ]);
       expect(diagnosticOutput).toHaveLength(1);
@@ -72,7 +83,7 @@ describe("M0 diagnostic runtime", () => {
           runtimeStarted: true,
           configurationLoaded: true,
           capabilityRegistryInitialized: true,
-          registeredCapabilityCount: 5,
+          registeredCapabilityCount: 6,
           identityCapability: {
             initialized: true,
             anonymousResolutionSucceeded: true,
@@ -108,6 +119,16 @@ describe("M0 diagnostic runtime", () => {
             predecessorRetrievable: true,
             successorCurrent: true,
           },
+          reasoningCapability: {
+            operational: true,
+            evaluationSucceeded: true,
+            anonymousRuleSucceeded: true,
+            authenticatedKnowledgeRuleSucceeded: true,
+            authenticatedMemoryRuleSucceeded: true,
+            authenticatedContextOnlyRuleSucceeded: true,
+            precedenceRuleSucceeded: true,
+            candidateResponseProduced: true,
+          },
           architecturalDiagnosticStatus: "ok",
         },
       });
@@ -133,6 +154,12 @@ describe("M0 diagnostic runtime", () => {
         "Verify explicit M4 acceptance.",
       );
       expect(serializedDiagnostic).not.toContain("2026-07-20T12:59:00.000Z");
+      expect(serializedDiagnostic).not.toContain(
+        "Evaluate anonymous diagnostic grounding.",
+      );
+      expect(serializedDiagnostic).not.toContain(
+        "The active context identifies an anonymous actor.",
+      );
       expect(serializedDiagnostic).not.toMatch(
         /credential|password|secret|token/i,
       );
