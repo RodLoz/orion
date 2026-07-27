@@ -60,6 +60,18 @@ export interface PlanningCapabilityDiagnostic {
   readonly planningRuleCategory: "reasoning-produced-response";
 }
 
+export interface SkillCapabilityDiagnostic {
+  readonly operational: true;
+  readonly registrationSucceeded: true;
+  readonly lookupSucceeded: true;
+  readonly discoverySucceeded: true;
+  readonly duplicateRejected: true;
+  readonly emptyDiscoverySucceeded: true;
+  readonly registeredCount: 1;
+  readonly discoveredCount: 1;
+  readonly emptyDiscoveryCount: 0;
+}
+
 export interface DiagnosticResult {
   readonly runtimeStarted: true;
   readonly configurationLoaded: true;
@@ -72,5 +84,6 @@ export interface DiagnosticResult {
   readonly knowledgeCapability: KnowledgeCapabilityDiagnostic;
   readonly reasoningCapability: ReasoningCapabilityDiagnostic;
   readonly planningCapability: PlanningCapabilityDiagnostic;
+  readonly skillCapability: SkillCapabilityDiagnostic;
   readonly architecturalDiagnosticStatus: ArchitecturalDiagnosticStatus;
 }

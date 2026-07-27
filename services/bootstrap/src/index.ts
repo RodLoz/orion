@@ -49,3 +49,7 @@ export {
   composePlanningCapability,
   type PlanningCapabilityComposition,
 } from "./planning/planning-composition.js";
+export {
+  composeSkillCapability,
+  type SkillCapabilityComposition,
+} from "./skill/skill-composition.js";

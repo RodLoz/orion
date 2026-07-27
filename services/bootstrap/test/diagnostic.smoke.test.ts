@@ -19,7 +19,7 @@ describe("M0 diagnostic runtime", () => {
         runtimeStarted: true,
         configurationLoaded: true,
         capabilityRegistryInitialized: true,
-        registeredCapabilityCount: 7,
+        registeredCapabilityCount: 8,
         identityCapability: {
           initialized: true,
           anonymousResolutionSucceeded: true,
@@ -72,6 +72,17 @@ describe("M0 diagnostic runtime", () => {
           stepCount: 1,
           planningRuleCategory: "reasoning-produced-response",
         },
+        skillCapability: {
+          operational: true,
+          registrationSucceeded: true,
+          lookupSucceeded: true,
+          discoverySucceeded: true,
+          duplicateRejected: true,
+          emptyDiscoverySucceeded: true,
+          registeredCount: 1,
+          discoveredCount: 1,
+          emptyDiscoveryCount: 0,
+        },
         architecturalDiagnosticStatus: "ok",
       });
       expect(result.registeredCapabilities.map(({ id }) => id)).toEqual([
@@ -82,6 +93,7 @@ describe("M0 diagnostic runtime", () => {
         "orion.planning",
         "orion.reasoning",
         "orion.runtime.diagnostics",
+        "orion.skill",
       ]);
       expect(diagnosticOutput).toHaveLength(1);
       expect(JSON.parse(diagnosticOutput[0] ?? "{}")).toMatchObject({
@@ -91,7 +103,7 @@ describe("M0 diagnostic runtime", () => {
           runtimeStarted: true,
           configurationLoaded: true,
           capabilityRegistryInitialized: true,
-          registeredCapabilityCount: 7,
+          registeredCapabilityCount: 8,
           identityCapability: {
             initialized: true,
             anonymousResolutionSucceeded: true,
@@ -144,6 +156,17 @@ describe("M0 diagnostic runtime", () => {
             stepCount: 1,
             planningRuleCategory: "reasoning-produced-response",
           },
+          skillCapability: {
+            operational: true,
+            registrationSucceeded: true,
+            lookupSucceeded: true,
+            discoverySucceeded: true,
+            duplicateRejected: true,
+            emptyDiscoverySucceeded: true,
+            registeredCount: 1,
+            discoveredCount: 1,
+            emptyDiscoveryCount: 0,
+          },
           architecturalDiagnosticStatus: "ok",
         },
       });
@@ -178,6 +201,14 @@ describe("M0 diagnostic runtime", () => {
       expect(serializedDiagnostic).not.toContain(
         "Accepted Knowledge context is available for further orchestration.",
       );
+      expect(serializedDiagnostic).not.toContain("diagnostic-skill");
+      expect(serializedDiagnostic).not.toContain("Controlled diagnostic");
+      expect(serializedDiagnostic).not.toContain("diagnostic.read");
+      expect(serializedDiagnostic).not.toContain("diagnostic.catalog");
+      expect(serializedDiagnostic).not.toContain("DiagnosticCompleted");
+      expect(serializedDiagnostic).not.toContain("diagnostic.input");
+      expect(serializedDiagnostic).not.toContain("diagnostic.output");
+      expect(serializedDiagnostic).not.toContain("diagnostic.failure");
       expect(serializedDiagnostic).not.toMatch(
         /credential|password|secret|token/i,
       );

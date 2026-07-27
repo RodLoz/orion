@@ -1,4 +1,5 @@
 import {
+  DuplicateSkillIdentifierError,
   capabilityIdentifier,
   type CapabilityDescriptor,
   type DiagnosticResult,
@@ -11,6 +12,7 @@ import { composeKnowledgeCapability } from "./knowledge/knowledge-composition.js
 import { composeMemoryCapability } from "./memory/memory-composition.js";
 import { composePlanningCapability } from "./planning/planning-composition.js";
 import { composeReasoningCapability } from "./reasoning/reasoning-composition.js";
+import { composeSkillCapability } from "./skill/skill-composition.js";
 
 const DIAGNOSTIC_CAPABILITY: CapabilityDescriptor = Object.freeze({
   id: capabilityIdentifier("orion.runtime.diagnostics"),
@@ -61,6 +63,13 @@ const PLANNING_CAPABILITY: CapabilityDescriptor = Object.freeze({
   availability: "available",
 });
 
+const SKILL_CAPABILITY: CapabilityDescriptor = Object.freeze({
+  id: capabilityIdentifier("orion.skill"),
+  name: "Skill",
+  version: "1.0.0",
+  availability: "available",
+});
+
 export function composeDiagnosticRuntime(): DiagnosticResult {
   const registry = new RuntimeCapabilityRegistry();
   registry.register(DIAGNOSTIC_CAPABILITY);
@@ -70,6 +79,7 @@ export function composeDiagnosticRuntime(): DiagnosticResult {
   registry.register(KNOWLEDGE_CAPABILITY);
   registry.register(REASONING_CAPABILITY);
   registry.register(PLANNING_CAPABILITY);
+  registry.register(SKILL_CAPABILITY);
 
   const identity = composeIdentityCapability();
   const anonymousIdentity =
@@ -312,6 +322,56 @@ export function composeDiagnosticRuntime(): DiagnosticResult {
     throw new Error("Planning capability diagnostic failed.");
   }
 
+  const skill = composeSkillCapability();
+  const diagnosticManifest = {
+    id: "diagnostic-skill",
+    name: "Controlled diagnostic",
+    version: "1.0.0",
+    description: "Privacy-sensitive Skill catalog fixture.",
+    author: "ORION diagnostic",
+    license: "MIT",
+    permissions: ["diagnostic.read"],
+    capabilities: ["diagnostic.catalog"],
+    events: { publishes: ["DiagnosticCompleted"], consumes: [] },
+    inputs: ["diagnostic.input"],
+    outputs: ["diagnostic.output"],
+    failureModes: ["diagnostic.failure"],
+  };
+  const registered = skill.registerSkillManifest.registerSkillManifest({
+    intent: "register-skill-manifest",
+    manifest: diagnosticManifest,
+  });
+  const found = skill.getRegisteredSkill.getRegisteredSkill({
+    intent: "get-registered-skill",
+    skillId: "diagnostic-skill",
+  });
+  const discovered = skill.discoverSkills.discoverSkills({
+    intent: "discover-skills",
+    capability: "diagnostic.catalog",
+  });
+  const emptyDiscovery = skill.discoverSkills.discoverSkills({
+    intent: "discover-skills",
+    capability: "diagnostic.absent",
+  });
+  let duplicateRejected = false;
+  try {
+    skill.registerSkillManifest.registerSkillManifest({
+      intent: "register-skill-manifest",
+      manifest: diagnosticManifest,
+    });
+  } catch (error) {
+    duplicateRejected = error instanceof DuplicateSkillIdentifierError;
+  }
+  if (
+    skill.engineState() !== "running" ||
+    registered.id !== found.id ||
+    discovered.matches.length !== 1 ||
+    emptyDiscovery.matches.length !== 0 ||
+    !duplicateRejected
+  ) {
+    throw new Error("Skill capability diagnostic failed.");
+  }
+
   const registeredCapabilities = registry.inspect();
   const result: DiagnosticResult = Object.freeze({
     runtimeStarted: true,
@@ -370,6 +430,17 @@ export function composeDiagnosticRuntime(): DiagnosticResult {
       planCategory: "respond",
       stepCount: 1,
       planningRuleCategory: "reasoning-produced-response",
+    }),
+    skillCapability: Object.freeze({
+      operational: true,
+      registrationSucceeded: true,
+      lookupSucceeded: true,
+      discoverySucceeded: true,
+      duplicateRejected: true,
+      emptyDiscoverySucceeded: true,
+      registeredCount: 1,
+      discoveredCount: discovered.matches.length,
+      emptyDiscoveryCount: emptyDiscovery.matches.length,
     }),
     architecturalDiagnosticStatus: "ok",
   });

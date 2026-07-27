@@ -55,6 +55,9 @@ importers:
       '@orion/reasoning':
         specifier: workspace:*
         version: link:../reasoning
+      '@orion/skill':
+        specifier: workspace:*
+        version: link:../skill
 
   services/context:
     dependencies:
@@ -87,6 +90,12 @@ importers:
         version: link:../../core
 
   services/reasoning:
+    dependencies:
+      '@orion/core':
+        specifier: workspace:*
+        version: link:../../core
+
+  services/skill:
     dependencies:
       '@orion/core':
         specifier: workspace:*

@@ -13,6 +13,7 @@
     { "path": "../memory" },
     { "path": "../knowledge" },
     { "path": "../reasoning" },
-    { "path": "../planning" }
+    { "path": "../planning" },
+    { "path": "../skill" }
   ]
 }
