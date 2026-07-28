@@ -9,6 +9,7 @@
     { "path": "./services/reasoning" },
     { "path": "./services/planning" },
     { "path": "./services/skill" },
+    { "path": "./services/security" },
     { "path": "./services/bootstrap" }
   ]
 }

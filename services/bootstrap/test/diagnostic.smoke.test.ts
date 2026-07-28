@@ -19,7 +19,7 @@ describe("M0 diagnostic runtime", () => {
         runtimeStarted: true,
         configurationLoaded: true,
         capabilityRegistryInitialized: true,
-        registeredCapabilityCount: 8,
+        registeredCapabilityCount: 9,
         identityCapability: {
           initialized: true,
           anonymousResolutionSucceeded: true,
@@ -83,6 +83,12 @@ describe("M0 diagnostic runtime", () => {
           discoveredCount: 1,
           emptyDiscoveryCount: 0,
         },
+        securityCapability: {
+          operational: true,
+          allowSucceeded: true,
+          denySucceeded: true,
+          indeterminateSucceeded: true,
+        },
         architecturalDiagnosticStatus: "ok",
       });
       expect(result.registeredCapabilities.map(({ id }) => id)).toEqual([
@@ -93,6 +99,7 @@ describe("M0 diagnostic runtime", () => {
         "orion.planning",
         "orion.reasoning",
         "orion.runtime.diagnostics",
+        "orion.security",
         "orion.skill",
       ]);
       expect(diagnosticOutput).toHaveLength(1);
@@ -103,7 +110,7 @@ describe("M0 diagnostic runtime", () => {
           runtimeStarted: true,
           configurationLoaded: true,
           capabilityRegistryInitialized: true,
-          registeredCapabilityCount: 8,
+          registeredCapabilityCount: 9,
           identityCapability: {
             initialized: true,
             anonymousResolutionSucceeded: true,
@@ -166,6 +173,12 @@ describe("M0 diagnostic runtime", () => {
             registeredCount: 1,
             discoveredCount: 1,
             emptyDiscoveryCount: 0,
+          },
+          securityCapability: {
+            operational: true,
+            allowSucceeded: true,
+            denySucceeded: true,
+            indeterminateSucceeded: true,
           },
           architecturalDiagnosticStatus: "ok",
         },

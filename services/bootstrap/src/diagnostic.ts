@@ -13,6 +13,10 @@ import { composeMemoryCapability } from "./memory/memory-composition.js";
 import { composePlanningCapability } from "./planning/planning-composition.js";
 import { composeReasoningCapability } from "./reasoning/reasoning-composition.js";
 import { composeSkillCapability } from "./skill/skill-composition.js";
+import {
+  composeSecurityCapability,
+  securityDiagnosticTarget,
+} from "./security/security-composition.js";
 
 const DIAGNOSTIC_CAPABILITY: CapabilityDescriptor = Object.freeze({
   id: capabilityIdentifier("orion.runtime.diagnostics"),
@@ -69,6 +73,12 @@ const SKILL_CAPABILITY: CapabilityDescriptor = Object.freeze({
   version: "1.0.0",
   availability: "available",
 });
+const SECURITY_CAPABILITY: CapabilityDescriptor = Object.freeze({
+  id: capabilityIdentifier("orion.security"),
+  name: "Security",
+  version: "1.0.0",
+  availability: "available",
+});
 
 export function composeDiagnosticRuntime(): DiagnosticResult {
   const registry = new RuntimeCapabilityRegistry();
@@ -80,6 +90,7 @@ export function composeDiagnosticRuntime(): DiagnosticResult {
   registry.register(REASONING_CAPABILITY);
   registry.register(PLANNING_CAPABILITY);
   registry.register(SKILL_CAPABILITY);
+  registry.register(SECURITY_CAPABILITY);
 
   const identity = composeIdentityCapability();
   const anonymousIdentity =
@@ -372,6 +383,27 @@ export function composeDiagnosticRuntime(): DiagnosticResult {
     throw new Error("Skill capability diagnostic failed.");
   }
 
+  const security = composeSecurityCapability();
+  const evaluateSecurity = (operationId: string) =>
+    security.evaluateAuthorization.evaluateAuthorization({
+      intent: "evaluate-authorization",
+      operationId,
+      ...securityDiagnosticTarget,
+    });
+  const authorizationAllow = evaluateSecurity("diagnostic-allow");
+  const authorizationDeny = evaluateSecurity("diagnostic-deny");
+  const authorizationIndeterminate = evaluateSecurity(
+    "diagnostic-indeterminate",
+  );
+  if (
+    security.engineState() !== "running" ||
+    authorizationAllow.decision !== "allow" ||
+    authorizationDeny.decision !== "deny" ||
+    authorizationIndeterminate.decision !== "indeterminate"
+  ) {
+    throw new Error("Security capability diagnostic failed.");
+  }
+
   const registeredCapabilities = registry.inspect();
   const result: DiagnosticResult = Object.freeze({
     runtimeStarted: true,
@@ -441,6 +473,12 @@ export function composeDiagnosticRuntime(): DiagnosticResult {
       registeredCount: 1,
       discoveredCount: discovered.matches.length,
       emptyDiscoveryCount: emptyDiscovery.matches.length,
+    }),
+    securityCapability: Object.freeze({
+      operational: true,
+      allowSucceeded: true,
+      denySucceeded: true,
+      indeterminateSucceeded: true,
     }),
     architecturalDiagnosticStatus: "ok",
   });

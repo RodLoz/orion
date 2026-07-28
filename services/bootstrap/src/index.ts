@@ -53,3 +53,7 @@ export {
   composeSkillCapability,
   type SkillCapabilityComposition,
 } from "./skill/skill-composition.js";
+export {
+  composeSecurityCapability,
+  type SecurityCapabilityComposition,
+} from "./security/security-composition.js";

@@ -71,6 +71,12 @@ export interface SkillCapabilityDiagnostic {
   readonly discoveredCount: 1;
   readonly emptyDiscoveryCount: 0;
 }
+export interface SecurityCapabilityDiagnostic {
+  readonly operational: true;
+  readonly allowSucceeded: true;
+  readonly denySucceeded: true;
+  readonly indeterminateSucceeded: true;
+}
 
 export interface DiagnosticResult {
   readonly runtimeStarted: true;
@@ -85,5 +91,6 @@ export interface DiagnosticResult {
   readonly reasoningCapability: ReasoningCapabilityDiagnostic;
   readonly planningCapability: PlanningCapabilityDiagnostic;
   readonly skillCapability: SkillCapabilityDiagnostic;
+  readonly securityCapability: SecurityCapabilityDiagnostic;
   readonly architecturalDiagnosticStatus: ArchitecturalDiagnosticStatus;
 }
