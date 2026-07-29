@@ -2,6 +2,7 @@ import {
   DuplicateSkillIdentifierError,
   InvalidSkillInputError,
   InvalidSkillManifestError,
+  InvalidSkillExecutionStateError,
   InvalidSkillStateError,
   SkillNotFoundError,
   codePointOrder,
@@ -19,12 +20,25 @@ import {
   type RegisteredSkill,
   type SkillDiscoveryResult,
   type SkillIdentifier,
+  type AdmittedSkillWorkflow,
+  type BoundSkillInvocationTarget,
+  type NormalizedSkillExecutionResult,
+  type SkillSelectionResult,
+  type SkillExecutionContextProjection,
+  type SkillInvocationSensitivityResolution,
+  type SkillInvocationRequirementsProjection,
+  type AuthorizationEvaluationOutcome,
+  type VerifyNormalizedSkillExecutionResult,
 } from "@orion/core";
 import {
   validateExistingCatalog,
   validateResultingCatalog,
   type SkillCatalog,
 } from "./skill-state.js";
+import {
+  SkillExecutionRuntime,
+  type SkillExecutionConfiguration,
+} from "./skill-execution-runtime.js";
 
 export type SkillEngineLifecycleState =
   "initialize" | "ready" | "running" | "stopping" | "stopped";
@@ -35,6 +49,14 @@ export class SkillEngine
   #state: SkillEngineLifecycleState = "initialize";
   #catalog = new Map<SkillIdentifier, RegisteredSkill>();
   #operating = false;
+  readonly #execution: SkillExecutionRuntime;
+
+  public constructor(configuration?: SkillExecutionConfiguration) {
+    this.#execution = new SkillExecutionRuntime(
+      () => this.#catalog,
+      configuration,
+    );
+  }
 
   public get engineState(): SkillEngineLifecycleState {
     return this.#state;
@@ -150,14 +172,113 @@ export class SkillEngine
     }
   }
 
+  public admitSkillWorkflow(request: unknown): AdmittedSkillWorkflow {
+    return this.executeM9(() => this.#execution.admit(request));
+  }
+
+  public selectSkill(request: unknown): SkillSelectionResult {
+    return this.executeM9(() => this.#execution.select(request));
+  }
+
+  public bindSkillToOperation(request: unknown): BoundSkillInvocationTarget {
+    return this.executeM9(() => this.#execution.bind(request));
+  }
+
+  public resolveSkillExecutionContext(
+    request: unknown,
+  ): SkillExecutionContextProjection {
+    return this.executeM9(
+      () =>
+        this.#execution.resolveContext(
+          request,
+        ) as SkillExecutionContextProjection,
+    );
+  }
+
+  public resolveSkillInvocationSensitivity(
+    request: unknown,
+  ): SkillInvocationSensitivityResolution {
+    return this.executeM9(
+      () =>
+        this.#execution.resolveSensitivity(
+          request,
+        ) as SkillInvocationSensitivityResolution,
+    );
+  }
+
+  public resolveSkillInvocationRequirements(
+    request: unknown,
+  ): SkillInvocationRequirementsProjection {
+    return this.executeM9(
+      () =>
+        this.#execution.resolveRequirements(
+          request,
+        ) as SkillInvocationRequirementsProjection,
+    );
+  }
+
+  public resolveGovernedAuthorizationEvaluation(
+    request: unknown,
+  ): AuthorizationEvaluationOutcome {
+    return this.executeM9(
+      () =>
+        this.#execution.resolveAuthorization(
+          request,
+        ) as AuthorizationEvaluationOutcome,
+    );
+  }
+
+  public invokeBoundSkill(request: unknown): NormalizedSkillExecutionResult {
+    return this.executeM9(() => this.#execution.invoke(request));
+  }
+
+  public get normalizedResultVerifier(): VerifyNormalizedSkillExecutionResult {
+    return this.#execution.resultVerifier;
+  }
+
+  public verifyBoundSkillInvocationTarget(candidate: unknown): boolean {
+    return this.#execution.verifyTarget(candidate);
+  }
+
   private beginOperation(): void {
     if (this.#state !== "running" || this.#operating)
       throw new InvalidSkillStateError();
     try {
       validateExistingCatalog(this.#catalog as SkillCatalog);
+      this.#execution.validateState();
     } catch {
       throw new InvalidSkillStateError();
     }
     this.#operating = true;
+  }
+
+  private execute<T>(operation: () => T): T {
+    this.beginOperation();
+    try {
+      return operation();
+    } finally {
+      this.#operating = false;
+    }
+  }
+
+  private beginM9Operation(): void {
+    if (this.#state !== "running" || this.#operating)
+      throw new InvalidSkillExecutionStateError();
+    try {
+      validateExistingCatalog(this.#catalog as SkillCatalog);
+      this.#execution.validateState();
+    } catch {
+      throw new InvalidSkillExecutionStateError();
+    }
+    this.#operating = true;
+  }
+
+  private executeM9<T>(operation: () => T): T {
+    this.beginM9Operation();
+    try {
+      return operation();
+    } finally {
+      this.#operating = false;
+    }
   }
 }

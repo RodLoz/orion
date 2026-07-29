@@ -82,6 +82,9 @@ describe("M0 diagnostic runtime", () => {
           registeredCount: 1,
           discoveredCount: 1,
           emptyDiscoveryCount: 0,
+          protectedInvocationSucceeded: true,
+          lifecycleObserved: true,
+          normalizedResultAuthorityVerified: true,
         },
         securityCapability: {
           operational: true,
@@ -173,6 +176,9 @@ describe("M0 diagnostic runtime", () => {
             registeredCount: 1,
             discoveredCount: 1,
             emptyDiscoveryCount: 0,
+            protectedInvocationSucceeded: true,
+            lifecycleObserved: true,
+            normalizedResultAuthorityVerified: true,
           },
           securityCapability: {
             operational: true,

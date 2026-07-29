@@ -3,29 +3,33 @@
 | Field          | Value                                                        |
 | -------------- | ------------------------------------------------------------ |
 | **Status**     | Active                                                       |
-| **Version**    | 1.0.0                                                        |
+| **Version**    | 1.1.0                                                        |
 | **Owner**      | O.R.I.O.N. Architecture                                      |
 | **Milestone**  | M8 — Security Engine: Authorization Decision Foundation      |
 | **Created**    | 2026-07-27                                                   |
-| **Updated**    | 2026-07-27                                                   |
+| **Updated**    | 2026-07-28                                                   |
 | **Applies To** | Security Engine, Core authorization values, and M8 Contracts |
 
 ---
 
 ## Status
 
-This specification is Active implementation authority.
+This specification is the formally approved Active Security Engine
+implementation authority.
 
 ## Version
 
-Version `1.0.0` defines the first Security Engine authorization
-decision vertical slice.
+Version `1.1.0` is the additive Governed Security Evaluation Summary revision
+required by active CONCEPT-0004 `1.1.0`. It preserves the complete active
+`1.0.0` decision vertical slice.
 
 ## Purpose
 
 M8 establishes the minimum deterministic Security capability that evaluates one
 protected authorization operation and returns one immutable Authorization
-Decision Artifact.
+Decision Artifact. Revision `1.1.0` additionally permits the same evaluation to
+co-issue an immutable, authority-bearing snapshot of the exact governed
+Security statuses used for that decision.
 
 The Security Engine answers:
 
@@ -51,6 +55,8 @@ M8 includes:
 - deterministic `allow`, `deny`, and `indeterminate` evaluation;
 - one fixed Security policy;
 - immutable Authorization Decision Artifacts;
+- Governed Security Evaluation Summaries and authoritative co-issued Outcomes;
+- process-local same-evaluation provenance and read-only verification;
 - Security Engine lifecycle and pre-existing-state validation;
 - hostile-runtime boundary safety;
 - privacy-safe diagnostics; and
@@ -78,7 +84,7 @@ The following authority applies in descending precedence:
 2. active Architecture Specifications;
 3. active CONCEPT-0004;
 4. active OES-0009, OES-0004, and OES-0002;
-5. this Active specification; and
+5. this specification when its revision is approved; and
 6. lower-authority Flow and general architecture documents.
 
 CONCEPT-0004 owns authorization-model semantics. This specification defines the
@@ -97,6 +103,8 @@ The Security Engine owns:
 - exact permission-grant matching;
 - decision and reason selection;
 - Authorization Decision Artifact construction;
+- Governed Security Evaluation Summary construction, co-issuance provenance,
+  and verification;
 - Security lifecycle and internal-policy invariants; and
 - Security diagnostics categories.
 
@@ -115,6 +123,8 @@ Core is the canonical custodian of:
 - Security Evaluation Context;
 - Confirmation Evidence;
 - Authorization Decision Artifact;
+- Governed Security Evaluation Summary;
+- Authorization Evaluation Outcome;
 - authority-source and evaluation Contracts; and
 - public Security failure classes.
 
@@ -159,8 +169,20 @@ claim, or test switch may confer authority. Core candidate factories establish
 structural validity only. The Security Engine establishes trusted provenance
 only from a configured authority Contract invocation.
 
-The governed reconstructions are evaluation-local. M8 does not return them
-separately, retain them after evaluation, or permit reuse across operations.
+The governed requirements, grant, and confirmation reconstructions remain
+evaluation-local and are not returned separately or reusable across operations.
+The exact governed Security Evaluation Context used by an evaluation is
+privacy-minimized into a Governed Security Evaluation Summary. The Summary is
+co-issued with the unchanged Authorization Decision Artifact through the
+Authorization Evaluation Outcome Contract defined by this revision.
+
+Outcome authority uses exactly one private, per-Security-instance
+`WeakMap<AuthorizationEvaluationOutcome, IssuedEvaluationPair>`. The private
+record contains the exact issued Artifact identity, exact issued Summary
+identity, and operation identifier. Authority attaches to the aggregate Outcome
+identity and requires both nested identities to equal that record. The map is
+not exported, shared, serialized, or caller-accessible. No separate public
+factory, brand, field value, or structural equality establishes authority.
 
 ## Core Domain Values
 
@@ -402,6 +424,89 @@ unless the configured authority can establish `available` or
 `not-applicable`. No missing fact becomes safe implicitly. Any unavailable
 dimension produces `indeterminate`.
 
+### Governed Security Evaluation Summary
+
+Governed Security Evaluation Summary is the exact Core-custodied value:
+
+```text
+{
+  operationId: AuthorizationOperationIdentifier,
+  subject: AuthorizationSubject,
+  securityContext: {
+    context: SecurityDimensionStatus,
+    device: SecurityDimensionStatus,
+    session: SecurityDimensionStatus,
+    trustLevel: SecurityDimensionStatus
+  }
+}
+```
+
+Every property is required. No additional enumerable string or symbol property,
+optional field, implicit default, nullable status, or fourth status literal is
+permitted. Each status is exactly `available`, `unavailable`, or
+`not-applicable`.
+
+Security owns the Summary semantics. Core custodies its schema and structural
+factory only. Brain, Skill, Bootstrap, Context, composition, and callers cannot
+manufacture Summary authority. The structural factory defensively reconstructs
+and deeply freezes the exact visible value but confers no authority.
+
+The Summary is constructed only from protected local captures of the exact
+governed Security Evaluation Context accepted for the current evaluation:
+
+- `operationId` is copied from that evaluation's operation;
+- `subject` is copied from that governed Context;
+- the four statuses are copied independently from that governed Context; and
+- no field is derived from the Decision Artifact or re-resolved after policy
+  evaluation.
+
+There is no `permissionsStatus`. Permission authorization remains represented
+by governed requirements, evaluated permissions, and Grant Evidence. The
+Summary contains no raw Context, Context lineage or revision, Device or Session
+identifier, Trust detail or score, location, token, credential, provider claim,
+policy internal, Grant Evidence detail, or confirmation content.
+
+### Authorization Evaluation Outcome
+
+Authorization Evaluation Outcome is the exact Core-custodied value:
+
+```text
+{
+  authorization: AuthorizationDecisionArtifact,
+  securityEvaluationSummary: GovernedSecurityEvaluationSummary
+}
+```
+
+The Outcome is the single representation that co-issues the two separately
+structured values. It is not a new decision category and does not change or
+extend the Authorization Decision Artifact.
+
+One successful Evaluate Authorization Outcome invocation creates exactly one
+Artifact, exactly one Summary, and exactly one Outcome. The Artifact and Summary
+are independently constructed from the same protected evaluation locals,
+independently validated, and then related by one private issuance record. The
+Outcome is authoritative only when its identity is present in the issuing
+Security instance's private issuance map and both nested identities exactly
+match that record.
+
+Operation, subject, and visible status equality are necessary but insufficient.
+A clone, spread, serialization/deserialization, reconstruction, same-shaped
+object, Core factory result, or TypeScript brand has no Outcome authority. An
+Artifact from evaluation A paired with a Summary from evaluation B is invalid
+even when every visible value is identical. Authority from Security instance A
+is invalid to the verifier of incompatible Security instance B.
+
+Every successful decision row—`allow`, `deny`, and `indeterminate`—co-issues a
+Summary. Existing precedence already obtains and validates governed Security
+Evaluation Context for every successful row, including
+`requirements-unavailable`; no later Grant or Confirmation authority may be
+invoked merely to populate the Summary.
+
+This rule applies identically to both public evaluation Contracts and all ten
+Decision Artifact Output-Invariant rows. No successful compatibility Artifact
+may be returned from an evaluation that skipped Summary construction, Outcome
+construction, visible correspondence validation, or provenance registration.
+
 ### Confirmation Evidence
 
 Confirmation Evidence is exactly one of:
@@ -584,14 +689,19 @@ I/O.
 
 Metadata:
 
-| Property                      | Value                           |
-| ----------------------------- | ------------------------------- |
-| Version                       | `1.0.0`                         |
-| Schema custodian              | Core                            |
-| Domain semantic owner         | Security Engine                 |
-| Implementation responsibility | Security Engine                 |
-| Operation                     | synchronous request/response    |
-| Success                       | Authorization Decision Artifact |
+| Property                      | Value                                                                                                                                                                      |
+| ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Version                       | `1.0.0`                                                                                                                                                                    |
+| Schema custodian              | Core                                                                                                                                                                       |
+| Domain semantic owner         | Security Engine                                                                                                                                                            |
+| Implementation responsibility | Security Engine                                                                                                                                                            |
+| Operation                     | synchronous request/response                                                                                                                                               |
+| Success                       | Authorization Decision Artifact                                                                                                                                            |
+| Compatibility semantics       | Artifact projection from the single atomic Authorization Evaluation Outcome pipeline                                                                                       |
+| Co-issuance guarantee         | every successful call has already constructed, validated, paired, and registered its Summary and Outcome before returning the Artifact                                     |
+| Prohibited behavior           | separate policy evaluation, duplicate authority invocation, second Summary construction, Artifact-to-Outcome lookup, or use as a protected-enforcement provenance boundary |
+| Failure/lifecycle             | unchanged three-class Security taxonomy; Running-only evaluation; every internal Outcome construction/provenance failure returns no Artifact                               |
+| Privacy                       | the internal Summary/Outcome is not returned, logged, diagnosed, or made retrievable through this compatibility projection                                                 |
 
 The exact public request is:
 
@@ -608,6 +718,124 @@ The request deliberately contains no subject, permissions, sensitivity, grants,
 Security statuses, or confirmation evidence. Those facts come only from the
 configured authority Contracts. This prevents callers from manufacturing
 governed inputs.
+
+The `1.0.0` request and Artifact success result remain unchanged. This Contract
+is a compatibility projection over the single atomic evaluation primitive:
+
+```text
+EvaluateAuthorization(request)
+  → performAtomicAuthorizationEvaluation(request)
+  → AuthorizationEvaluationOutcome
+  → outcome.authorization
+```
+
+The internal Outcome, Summary, and provenance association MUST be completely
+constructed, validated, paired, and registered before the Artifact projection
+is returned. The compatibility path does not run policy separately, invoke an
+authority twice, reconstruct a second Summary, create a second provenance pair,
+or re-resolve Context, grants, or confirmation.
+
+There is no public lookup from the returned Artifact to its internally
+co-issued Outcome. The private registry is not enumerable, and the compatibility
+call establishes no Artifact-to-Outcome retrieval API or history. Consumers
+that require protected-enforcement provenance MUST invoke Evaluate
+Authorization Outcome directly for that operation, rather than first invoking
+this compatibility Contract and then evaluating the same protected operation
+again. This Contract remains for consumers that require the unchanged Artifact
+but do not perform the new protected-enforcement flow.
+
+### Evaluate Authorization Outcome Contract
+
+| Property                      | Value                                                                                                                                                                                           |
+| ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Contract name                 | Evaluate Authorization Outcome Contract                                                                                                                                                         |
+| Version                       | `1.0.0`                                                                                                                                                                                         |
+| Schema custodian              | Core                                                                                                                                                                                            |
+| Domain semantic owner         | Security Engine                                                                                                                                                                                 |
+| Implementation responsibility | Security Engine                                                                                                                                                                                 |
+| Operation                     | synchronous request/response                                                                                                                                                                    |
+| Exact request                 | the exact Evaluate Authorization request, with intent `evaluate-authorization-outcome`                                                                                                          |
+| Success                       | one authoritative Authorization Evaluation Outcome                                                                                                                                              |
+| Legitimate unavailable        | none; `deny` and `indeterminate` remain successful Outcome decisions                                                                                                                            |
+| Contract guarantee            | invokes the single atomic evaluation primitive once; one unchanged Artifact and one exact Summary are co-issued from that evaluation and related by private process-local provenance            |
+| Prohibited behavior           | separate/duplicate policy algorithm or authority calls, caller-supplied Summary or Artifact, separate status resolution, Artifact-derived Summary, partial return, authority serialization, I/O |
+| Provenance                    | exact aggregate Outcome identity and both nested identities recorded in the issuing Security instance's private issuance map                                                                    |
+| Malformed request             | InvalidAuthorizationInputError                                                                                                                                                                  |
+| Malformed constructed result  | InvalidSecurityStateError; no partial value or authority is exposed                                                                                                                             |
+| Implementation/native throw   | InvalidSecurityStateError; no native value escapes                                                                                                                                              |
+| Privacy                       | request, Artifact, Summary, identifiers, underlying facts, and native error details are excluded from public messages and diagnostics except the already approved aggregate categories          |
+
+Exact request:
+
+```text
+{
+  intent: "evaluate-authorization-outcome",
+  operationId: AuthorizationOperationIdentifier,
+  action: AuthorizationActionIdentifier,
+  resource: AuthorizationResource
+}
+```
+
+The evaluation inputs, authorities, decision table, lifecycle, and failure
+taxonomy are identical to the compatibility Contract. Both Contracts invoke the
+same `performAtomicAuthorizationEvaluation` primitive exactly once. The
+distinct intent selects whether the caller receives the full Outcome or only
+its Artifact projection; it never selects another decision algorithm.
+
+This is the required Contract for M9 and every downstream protected-execution
+boundary that needs same-evaluation provenance. One call returns the Artifact,
+Summary, and their Outcome authority without a second Security evaluation.
+
+### Verify Authorization Evaluation Outcome Contract
+
+| Property                      | Value                                                                                                                                                                                                                     |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Contract name                 | Verify Authorization Evaluation Outcome Contract                                                                                                                                                                          |
+| Version                       | `1.0.0`                                                                                                                                                                                                                   |
+| Schema custodian              | Core                                                                                                                                                                                                                      |
+| Domain semantic owner         | Security Engine                                                                                                                                                                                                           |
+| Implementation responsibility | Security Engine instance that issued the Outcome                                                                                                                                                                          |
+| Operation                     | synchronous read-only request/response                                                                                                                                                                                    |
+| Exact request                 | intent, candidate Outcome, and expected operation identifier                                                                                                                                                              |
+| Success                       | primitive boolean                                                                                                                                                                                                         |
+| Legitimate unavailable        | `false`; no separate unavailable state                                                                                                                                                                                    |
+| Contract guarantee            | `true` only for the exact aggregate Outcome issued by this instance whose exact nested Artifact/Summary identities and recorded operation still match and whose visible values remain structurally and semantically valid |
+| Prohibited behavior           | minting, mutation, policy evaluation, Context or other authority calls, currentness query, registry disclosure, exception-as-negative-result, I/O                                                                         |
+| Provenance                    | read-only lookup in the issuing instance's private Outcome issuance map                                                                                                                                                   |
+| Malformed request             | InvalidAuthorizationInputError                                                                                                                                                                                            |
+| Malformed candidate/result    | exact well-formed request returns `false` for fabricated, cloned, reconstructed, hostile, cross-paired, cross-evaluation, or cross-instance candidate authority; no candidate detail is exposed                           |
+| Implementation/native throw   | impossible verifier or private-state failure maps to InvalidSecurityStateError; no native value escapes                                                                                                                   |
+| Privacy                       | boolean only; messages and diagnostics contain no candidate contents, operation, subject, statuses, identifiers, registry state, or native detail                                                                         |
+
+Exact request:
+
+```text
+{
+  intent: "verify-authorization-evaluation-outcome",
+  outcome: unknown,
+  operationId: AuthorizationOperationIdentifier
+}
+```
+
+The request envelope and expected operation are hostile-safe exact inputs.
+`outcome` is deliberately `unknown`: malformed or hostile candidate authority
+is a negative verification result after the envelope and operation are valid.
+The verifier captures the candidate's exact visible structure once, without
+mutation, before checking the private issuance record. It returns `true` only
+when:
+
+1. the aggregate identity is registered by this exact Security instance;
+2. its `authorization` and `securityEvaluationSummary` identities exactly equal
+   the private record;
+3. the recorded, requested, Artifact, and Summary operation identifiers are
+   equal;
+4. Artifact and Summary subjects are exactly equal;
+5. each of the four Artifact and Summary statuses is exactly equal; and
+6. both values and their aggregate satisfy their complete independent
+   constructed-state invariants.
+
+The verifier does not confer authority on the candidate. It never substitutes a
+same-shaped value for an issued identity and never exposes the private record.
 
 ### Resolve Protected Action Requirements Authority Contract
 
@@ -805,6 +1033,73 @@ throw at the Security boundary and normalizes to InvalidSecurityStateError.
 Legitimate unavailability or absence exists only as the exact successful
 response member shown above.
 
+### Outcome Provenance and Failure-Normalization Table
+
+| Stage or condition                                                   | Exact public result            |
+| -------------------------------------------------------------------- | ------------------------------ |
+| malformed request for either evaluation Contract                     | InvalidAuthorizationInputError |
+| malformed verifier envelope/expected operation                       | InvalidAuthorizationInputError |
+| exact verifier request with fabricated, cloned, or hostile candidate | `false`                        |
+| exact verifier request with cross-paired/cross-evaluation candidate  | `false`                        |
+| exact verifier request with authority from another instance/runtime  | `false`                        |
+| malformed internal Summary or Outcome construction                   | InvalidSecurityStateError      |
+| internal Artifact/Summary operation, subject, or status mismatch     | InvalidSecurityStateError      |
+| private issuance-map corruption or impossible verifier state         | InvalidSecurityStateError      |
+| native failure during internal construction, registration, or verify | InvalidSecurityStateError      |
+
+This table adds no public failure class. InvalidAuthorizationEvidenceError
+continues to govern malformed or mismatched configured authority responses
+before decision construction. A caller cannot present a Summary through either
+evaluation request, so fabricated Summary authority appears only as a verifier
+candidate and yields `false` for an otherwise exact verifier request.
+
+### Atomic Outcome Issuance
+
+Both public evaluation Contracts invoke exactly one internal semantic primitive,
+`performAtomicAuthorizationEvaluation`, once per request. The name is
+specification notation, not a required public export. There is no second
+decision pipeline.
+
+After the unchanged authorization authorities and fixed policy produce safe
+evaluation locals, the primitive must:
+
+1. construct the unchanged Decision Artifact from the safe evaluation locals;
+2. independently construct the Summary from the captured governed Security
+   Evaluation Context locals, never from the Artifact;
+3. completely validate the Artifact;
+4. independently validate the Summary's exact shape, operation, subject, four
+   statuses, canonical prototypes, and deep immutability;
+5. compare Artifact and Summary operation, subject, and all four statuses;
+6. construct the exact deeply frozen Outcome;
+7. completely validate the Outcome and its nested visible correspondence;
+8. prepare one immutable private issuance record containing the exact Artifact
+   identity, Summary identity, and operation identifier; and
+9. perform the single `WeakMap.set` that makes the Outcome authoritative;
+10. perform the final internal constructed-state invariant validation; and
+11. return the Outcome internally.
+
+The Outcome Contract returns that exact Outcome. The compatibility Contract
+returns that exact Outcome's `authorization` property only after Step 11
+succeeds.
+
+The map insertion is the only provenance state mutation. Artifact, Summary, and
+Outcome remain local and externally unobservable until the primitive returns.
+A failure before insertion creates no authority. If insertion or final
+invariant validation fails, the implementation must synchronously delete the
+exact Outcome entry before normalizing the failure; neither public Contract may
+return. Thus no failed call exposes an Artifact, Outcome, or partial authority.
+The Engine remains usable after a construction/registration failure unless
+pre-existing private state is itself corrupted.
+
+Production exposes no registration hook, fault option, environment switch, or
+mutable global test control. Tests simulate construction, insertion, deletion,
+and final-invariant failures only through isolated test-module seams that are
+absent from public package exports and production configuration.
+
+The implementation must not use multiple registries, partially register nested
+values, retry evaluation, or expose a registry enumeration or
+Artifact-to-Outcome lookup.
+
 ## Process-Local Authority Slice
 
 M8 may provide deterministic process-local implementations of the four
@@ -878,7 +1173,8 @@ Normative rules:
 
 ## Evaluation Behavior
 
-For each call, Security:
+For each call to either public evaluation Contract, the single atomic evaluation
+primitive:
 
 1. validates lifecycle, fixed policy, configured Contract identities, and
    pre-existing internal invariants without touching the request;
@@ -890,14 +1186,17 @@ For each call, Security:
    and validates the Grant Evidence authority;
 7. when requirements, context, and grants permit continuation, invokes and
    validates Confirmation Evidence;
-8. applies the fixed decision table; and
-9. defensively constructs and validates the decision artifact.
+8. applies the fixed decision table;
+9. performs the complete Atomic Outcome Issuance sequence; and
+10. returns the internal Outcome to the calling public Contract for either full
+    return or compatibility projection.
 
 An unavailable governed result is a valid policy input, not an exception.
 Authority Contracts not reached under this order must remain untouched.
 
-Evaluation is read/evaluate-only. It mutates no request, authority source,
-evidence, grant, context, confirmation, policy, or retained Security state.
+Evaluation mutates no request, authority source, evidence, grant, context,
+confirmation, or policy. Its only successful retained mutation is the exact
+private Outcome provenance association.
 
 ## Validation Precedence
 
@@ -905,9 +1204,12 @@ First-failure precedence is normative.
 
 ### Evaluate Authorization
 
+Evaluate Authorization and Evaluate Authorization Outcome share Steps 1–14
+below. Their exact intent literal is validated at Step 2.
+
 1. Engine lifecycle and pre-existing internal Security/policy/authority-Contract
-   state.
-2. Evaluate Authorization request envelope.
+   and provenance-registry state.
+2. Exact public request envelope and Contract-specific intent.
 3. Authorization Operation Identifier, Authorization Action Identifier, and
    Authorization Resource.
 4. Protected Action Requirements authority invocation, structural validation,
@@ -921,10 +1223,39 @@ First-failure precedence is normative.
    validation, provenance, and exact correspondence, unless an earlier valid
    unavailable result ends this stage.
 8. Fixed policy evaluation.
-9. Newly constructed Authorization Decision Artifact.
+9. Decision Artifact construction.
+10. Summary construction independently from captured governed Context locals.
+11. Independent Artifact validation, Summary validation, and exact
+    operation/subject/four-status correspondence.
+12. Outcome construction and complete validation.
+13. Private record preparation, single provenance-map insertion, final internal
+    invariant validation, and required rollback on failure.
+14. Internal Outcome return.
+15. Public return: the Outcome Contract returns the exact Outcome; the
+    compatibility Contract returns the exact `outcome.authorization` projection.
 
-Pre-existing state failure belongs only to Step 1. Constructed-result failure
-belongs only to Step 9.
+No Summary work changes which existing authority is reached. Summary
+construction cannot cause Grant Evidence or Confirmation Evidence to be
+invoked. Steps 9–13 map any constructed-state failure to
+InvalidSecurityStateError, expose no partial value, and leave the issuance map
+without an entry for the failed call. No semantic branch exists between policy
+evaluation and successful Outcome issuance.
+
+### Verify Authorization Evaluation Outcome
+
+1. Verify request-envelope hostile-safe extraction.
+2. Expected Authorization Operation Identifier validation.
+3. Candidate protected structural extraction and independent Artifact, Summary,
+   and Outcome validation.
+4. Issuing-instance private identity lookup.
+5. Exact nested-identity, operation, subject, and four-status correspondence.
+6. Primitive boolean result.
+
+A malformed envelope or expected operation fails at Steps 1–2. Candidate
+invalidity, missing provenance, or correspondence failure at Steps 3–5 returns
+`false`. An impossible private-state/native failure maps to
+InvalidSecurityStateError. Earlier failure leaves later candidate traps and
+private lookup untouched wherever the earlier stage does not require them.
 
 Before Step 1 succeeds, Security must not inspect request `ownKeys`, descriptors,
 properties, getters, or Proxy traps. Earlier failures and valid short-circuiting
@@ -945,6 +1276,8 @@ Used only for:
 
 - malformed Evaluate Authorization or direct authority Contract request
   envelope;
+- malformed Evaluate Authorization Outcome or Verify Authorization Evaluation
+  Outcome request envelope;
 - malformed operation identifier, action, or resource;
 - malformed subject or required-permission input in a direct authority Contract
   request;
@@ -974,6 +1307,10 @@ Used for:
 - impossible pre-existing Security invariant;
 - native failure thrown by a configured authority implementation;
 - impossible newly constructed Authorization Decision Artifact; or
+- impossible newly constructed Governed Security Evaluation Summary or
+  Authorization Evaluation Outcome;
+- Artifact/Summary constructed-state correspondence failure;
+- failed or corrupted private Outcome provenance registration or lookup; or
 - impossible post-evaluation internal state.
 
 `deny` and `indeterminate` are successful Authorization Decision Artifacts, not
@@ -1044,7 +1381,9 @@ including:
 - Security Evaluation Context;
 - Confirmation Evidence;
 - fixed policy reference;
-- Authorization Decision Artifact and every nested value.
+- Authorization Decision Artifact and every nested value;
+- Governed Security Evaluation Summary and its nested Security Context; and
+- Authorization Evaluation Outcome and every nested value.
 
 No caller or authority-source object or array is retained or frozen. Evaluation
 must never trim, normalize, rewrite, sort in place, deduplicate in place, add or
@@ -1067,12 +1406,16 @@ Initialize → Ready → Running → Stopping → Stopped
 - lifecycle failure occurs before request inspection;
 - a new Engine instance has independent lifecycle and collaborators;
 - restart of a stopped instance is not defined; a new instance is required; and
-- no decision, request, grant, requirement, context, or confirmation is retained
-  between evaluations.
+- no request, grant, requirement, governed Context reconstruction, confirmation,
+  or policy-evaluation local is retained between evaluations.
 
-The only Engine state is lifecycle, the immutable fixed policy definition, and
-immutable references to configured authority Contracts. M8 has no catalog,
-grant store, cache, session, operation registry, history, or persistent state.
+In addition to lifecycle, the immutable fixed policy, and immutable references
+to configured authority Contracts, revision `1.1.0` retains only the private
+per-instance Outcome issuance `WeakMap`. This identity association is
+authorization provenance, not a decision cache, catalog, grant store, session,
+operation registry, audit history, or persistent state. Its entries are not
+enumerable or publicly observable and do not retain an Outcome after the
+consumer releases it.
 
 Before every evaluation, Step 1 validates:
 
@@ -1080,15 +1423,26 @@ Before every evaluation, Step 1 validates:
 - policy ID, version, and closed rule table are canonical;
 - all four configured collaborators remain callable and exactly the collaborators
   admitted during initialization; and
-- no impossible internal field or invariant is present.
+- no impossible internal field or invariant, including the private issuance
+  mechanism, is present.
 
 Pre-existing validation must not invoke authority Contracts or touch the caller
 request.
 
+Evaluate Authorization and Evaluate Authorization Outcome are valid only while
+Running. Verification is a lifecycle-independent read-only authority check:
+before, during, or after Stopping/Stopped, it may validate an Outcome already
+issued by that same instance and performs no evaluation or authority call.
+Stopping does not revoke or rewrite an evaluation snapshot. A new Engine
+instance has a different private map and rejects the prior instance's Outcome.
+
 ## Determinism and Atomicity
 
 For identical requests and identical authority Contract results, evaluation
-produces deeply equal artifacts or the same public failure.
+produces deeply equal visible Artifact, Summary, and Outcome content or the same
+public failure. Each successful invocation nevertheless creates a distinct
+Outcome identity and distinct evaluation-local provenance association.
+Determinism never permits identity reuse across evaluations.
 
 Production behavior uses no:
 
@@ -1101,15 +1455,27 @@ Production behavior uses no:
 - mutable process-global state; or
 - external provider state.
 
-Evaluation is synchronous and atomic as a read operation. A failure exposes no
-partial result and changes no Engine or authority-source state.
+Evaluation is synchronous. Both public Contracts use the same atomically
+observable Outcome-producing operation. Its single issuance-map insertion,
+post-insertion validation, and required rollback establish either one complete
+pair authority or none. A failure exposes no partial result and changes no
+authority-source state; the only successful retained mutation is the private
+weak provenance association.
+
+The Summary is an evaluation snapshot. Issuance and verification perform no
+post-evaluation Context, Device, Session, or Trust query. Later environmental or
+source revision changes cannot mutate or rewrite it. The Summary introduces no
+expiry, lease, freshness extension, revalidation, or revocation semantics;
+existing M8 currentness requirements apply when the governed Context authority
+is invoked.
 
 ## Enforcement Correspondence
 
 M8 does not enforce protected actions.
 
-A future protected boundary may proceed only with one valid `allow` artifact
-whose:
+A future protected boundary that needs exact Security-status correspondence may
+proceed only with one verified Outcome containing a valid `allow` artifact and
+its same-evaluation Summary. The artifact's:
 
 - operation identifier;
 - subject;
@@ -1121,6 +1487,23 @@ whose:
 - policy ID and version
 
 exactly correspond to the protected operation and its governed requirements.
+
+The protected boundary independently compares:
+
+```text
+artifact.operationId === summary.operationId
+artifact.subject === summary.subject
+artifact.securityContext.context === summary.securityContext.context
+artifact.securityContext.device === summary.securityContext.device
+artifact.securityContext.session === summary.securityContext.session
+artifact.securityContext.trustLevel === summary.securityContext.trustLevel
+```
+
+Subject equality is exact structural Authorization Subject equality, not object
+identity. The verifier additionally proves exact issued identities and
+same-evaluation provenance. The Artifact is never treated as the source of the
+Summary's expected statuses, and operation/subject/status equality alone never
+proves provenance.
 
 `deny`, `indeterminate`, missing, malformed, or mismatched artifacts fail
 closed. An artifact for another operation is invalid even when every other field
@@ -1137,6 +1520,8 @@ Security diagnostics must not expose:
 - confirmation content or acquisition details;
 - underlying Security Context values;
 - raw requests, authority responses, hostile values, or thrown messages;
+- Governed Security Evaluation Summary or Authorization Evaluation Outcome
+  contents and private issuance-map state;
 - credentials, tokens, secrets, policy internals, Provider data, or personal
   data; or
 - chain-of-thought.
@@ -1507,6 +1892,317 @@ contradictory cross-product, including:
 Constructed artifact contradiction must produce InvalidSecurityStateError at
 the final constructed-state stage and expose no partial artifact.
 
+### Governed Security Evaluation Summary Factory Tests
+
+The exported Core structural factory must be tested directly for:
+
+- the exact valid Summary shape with no extra field;
+- anonymous and authenticated subjects;
+- each of `available`, `unavailable`, and `not-applicable` independently in
+  each of context, device, session, and trust level;
+- every missing field, explicitly `undefined` field, extra enumerable string
+  field, and enumerable symbol;
+- `null`, every primitive, function, array, coercible value, inherited
+  substitute, and unaccepted custom prototype at each record position;
+- hostile own keys, descriptors, getters, stateful getters, and Proxies,
+  including revoked Proxies;
+- exact one protected read per accepted property and no coercion;
+- canonical prototypes, exact deterministic reconstruction, and deep freezing;
+- source deep equality, source graph non-freezing, and no mutable graph
+  retention; and
+- structural validity conferring no Security authority.
+
+### Authorization Evaluation Outcome Factory Direct Matrix
+
+The exported Core `createAuthorizationEvaluationOutcome` factory, or its exact
+repository-canonical equivalent, must be tested directly. Generic Core helper
+coverage and transitive Security evaluation tests are insufficient.
+
+The factory accepts exactly:
+
+```text
+{
+  authorization: AuthorizationDecisionArtifact,
+  securityEvaluationSummary: GovernedSecurityEvaluationSummary
+}
+```
+
+It performs protected extraction, independently validates and defensively
+reconstructs both nested values, rejects visible correspondence contradictions,
+and returns the canonical deeply frozen Outcome. It establishes structural
+validity only. It never registers provenance or mints Security authority.
+
+#### Exact Valid and Envelope Cases
+
+Direct tests must cover:
+
+- one exact valid Outcome with exact own keys and canonical nested
+  reconstruction;
+- `null`, `undefined`, string, number, boolean, bigint, symbol, function, and
+  array inputs;
+- empty object;
+- missing and explicitly `undefined` `authorization`;
+- missing and explicitly `undefined` `securityEvaluationSummary`;
+- every extra enumerable string field and enumerable symbol;
+- inherited substitutes and prohibited custom prototypes;
+- canonical Outcome and nested prototypes;
+- complete deep freezing of the returned reconstruction;
+- deep equality of caller Artifact/Summary graphs before and after;
+- caller graphs, including every nested object/array, remaining unfrozen; and
+- no caller graph retention.
+
+Every malformed caller-supplied factory input, hostile extraction, or visible
+Artifact/Summary contradiction maps to InvalidAuthorizationInputError. When
+Security constructs and validates its own Outcome after all governed inputs
+have succeeded, the same impossible condition is internal constructed-state
+corruption and maps to InvalidSecurityStateError. No factory call produces
+InvalidAuthorizationEvidenceError merely because a caller supplied a
+non-authoritative but structurally valid pair.
+
+#### Nested Artifact Cases
+
+Direct tests must cover:
+
+- malformed and hostile Artifact;
+- Artifact own-property getter, stateful getter, descriptor trap, `ownKeys`
+  trap, ordinary Proxy, and revoked Proxy;
+- each complete Artifact invariant and canonical nested reconstruction;
+- a structurally valid Artifact whose operation differs from the Summary;
+- a structurally valid Artifact whose subject differs from the Summary; and
+- independent context, device, session, and trust-level status mismatches.
+
+#### Nested Summary Cases
+
+Direct tests must cover:
+
+- malformed and hostile Summary;
+- extra Summary string field and enumerable symbol;
+- malformed or hostile nested `securityContext`;
+- invalid, missing, undefined, or extra status;
+- inherited substitute and prohibited prototype;
+- throwing getter, stateful getter, descriptor trap, `ownKeys` trap, ordinary
+  Proxy, and revoked Proxy; and
+- each accepted nested property being read exactly once.
+
+#### Visible Correspondence and Authority Cases
+
+The factory must reject independently structurally valid nested values when
+their operation, subject, context, device, session, or trust-level visible
+values differ. Each mismatch requires an independent direct test holding every
+other field constant.
+
+Visible equality is not provenance. Direct tests must prove:
+
+```text
+createAuthorizationEvaluationOutcome({
+  authorization: validArtifact,
+  securityEvaluationSummary: validSummary
+})
+  → canonical structurally valid frozen Outcome
+
+verifyAuthorizationEvaluationOutcome(publiclyConstructedOutcome)
+  → false
+```
+
+A genuine issued Outcome verifies `true`; a public reconstruction with the same
+visible values, Outcome spread/clone, nested clone, and serialized/deserialized
+reconstruction each verify `false`.
+
+All success and failure cases must prove protected own-key/descriptor capture,
+single reads, no coercion, no native exception leakage, caller deep
+non-mutation, caller non-freezing, and privacy-safe failure messages.
+
+### Authorization Evaluation Outcome Co-Issuance Tests
+
+Every row of the existing Decision Artifact Output-Invariant Table must be
+tested through Evaluate Authorization Outcome. Each test must assert complete
+deep equality of:
+
+- the unchanged Artifact;
+- the exact Summary;
+- the exact Outcome;
+- operation and subject correspondence;
+- all four independent status correspondences; and
+- a `true` verifier result for the exact issued Outcome and operation.
+
+Coverage includes every `allow`, `deny`, and `indeterminate` row. In particular,
+requirements-unavailable must still resolve and validate governed Security
+Evaluation Context, issue its exact Summary, and leave Grant Evidence and
+Confirmation untouched. No partial assertion of decision, reason, or aggregate
+availability is sufficient.
+
+### Single Atomic Evaluation and Compatibility Tests
+
+For each public evaluation Contract independently, direct counters/probes must
+prove the following stage-aware rules:
+
+- the Requirements Authority is invoked exactly once whenever evaluation
+  proceeds past request validation into requirements resolution;
+- the Security Evaluation Context Authority is invoked exactly once whenever
+  evaluation reaches that stage;
+- the Grant Evidence Authority is invoked exactly once when its stage is
+  reached and exactly zero times when an earlier valid decision path terminates
+  evaluation before that stage;
+- the Confirmation Authority is invoked exactly once when its stage is reached
+  and exactly zero times when an earlier valid path or standard-action semantics
+  suppress that stage;
+- every reached mandatory stage has count exactly one; every stage suppressed
+  by an earlier valid short circuit has count exactly zero;
+- exactly one fixed-policy evaluation;
+- exactly one Artifact construction, Summary construction, Outcome
+  construction, and provenance registration;
+- no authority, policy evaluation, Artifact construction, Summary
+  construction, Outcome construction, or provenance registration occurs twice;
+  and
+- identical decision/reason and complete visible Outcome semantics for
+  equivalent governed inputs.
+
+For every successful decision row, tests must assert the exact integer counts
+in this matrix:
+
+| Decision row / reason                                     | Requirements | Security Evaluation Context | Grant Evidence | Confirmation | Policy evaluation | Artifact construction | Summary construction | Outcome construction | Provenance registration |
+| --------------------------------------------------------- | ------------ | --------------------------- | -------------- | ------------ | ----------------- | --------------------- | -------------------- | -------------------- | ----------------------- |
+| `requirements-unavailable`                                | 1            | 1                           | 0              | 0            | 1                 | 1                     | 1                    | 1                    | 1                       |
+| `security-context-unavailable`                            | 1            | 1                           | 0              | 0            | 1                 | 1                     | 1                    | 1                    | 1                       |
+| `grant-evidence-unavailable`                              | 1            | 1                           | 1              | 0            | 1                 | 1                     | 1                    | 1                    | 1                       |
+| standard zero / `no-permission-required`                  | 1            | 1                           | 1              | 1            | 1                 | 1                     | 1                    | 1                    | 1                       |
+| standard all / `all-required-permissions-granted`         | 1            | 1                           | 1              | 1            | 1                 | 1                     | 1                    | 1                    | 1                       |
+| standard missing / `missing-required-permission`          | 1            | 1                           | 1              | 1            | 1                 | 1                     | 1                    | 1                    | 1                       |
+| sensitive absent / `confirmation-required`                | 1            | 1                           | 1              | 1            | 1                 | 1                     | 1                    | 1                    | 1                       |
+| sensitive zero / `confirmation-and-permissions-satisfied` | 1            | 1                           | 1              | 1            | 1                 | 1                     | 1                    | 1                    | 1                       |
+| sensitive all / `confirmation-and-permissions-satisfied`  | 1            | 1                           | 1              | 1            | 1                 | 1                     | 1                    | 1                    | 1                       |
+| sensitive missing / `missing-required-permission`         | 1            | 1                           | 1              | 1            | 1                 | 1                     | 1                    | 1                    | 1                       |
+
+The complete matrix must be asserted independently for:
+
+1. the legacy Evaluate Authorization compatibility projection; and
+2. Evaluate Authorization Outcome.
+
+Generic `<= 1` assertions are insufficient for any reached mandatory stage.
+These independent per-row assertions prove that both public Contracts delegate
+exactly once to the same atomic semantic evaluation.
+
+The legacy Evaluate Authorization test must use isolated observation seams to
+prove this exact sequence before its Artifact becomes observable:
+
+1. one atomic evaluation;
+2. valid Artifact construction;
+3. valid Summary construction from captured governed Context locals;
+4. visible pair and complete Outcome validation;
+5. successful private provenance registration and final invariant validation;
+6. only then, return of the exact `outcome.authorization` projection.
+
+The observation seam must not expose the hidden Outcome to production callers,
+add Artifact-to-Outcome lookup, enumerate the registry, or introduce a
+production fault control. Legacy Artifact results for all ten rows must remain
+completely deeply equal to the active `1.0.0` expectations: no field, decision,
+reason, status, prototype, ordering, or freezing behavior changes.
+
+The Outcome Contract must prove the same sequence and return the exact full
+Outcome from that single evaluation. An M9 composition test must use only this
+Contract and prove one call obtains the Artifact, Summary, and verifiable
+same-evaluation authority.
+
+### Outcome Provenance Tests
+
+Direct tests must prove:
+
+- the genuine aggregate Outcome and its exact pair verify;
+- same-shaped fabricated Outcome, Artifact, and Summary values do not verify;
+- an Outcome clone, Artifact clone, Summary clone, both nested clones, spread
+  copy, and serialized/reconstructed copy do not verify;
+- Artifact A plus Summary B and Artifact B plus Summary A do not verify;
+- cross-evaluation mixing fails even when every visible value is identical;
+- authority from Security instance/runtime A fails at instance/runtime B;
+- operation equality, subject equality, four-status equality, Core factories,
+  TypeScript brands, and matching frozen shapes never substitute for identity
+  provenance;
+- genuine authority remains valid after attempted source mutation;
+- failed issuance creates no verifiable Outcome and no partial authority; and
+- no registry, minting hook, identity token, fault flag, or enumeration
+  capability is publicly exported.
+
+### Summary Correspondence and Temporal Tests
+
+Tests must independently corrupt or substitute each visible correspondence and
+prove rejection:
+
+- wrong operation;
+- wrong subject;
+- context-status mismatch;
+- device-status mismatch;
+- session-status mismatch; and
+- trust-level-status mismatch.
+
+Each status test holds the other three statuses constant. Tests must establish
+the Summary expected values from captured governed Context facts, not from the
+Artifact. Matching all four statuses with exact same-evaluation authority must
+verify.
+
+Counters/probes must prove no Context, Device, Session, or Trust source is
+queried after evaluation, during verification, or merely for Summary
+construction beyond the existing governed Context invocation. Later mutation
+or revision of every source fixture must leave the issued Summary unchanged.
+No test may depend on time, expiry, revalidation, or freshness extension.
+
+### Verify Authorization Evaluation Outcome Direct Matrix
+
+The verifier Contract requires direct coverage for:
+
+- the exact genuine request, deterministic primitive boolean, synchrony, and
+  repeated read-only verification;
+- every missing and explicitly `undefined` envelope field, extra enumerable
+  string field, enumerable symbol, invalid intent, and invalid operation;
+- `null`, every primitive, function, array, inherited substitute, coercible
+  value, and unaccepted prototype as the envelope;
+- hostile envelope and candidate own keys, descriptors, getters, stateful
+  getters, Proxies, and revoked Proxies;
+- exact one protected read per accepted envelope and candidate property;
+- fabricated, cloned, reconstructed, cross-paired, cross-evaluation, and
+  cross-instance candidates;
+- malformed envelope mapping to InvalidAuthorizationInputError;
+- invalid candidate authority returning `false` without a native exception;
+- private-state/native failure mapping to InvalidSecurityStateError through an
+  isolated test-only seam;
+- request and candidate non-mutation, non-freezing, and non-retention;
+- no policy recomputation or configured authority invocation;
+- verification before Running and after Stopping/Stopped for already issued
+  authority; and
+- privacy-safe failures and diagnostics with no candidate contents, identifier,
+  status detail, registry state, or native message.
+
+### Outcome Failure, Precedence, and Recovery Tests
+
+Objective counters and hostile probes must prove:
+
+1. all existing evaluation precedence remains unchanged;
+2. lifecycle/pre-existing failure beats a hostile request for either public
+   evaluation Contract;
+3. either invalid public request envelope beats every authority Contract;
+4. Summary construction begins only after a valid Artifact and governed Context
+   exist;
+5. no later authority is called merely to populate a Summary;
+6. Summary construction failure exposes no Summary, Outcome, or authority;
+7. Artifact/Summary correspondence failure precedes Outcome construction;
+8. Outcome construction failure precedes issuance-record preparation;
+9. record-preparation failure precedes the sole provenance-map insertion;
+10. provenance insertion failure exposes no partial authority;
+11. failure of the post-registration final invariant deletes the exact entry
+    before InvalidSecurityStateError is exposed;
+12. malformed verifier envelope leaves a hostile candidate untouched;
+13. candidate invalidity does not expose or mutate private registry state;
+14. no native exception crosses either evaluation Contract or the verifier; and
+15. the Engine remains usable for a normal evaluation after representative
+    Summary, Outcome, provenance, and verifier failures.
+
+Separate isolated tests must inject Summary construction, Outcome construction,
+record preparation, insertion, deletion, and final-invariant failure. Each must
+prove no public result or verifiable partial authority, followed by a successful
+normal evaluation unless the injected case represents pre-existing corrupted
+private state. Internal corruption tests use isolated test-only mechanisms.
+Production exports, constructor fault options, environment switches, and
+module-global mutable test state are prohibited.
+
 ### Precedence Tests
 
 Objective hostile-boundary tests must prove:
@@ -1526,7 +2222,9 @@ Objective hostile-boundary tests must prove:
    confirmation;
 10. confirmation failure beats policy construction;
 11. policy evaluation occurs only after every required stage succeeds; and
-12. constructed artifact failure occurs last.
+12. Artifact construction, Summary construction, visible correspondence,
+    Outcome construction, provenance registration, final invariant validation,
+    and public projection occur in the exact shared atomic order.
 
 Tests must use isolated test-module mechanisms for pre-existing and
 constructed-state corruption. No production export, constructor fault flag,
@@ -1553,9 +2251,12 @@ Tests must prove:
 - Running permits evaluation;
 - Stopping and Stopped reject without request inspection;
 - new instances have isolated lifecycle and collaborators;
-- no operation registry or retained decision exists;
+- no enumerable operation registry, decision history, Artifact lookup, or
+  retained evaluation-local graph exists beyond the private weak Outcome
+  provenance association;
 - synchronous return/throw behavior;
-- identical inputs and authority results produce deeply equal artifacts;
+- identical inputs and authority results produce deeply equal visible Artifact,
+  Summary, and Outcome content while each evaluation identity remains distinct;
 - no time, random, locale, environment, filesystem, network, or process-global
   semantic influence; and
 - evaluation does not mutate process-local authority fixtures.
@@ -1580,11 +2281,30 @@ diagnostic remains visible and contains no operation, subject, action, resource,
 permission, grant, confirmation, Context value, raw request, hostile value,
 token, credential, policy internals, or execution claim.
 
+### Revision 1.0.0 Regression Tests
+
+All existing M8 normative tests remain mandatory. Explicit regression proof must
+show unchanged:
+
+- exact Evaluate Authorization request and Artifact success shape;
+- all ten decision-table and Artifact output-invariant rows;
+- decision/reason compatibility and precedence;
+- zero-permission and permission-AND behavior;
+- anonymous/authenticated, sensitivity, confirmation, and Grant Evidence
+  semantics;
+- the three-class public failure taxonomy;
+- lifecycle and hostile-input precedence;
+- complete Artifact validation;
+- caller/source non-mutation and Artifact immutability;
+- diagnostics and privacy behavior; and
+- the Security-to-Core-only production dependency graph.
+
 ## Acceptance Criteria
 
-M8 is ready for implementation review only when:
+Active revision `1.1.0` was formally approved after confirming:
 
-1. ENGINE-0009 is Active and its implementation matches this specification.
+1. Active `1.0.0` behavior is preserved and every additive `1.1.0` semantic is
+   implementation-ready without invention.
 2. Security is the sole authorization semantic owner.
 3. The public request cannot inject authority-bearing artifacts.
 4. All four configured authority Contracts are synchronous, source-neutral, and
@@ -1609,6 +2329,29 @@ M8 is ready for implementation review only when:
 19. No execution, enforcement, persistence, Event, Provider, Adapter, IAM, or
     external integration is introduced.
 20. All accepted M0–M7 behavior and semantics remain unchanged.
+21. The unchanged Artifact and exact Summary are co-issued in one exact Outcome
+    for every successful decision row.
+22. The private per-instance Outcome `WeakMap` and exact nested identity record
+    prove same-evaluation provenance.
+23. Clones, reconstruction, serialization, cross-pairs, cross-evaluation pairs,
+    and cross-instance authority fail verification.
+24. Summary construction uses only the exact governed Context locals and never
+    the Artifact or a currentness re-query.
+25. Outcome issuance is atomic and exposes no partial authority.
+26. The read-only verifier has complete Contract metadata, failure
+    normalization, lifecycle semantics, and hostile-runtime coverage.
+27. No existing Artifact field, decision row, reason, public error class,
+    authority order, or dependency is changed.
+28. Both public evaluation Contracts invoke one shared atomic
+    Outcome-producing semantic primitive exactly once.
+29. The legacy Contract returns its Artifact only after complete Outcome
+    issuance and exposes no lookup for the hidden Outcome.
+30. M9 and other protected-enforcement consumers use the Outcome Contract
+    directly and never evaluate the same operation first through the legacy
+    projection.
+31. The direct Outcome factory matrix proves visible consistency, hostile-safe
+    construction, non-mutation, deep freezing, and the absence of authority
+    minting.
 
 ## Explicitly Deferred
 
@@ -1635,12 +2378,37 @@ M8 explicitly defers:
 
 ## Open Questions
 
-No implementation-critical semantic question remains for the M8 slice.
+No implementation-critical semantic question remains for the M8 slice or this
+Active `1.1.0` Summary specialization.
 
 Future milestones must separately authorize execution enforcement, distributed
 artifact protection, concrete Device/Session/Trust models, confirmation
 acquisition, persistent grant sources, configurable policy, and audit Events.
 Those questions do not change M8 authorization evaluation semantics.
+
+## Revision Impact
+
+With formal review and promotion complete:
+
+- Core requires the exact Summary and Outcome schemas and the two new
+  synchronous Contracts;
+- Security runtime requires Summary construction, Outcome co-issuance, the
+  private per-instance provenance map, and verifier behavior specified here;
+- CONCEPT-0005 requires an additive revision making the governed Summary part of
+  protected Skill enforcement authority; and
+- ENGINE-0010 requires a later specialization of request shape, precedence,
+  correspondence, failure mapping, hostile-safe extraction, and direct tests.
+
+Neither downstream revision may treat the Artifact as its own source of
+expected Security statuses. This promotion does not authorize M9 implementation
+to resume before those authorities are approved.
+
+## Change History
+
+| Version | Status | Date       | Change                                                                                                                                                                                                                                  |
+| ------- | ------ | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `1.1.0` | Active | 2026-07-28 | Formally approved the Governed Security Evaluation Summary, one atomic Outcome-producing evaluation behind both public projections, private same-evaluation provenance, read-only verification, and direct Summary/Outcome test models. |
+| `1.0.0` | Active | 2026-07-27 | Approved initial M8 Security Engine authorization-decision vertical slice.                                                                                                                                                              |
 
 ## Related Documents
 

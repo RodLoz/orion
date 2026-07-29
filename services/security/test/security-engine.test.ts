@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import {
-  InvalidAuthorizationEvidenceError,
   InvalidAuthorizationInputError,
   InvalidSecurityStateError,
 } from "@orion/core";
@@ -193,12 +192,15 @@ describe("M8 Security Engine", () => {
     expect(result.reason).toBe("confirmation-and-permissions-satisfied");
   });
 
-  it("rejects confirmed evidence for a standard action", () => {
-    expect(() =>
-      engine({
-        confirmation: { status: "confirmed", ...target, subject },
-      }).evaluateAuthorization(request),
-    ).toThrow(InvalidAuthorizationEvidenceError);
+  it("suppresses Confirmation authority for a standard action", () => {
+    const confirmation = {
+      resolveConfirmationEvidence: () => {
+        throw new Error("must not be reached");
+      },
+    };
+    expect(
+      engine({ confirmation }).evaluateAuthorization(request).decision,
+    ).toBe("allow");
   });
 
   it("enforces lifecycle, exact input, and evidence correspondence", () => {

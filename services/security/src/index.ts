@@ -10,3 +10,8 @@ export {
   ProcessLocalSkillRequirementsAuthority,
   ProcessLocalSecurityContextAuthority,
 } from "./security-authorities.js";
+export {
+  ProcessLocalSkillInvocationRequirementsAuthority,
+  ProcessLocalSkillInvocationSensitivityAuthority,
+  type SkillInvocationClassification,
+} from "./skill-security-authorities.js";

@@ -12,7 +12,10 @@ import { composeKnowledgeCapability } from "./knowledge/knowledge-composition.js
 import { composeMemoryCapability } from "./memory/memory-composition.js";
 import { composePlanningCapability } from "./planning/planning-composition.js";
 import { composeReasoningCapability } from "./reasoning/reasoning-composition.js";
-import { composeSkillCapability } from "./skill/skill-composition.js";
+import {
+  composeSkillCapability,
+  demonstrateM9SkillInvocation,
+} from "./skill/skill-composition.js";
 import {
   composeSecurityCapability,
   securityDiagnosticTarget,
@@ -383,7 +386,15 @@ export function composeDiagnosticRuntime(): DiagnosticResult {
     throw new Error("Skill capability diagnostic failed.");
   }
 
-  const security = composeSecurityCapability();
+  const securitySubject =
+    successorRevision.fragments[0].projection.state === "authenticated"
+      ? {
+          kind: "authenticated" as const,
+          identityId:
+            successorRevision.fragments[0].projection.identityIdentifier,
+        }
+      : { kind: "anonymous" as const };
+  const security = composeSecurityCapability(securitySubject);
   const evaluateSecurity = (operationId: string) =>
     security.evaluateAuthorization.evaluateAuthorization({
       intent: "evaluate-authorization",
@@ -403,6 +414,17 @@ export function composeDiagnosticRuntime(): DiagnosticResult {
   ) {
     throw new Error("Security capability diagnostic failed.");
   }
+  const m9 = demonstrateM9SkillInvocation(
+    successorRevision,
+    context.verifyContextRevisionAuthority,
+    security.authorizationEvaluation,
+  );
+  if (
+    m9.result.status !== "succeeded" ||
+    m9.lifecycleTransitionCount !== 6 ||
+    !m9.resultAuthorityVerified
+  )
+    throw new Error("M9 Skill capability diagnostic failed.");
 
   const registeredCapabilities = registry.inspect();
   const result: DiagnosticResult = Object.freeze({
@@ -473,6 +495,9 @@ export function composeDiagnosticRuntime(): DiagnosticResult {
       registeredCount: 1,
       discoveredCount: discovered.matches.length,
       emptyDiscoveryCount: emptyDiscovery.matches.length,
+      protectedInvocationSucceeded: true,
+      lifecycleObserved: true,
+      normalizedResultAuthorityVerified: true,
     }),
     securityCapability: Object.freeze({
       operational: true,

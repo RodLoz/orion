@@ -183,15 +183,22 @@ const cases: readonly Case[] = [
   },
 ];
 
-function evaluate(entry: Case) {
+type Counts = {
+  requirements: number;
+  context: number;
+  grants: number;
+  confirmation: number;
+};
+function configuredEngine(entry: Case, counts?: Counts) {
   const requiredPermissions =
     entry.requirements.status === "available"
       ? entry.requirements.permissions
       : [];
   const engine = new SecurityEngine({
     requirements: {
-      resolveProtectedActionRequirements: () =>
-        entry.requirements.status === "unavailable"
+      resolveProtectedActionRequirements: () => {
+        if (counts) counts.requirements += 1;
+        return entry.requirements.status === "unavailable"
           ? ({ status: "unavailable", ...target } as never)
           : ({
               status: "available",
@@ -200,19 +207,23 @@ function evaluate(entry: Case) {
                 requiredPermissions,
                 sensitivity: entry.requirements.sensitivity,
               },
-            } as never),
+            } as never);
+      },
     },
     context: {
-      resolveSecurityEvaluationContext: () =>
-        ({
+      resolveSecurityEvaluationContext: () => {
+        if (counts) counts.context += 1;
+        return {
           operationId: target.operationId,
           subject,
           ...(entry.context ?? evaluable),
-        }) as never,
+        } as never;
+      },
     },
     grants: {
-      resolveGrantEvidence: () =>
-        entry.grants === "unavailable"
+      resolveGrantEvidence: () => {
+        if (counts) counts.grants += 1;
+        return entry.grants === "unavailable"
           ? ({
               status: "unavailable",
               ...target,
@@ -229,21 +240,67 @@ function evaluate(entry: Case) {
                 permission: granted,
                 resource: target.resource,
               })),
-            } as never),
+            } as never);
+      },
     },
     confirmation: {
-      resolveConfirmationEvidence: () =>
-        entry.confirmation === "confirmed"
+      resolveConfirmationEvidence: () => {
+        if (counts) counts.confirmation += 1;
+        return entry.confirmation === "confirmed"
           ? ({ status: "confirmed", ...target, subject } as never)
-          : ({ status: "absent" } as never),
+          : ({ status: "absent" } as never);
+      },
     },
   });
   engine.initialize();
   engine.start();
-  return engine.evaluateAuthorization({
+  return engine;
+}
+function evaluate(entry: Case) {
+  return configuredEngine(entry).evaluateAuthorization({
     intent: "evaluate-authorization",
     ...target,
   });
+}
+function evaluateOutcome(entry: Case) {
+  const engine = configuredEngine(entry);
+  const outcome = engine.evaluateAuthorizationOutcome({
+    intent: "evaluate-authorization-outcome",
+    ...target,
+  });
+  expect(
+    engine.verifyAuthorizationEvaluationOutcome({
+      intent: "verify-authorization-evaluation-outcome",
+      outcome,
+      operationId: target.operationId,
+    }),
+  ).toBe(true);
+  expect(outcome.securityEvaluationSummary).toEqual({
+    operationId: target.operationId,
+    subject,
+    securityContext: entry.context ?? evaluable,
+  });
+  return outcome.authorization;
+}
+function exactCounts(entry: Case, outcome: boolean): Counts {
+  const counts: Counts = {
+    requirements: 0,
+    context: 0,
+    grants: 0,
+    confirmation: 0,
+  };
+  const engine = configuredEngine(entry, counts);
+  if (outcome)
+    engine.evaluateAuthorizationOutcome({
+      intent: "evaluate-authorization-outcome",
+      ...target,
+    });
+  else
+    engine.evaluateAuthorization({
+      intent: "evaluate-authorization",
+      ...target,
+    });
+  return counts;
 }
 
 describe("M8 complete Engine output-invariant table", () => {
@@ -256,7 +313,7 @@ describe("M8 complete Engine output-invariant table", () => {
       entry.requirements.status === "available"
         ? entry.requirements.sensitivity
         : "unavailable";
-    expect(evaluate(entry)).toEqual({
+    const expected = {
       ...target,
       decision: entry.decision,
       subject,
@@ -273,6 +330,24 @@ describe("M8 complete Engine output-invariant table", () => {
         grantEvidenceStatus: entry.grantStatus,
         confirmationStatus: entry.confirmationStatus,
       },
-    });
+    };
+    expect(evaluate(entry)).toEqual(expected);
+    expect(evaluateOutcome(entry)).toEqual(expected);
+    const grantsReached =
+      entry.requirements.status === "available" &&
+      entry.context?.context !== "unavailable";
+    const confirmationReached =
+      grantsReached &&
+      entry.grants !== "unavailable" &&
+      entry.requirements.status === "available" &&
+      entry.requirements.sensitivity === "sensitive";
+    const expectedCounts = {
+      requirements: 1,
+      context: 1,
+      grants: grantsReached ? 1 : 0,
+      confirmation: confirmationReached ? 1 : 0,
+    };
+    expect(exactCounts(entry, false)).toEqual(expectedCounts);
+    expect(exactCounts(entry, true)).toEqual(expectedCounts);
   });
 });

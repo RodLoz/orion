@@ -1,4 +1,9 @@
-import type { EvaluateAuthorization } from "@orion/core";
+import type {
+  AuthorizationSubject,
+  EvaluateAuthorization,
+  EvaluateAuthorizationOutcome,
+  VerifyAuthorizationEvaluationOutcome,
+} from "@orion/core";
 import {
   ProcessLocalConfirmationAuthority,
   ProcessLocalGrantEvidenceAuthority,
@@ -8,15 +13,22 @@ import {
   type SecurityEngineLifecycleState,
 } from "@orion/security";
 
-const subject = { kind: "anonymous" as const };
+const anonymousSubject = { kind: "anonymous" as const };
 const unscoped = { kind: "unscoped" as const };
 
 export interface SecurityCapabilityComposition {
   readonly evaluateAuthorization: EvaluateAuthorization;
+  readonly evaluateAuthorizationOutcome: EvaluateAuthorizationOutcome;
+  readonly verifyAuthorizationEvaluationOutcome: VerifyAuthorizationEvaluationOutcome;
+  readonly authorizationEvaluation: EvaluateAuthorization &
+    EvaluateAuthorizationOutcome &
+    VerifyAuthorizationEvaluationOutcome;
   readonly engineState: () => SecurityEngineLifecycleState;
 }
 
-export function composeSecurityCapability(): SecurityCapabilityComposition {
+export function composeSecurityCapability(
+  subject: AuthorizationSubject = anonymousSubject,
+): SecurityCapabilityComposition {
   const engine = new SecurityEngine({
     requirements: new ProcessLocalRequirementsAuthority((request) =>
       request.operationId === "diagnostic-indeterminate"
@@ -65,6 +77,9 @@ export function composeSecurityCapability(): SecurityCapabilityComposition {
   engine.start();
   return Object.freeze({
     evaluateAuthorization: engine,
+    evaluateAuthorizationOutcome: engine,
+    verifyAuthorizationEvaluationOutcome: engine,
+    authorizationEvaluation: engine,
     engineState: () => engine.engineState,
   });
 }

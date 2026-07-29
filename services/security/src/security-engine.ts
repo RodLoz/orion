@@ -2,24 +2,34 @@ import {
   InvalidAuthorizationEvidenceError,
   InvalidAuthorizationInputError,
   InvalidSecurityStateError,
+  authorizationOperationIdentifier,
   createAuthorizationDecisionArtifact,
+  createAuthorizationEvaluationOutcome,
   createConfirmationEvidence,
+  createGovernedSecurityEvaluationSummary,
   createPermissionGrantEvidence,
   createProtectedActionRequirementsResolution,
   createSecurityEvaluationContext,
   extractAuthorizationEvaluationRequest,
+  extractAuthorizationOutcomeEvaluationRequest,
   type AuthorizationDecision,
   type AuthorizationDecisionArtifact,
+  type AuthorizationEvaluationOutcome,
   type AuthorizationDecisionReason,
   type AuthorizationResource,
   type AuthorizationSubject,
   type EvaluateAuthorization,
+  type EvaluateAuthorizationOutcome,
+  type VerifyAuthorizationEvaluationOutcome,
   type ResolveConfirmationEvidence,
   type ResolveGrantEvidence,
   type ResolveProtectedActionRequirements,
   type ResolveSecurityEvaluationContext,
-  type SkillPermissionIdentifier,
 } from "@orion/core";
+import {
+  evaluateMinimumAuthorizationPolicy,
+  type MinimumAuthorizationPolicyResult,
+} from "./security-policy.js";
 
 export interface SecurityAuthorities {
   readonly requirements: ResolveProtectedActionRequirements;
@@ -38,9 +48,21 @@ const sameResource = (a: AuthorizationResource, b: AuthorizationResource) =>
   a.kind === b.kind &&
   (a.kind === "unscoped" ||
     (b.kind === "identified" && a.resourceId === b.resourceId));
-export class SecurityEngine implements EvaluateAuthorization {
+export class SecurityEngine
+  implements
+    EvaluateAuthorization,
+    EvaluateAuthorizationOutcome,
+    VerifyAuthorizationEvaluationOutcome
+{
   #state: SecurityEngineLifecycleState = "initialize";
   #operating = false;
+  readonly #issuedOutcomes = new WeakMap<
+    AuthorizationEvaluationOutcome,
+    {
+      readonly authorization: AuthorizationDecisionArtifact;
+      readonly summary: AuthorizationEvaluationOutcome["securityEvaluationSummary"];
+    }
+  >();
   public constructor(private readonly authorities: SecurityAuthorities) {}
   public get engineState(): SecurityEngineLifecycleState {
     return this.#state;
@@ -62,11 +84,98 @@ export class SecurityEngine implements EvaluateAuthorization {
   public evaluateAuthorization(
     request: unknown,
   ): AuthorizationDecisionArtifact {
+    return this.evaluate(request, "artifact").authorization;
+  }
+  public evaluateAuthorizationOutcome(
+    request: unknown,
+  ): AuthorizationEvaluationOutcome {
+    return this.evaluate(request, "outcome");
+  }
+  public verifyAuthorizationEvaluationOutcome(request: unknown): boolean {
+    let candidate: unknown;
+    let operationId: unknown;
+    try {
+      if (
+        typeof request !== "object" ||
+        request === null ||
+        Array.isArray(request)
+      )
+        throw new Error();
+      const prototype = Reflect.getPrototypeOf(request);
+      if (prototype !== Object.prototype && prototype !== null)
+        throw new Error();
+      const keys = Reflect.ownKeys(request);
+      if (
+        keys.length !== 3 ||
+        keys.some(
+          (key) =>
+            typeof key !== "string" ||
+            !["intent", "outcome", "operationId"].includes(key),
+        )
+      )
+        throw new Error();
+      const read = (key: string) => {
+        const descriptor = Reflect.getOwnPropertyDescriptor(request, key);
+        if (
+          descriptor === undefined ||
+          descriptor.enumerable !== true ||
+          !("value" in descriptor) ||
+          descriptor.value === undefined
+        )
+          throw new Error();
+        return descriptor.value;
+      };
+      if (read("intent") !== "verify-authorization-evaluation-outcome")
+        throw new Error();
+      candidate = read("outcome");
+      operationId = authorizationOperationIdentifier(read("operationId"));
+    } catch {
+      throw new InvalidAuthorizationInputError();
+    }
+    if (typeof candidate !== "object" || candidate === null) return false;
+    const issued = this.#issuedOutcomes.get(
+      candidate as AuthorizationEvaluationOutcome,
+    );
+    if (issued === undefined) return false;
+    try {
+      const authorization = Reflect.getOwnPropertyDescriptor(
+        candidate,
+        "authorization",
+      );
+      const summary = Reflect.getOwnPropertyDescriptor(
+        candidate,
+        "securityEvaluationSummary",
+      );
+      if (
+        authorization === undefined ||
+        !("value" in authorization) ||
+        summary === undefined ||
+        !("value" in summary)
+      )
+        throw new InvalidSecurityStateError();
+      return (
+        authorization.value === issued.authorization &&
+        summary.value === issued.summary &&
+        issued.authorization.operationId === operationId &&
+        issued.summary.operationId === operationId
+      );
+    } catch (error) {
+      if (error instanceof InvalidSecurityStateError) throw error;
+      throw new InvalidSecurityStateError();
+    }
+  }
+  private evaluate(
+    request: unknown,
+    contract: "artifact" | "outcome",
+  ): AuthorizationEvaluationOutcome {
     this.begin();
     try {
       let target: ReturnType<typeof extractAuthorizationEvaluationRequest>;
       try {
-        target = extractAuthorizationEvaluationRequest(request);
+        target =
+          contract === "artifact"
+            ? extractAuthorizationEvaluationRequest(request)
+            : extractAuthorizationOutcomeEvaluationRequest(request);
       } catch {
         throw new InvalidAuthorizationInputError();
       }
@@ -108,7 +217,7 @@ export class SecurityEngine implements EvaluateAuthorization {
       if (context.operationId !== target.operationId)
         throw new InvalidAuthorizationEvidenceError();
       if (requirements.status === "unavailable")
-        return this.artifact(target, context, {
+        return this.outcome(target, context, {
           decision: "indeterminate",
           reason: "requirements-unavailable",
           requirementsStatus: "unavailable",
@@ -119,7 +228,7 @@ export class SecurityEngine implements EvaluateAuthorization {
         });
       const governed = requirements.requirements;
       if (Object.values(context).some((v) => v === "unavailable"))
-        return this.artifact(target, context, {
+        return this.outcome(target, context, {
           decision: "indeterminate",
           reason: "security-context-unavailable",
           requirementsStatus: "available",
@@ -163,7 +272,7 @@ export class SecurityEngine implements EvaluateAuthorization {
       )
         throw new InvalidAuthorizationEvidenceError();
       if (evidence.status === "unavailable")
-        return this.artifact(target, context, {
+        return this.outcome(target, context, {
           decision: "indeterminate",
           reason: "grant-evidence-unavailable",
           requirementsStatus: "available",
@@ -172,17 +281,20 @@ export class SecurityEngine implements EvaluateAuthorization {
           grant: "unavailable",
           confirmation: "not-evaluated",
         });
-      const confirmation = createConfirmationEvidence(
-        this.call(() =>
-          this.authorities.confirmation.resolveConfirmationEvidence({
-            intent: "resolve-confirmation-evidence",
-            operationId: target.operationId,
-            subject: context.subject,
-            action: target.action,
-            resource: target.resource,
-          }),
-        ),
-      );
+      const confirmation =
+        governed.sensitivity === "sensitive"
+          ? createConfirmationEvidence(
+              this.call(() =>
+                this.authorities.confirmation.resolveConfirmationEvidence({
+                  intent: "resolve-confirmation-evidence",
+                  operationId: target.operationId,
+                  subject: context.subject,
+                  action: target.action,
+                  resource: target.resource,
+                }),
+              ),
+            )
+          : ({ status: "absent" } as const);
       if (
         confirmation.status === "confirmed" &&
         (governed.sensitivity === "standard" ||
@@ -196,7 +308,7 @@ export class SecurityEngine implements EvaluateAuthorization {
         governed.sensitivity === "sensitive" &&
         confirmation.status === "absent"
       )
-        return this.artifact(target, context, {
+        return this.outcome(target, context, {
           decision: "deny",
           reason: "confirmation-required",
           requirementsStatus: "available",
@@ -215,7 +327,7 @@ export class SecurityEngine implements EvaluateAuthorization {
           : governed.requiredPermissions.length === 0
             ? "no-permission-required"
             : "all-required-permissions-granted";
-      return this.artifact(target, context, {
+      return this.outcome(target, context, {
         decision,
         reason,
         requirementsStatus: "available",
@@ -256,40 +368,58 @@ export class SecurityEngine implements EvaluateAuthorization {
       throw new InvalidSecurityStateError();
     }
   }
-  private artifact(
+  private outcome(
     target: ReturnType<typeof extractAuthorizationEvaluationRequest>,
     context: ReturnType<typeof createSecurityEvaluationContext>,
-    row: {
-      decision: AuthorizationDecision;
-      reason: AuthorizationDecisionReason;
-      requirementsStatus: "available" | "unavailable";
-      permissions: readonly SkillPermissionIdentifier[];
-      sensitivity: "standard" | "sensitive" | "unavailable";
-      grant: "available" | "unavailable" | "not-evaluated";
-      confirmation: "not-evaluated" | "not-required" | "absent" | "confirmed";
-    },
+    row: MinimumAuthorizationPolicyResult,
   ) {
-    return createAuthorizationDecisionArtifact({
-      operationId: target.operationId,
-      decision: row.decision,
-      subject: context.subject,
-      action: target.action,
-      resource: target.resource,
-      requirementsStatus: row.requirementsStatus,
-      evaluatedPermissions: row.permissions,
-      sensitivity: row.sensitivity,
-      securityContext: {
-        context: context.context,
-        device: context.device,
-        session: context.session,
-        trustLevel: context.trustLevel,
-      },
-      policy: { id: "orion.minimum-authorization", version: "1.0.0" },
-      reason: row.reason,
-      evidence: {
-        grantEvidenceStatus: row.grant,
-        confirmationStatus: row.confirmation,
-      },
-    });
+    try {
+      const evaluated = evaluateMinimumAuthorizationPolicy(row);
+      const authorization = createAuthorizationDecisionArtifact({
+        operationId: target.operationId,
+        decision: evaluated.decision,
+        subject: context.subject,
+        action: target.action,
+        resource: target.resource,
+        requirementsStatus: evaluated.requirementsStatus,
+        evaluatedPermissions: evaluated.permissions,
+        sensitivity: evaluated.sensitivity,
+        securityContext: {
+          context: context.context,
+          device: context.device,
+          session: context.session,
+          trustLevel: context.trustLevel,
+        },
+        policy: { id: "orion.minimum-authorization", version: "1.0.0" },
+        reason: evaluated.reason,
+        evidence: {
+          grantEvidenceStatus: evaluated.grant,
+          confirmationStatus: evaluated.confirmation,
+        },
+      });
+      const securityEvaluationSummary = createGovernedSecurityEvaluationSummary(
+        {
+          operationId: target.operationId,
+          subject: context.subject,
+          securityContext: {
+            context: context.context,
+            device: context.device,
+            session: context.session,
+            trustLevel: context.trustLevel,
+          },
+        },
+      );
+      const outcome = createAuthorizationEvaluationOutcome({
+        authorization,
+        securityEvaluationSummary,
+      });
+      this.#issuedOutcomes.set(outcome, {
+        authorization: outcome.authorization,
+        summary: outcome.securityEvaluationSummary,
+      });
+      return outcome;
+    } catch {
+      throw new InvalidSecurityStateError();
+    }
   }
 }

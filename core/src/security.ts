@@ -126,6 +126,20 @@ export interface AuthorizationDecisionArtifact {
       "not-evaluated" | "not-required" | "absent" | "confirmed";
   }>;
 }
+export interface GovernedSecurityEvaluationSummary {
+  readonly operationId: AuthorizationOperationIdentifier;
+  readonly subject: AuthorizationSubject;
+  readonly securityContext: Readonly<{
+    readonly context: SecurityDimensionStatus;
+    readonly device: SecurityDimensionStatus;
+    readonly session: SecurityDimensionStatus;
+    readonly trustLevel: SecurityDimensionStatus;
+  }>;
+}
+export interface AuthorizationEvaluationOutcome {
+  readonly authorization: AuthorizationDecisionArtifact;
+  readonly securityEvaluationSummary: GovernedSecurityEvaluationSummary;
+}
 
 const OPERATION = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
 const ACTION =
@@ -195,6 +209,45 @@ function capture(value: unknown, fields: readonly string[], kind: FailureKind) {
     return fail(kind);
   }
 }
+function captureCanonical(
+  value: unknown,
+  fields: readonly string[],
+  kind: FailureKind,
+) {
+  try {
+    if (typeof value !== "object" || value === null || Array.isArray(value))
+      return fail(kind);
+    const prototype = Reflect.getPrototypeOf(value);
+    if (prototype !== Object.prototype && prototype !== null) return fail(kind);
+    const keys = Reflect.ownKeys(value);
+    if (
+      keys.length !== fields.length ||
+      keys.some((key) => typeof key !== "string" || !fields.includes(key))
+    )
+      return fail(kind);
+    const out: Record<string, unknown> = Object.create(null);
+    for (const field of fields) {
+      const descriptor = Reflect.getOwnPropertyDescriptor(value, field);
+      if (
+        descriptor === undefined ||
+        descriptor.enumerable !== true ||
+        !("value" in descriptor) ||
+        descriptor.value === undefined
+      )
+        return fail(kind);
+      out[field] = descriptor.value;
+    }
+    return out;
+  } catch (error) {
+    if (
+      error instanceof InvalidAuthorizationInputError ||
+      error instanceof InvalidAuthorizationEvidenceError ||
+      error instanceof InvalidSecurityStateError
+    )
+      throw error;
+    return fail(kind);
+  }
+}
 function captureUnion(
   value: unknown,
   variants: readonly (readonly string[])[],
@@ -244,6 +297,47 @@ function subject(value: unknown, kind: FailureKind): AuthorizationSubject {
     kind: "authenticated",
     identityId: captured.identityId as IdentityIdentifier,
   });
+}
+
+function canonicalSubject(
+  value: unknown,
+  kind: FailureKind,
+): AuthorizationSubject {
+  try {
+    if (typeof value !== "object" || value === null || Array.isArray(value))
+      return fail(kind);
+    const prototype = Reflect.getPrototypeOf(value);
+    if (prototype !== Object.prototype && prototype !== null) return fail(kind);
+    const keys = Reflect.ownKeys(value);
+    const fields =
+      keys.length === 1 && keys[0] === "kind"
+        ? ["kind"]
+        : keys.length === 2 &&
+            keys.every(
+              (key) =>
+                typeof key === "string" &&
+                (key === "kind" || key === "identityId"),
+            )
+          ? ["kind", "identityId"]
+          : undefined;
+    if (fields === undefined) return fail(kind);
+    const captured = captureCanonical(value, fields, kind);
+    if (captured.kind === "anonymous" && fields.length === 1)
+      return Object.freeze({ kind: "anonymous" });
+    if (
+      captured.kind !== "authenticated" ||
+      fields.length !== 2 ||
+      typeof captured.identityId !== "string" ||
+      !/^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*$/.test(captured.identityId)
+    )
+      return fail(kind);
+    return Object.freeze({
+      kind: "authenticated",
+      identityId: captured.identityId as IdentityIdentifier,
+    });
+  } catch {
+    return fail(kind);
+  }
 }
 function resource(value: unknown, kind: FailureKind): AuthorizationResource {
   const captured = captureUnion(
@@ -361,6 +455,8 @@ const target = (
 
 export const extractAuthorizationEvaluationRequest = (value: unknown) =>
   target(value, "evaluate-authorization");
+export const extractAuthorizationOutcomeEvaluationRequest = (value: unknown) =>
+  target(value, "evaluate-authorization-outcome");
 export const extractRequirementsAuthorityRequest = (value: unknown) =>
   target(value, "resolve-protected-action-requirements");
 export const extractContextAuthorityRequest = (value: unknown) =>
@@ -645,6 +741,71 @@ export function createAuthorizationDecisionArtifact(
     return Object.freeze(artifact);
   } catch {
     return fail("state");
+  }
+}
+export function createGovernedSecurityEvaluationSummary(
+  value: unknown,
+): GovernedSecurityEvaluationSummary {
+  try {
+    const v = captureCanonical(
+      value,
+      ["operationId", "subject", "securityContext"],
+      "state",
+    );
+    const securityContext = captureCanonical(
+      v.securityContext,
+      ["context", "device", "session", "trustLevel"],
+      "state",
+    );
+    for (const field of ["context", "device", "session", "trustLevel"])
+      if (!DIMENSIONS.has(securityContext[field] as string))
+        return fail("state");
+    return Object.freeze({
+      operationId: authorizationOperationIdentifier(v.operationId),
+      subject: canonicalSubject(v.subject, "input"),
+      securityContext: Object.freeze({
+        context: securityContext.context as SecurityDimensionStatus,
+        device: securityContext.device as SecurityDimensionStatus,
+        session: securityContext.session as SecurityDimensionStatus,
+        trustLevel: securityContext.trustLevel as SecurityDimensionStatus,
+      }),
+    });
+  } catch {
+    return fail("input");
+  }
+}
+export function createAuthorizationEvaluationOutcome(
+  value: unknown,
+): AuthorizationEvaluationOutcome {
+  try {
+    const v = captureCanonical(
+      value,
+      ["authorization", "securityEvaluationSummary"],
+      "input",
+    );
+    const authorization = createAuthorizationDecisionArtifact(v.authorization);
+    const securityEvaluationSummary = createGovernedSecurityEvaluationSummary(
+      v.securityEvaluationSummary,
+    );
+    if (
+      authorization.operationId !== securityEvaluationSummary.operationId ||
+      !subjectsEqual(
+        authorization.subject,
+        securityEvaluationSummary.subject,
+      ) ||
+      authorization.securityContext.context !==
+        securityEvaluationSummary.securityContext.context ||
+      authorization.securityContext.device !==
+        securityEvaluationSummary.securityContext.device ||
+      authorization.securityContext.session !==
+        securityEvaluationSummary.securityContext.session ||
+      authorization.securityContext.trustLevel !==
+        securityEvaluationSummary.securityContext.trustLevel
+    )
+      return fail("input");
+    return Object.freeze({ authorization, securityEvaluationSummary });
+  } catch {
+    return fail("input");
   }
 }
 function validArtifact(a: AuthorizationDecisionArtifact): boolean {

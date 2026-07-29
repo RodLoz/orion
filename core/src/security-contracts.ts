@@ -1,6 +1,7 @@
 import type {
   AuthorizationActionIdentifier,
   AuthorizationDecisionArtifact,
+  AuthorizationEvaluationOutcome,
   AuthorizationOperationIdentifier,
   AuthorizationResource,
   AuthorizationSubject,
@@ -19,6 +20,12 @@ export {
 
 export interface AuthorizationEvaluationRequest {
   readonly intent: "evaluate-authorization";
+  readonly operationId: AuthorizationOperationIdentifier;
+  readonly action: AuthorizationActionIdentifier;
+  readonly resource: AuthorizationResource;
+}
+export interface AuthorizationOutcomeEvaluationRequest {
+  readonly intent: "evaluate-authorization-outcome";
   readonly operationId: AuthorizationOperationIdentifier;
   readonly action: AuthorizationActionIdentifier;
   readonly resource: AuthorizationResource;
@@ -53,6 +60,14 @@ export interface ResolveConfirmationEvidenceRequest {
 
 export interface EvaluateAuthorization {
   evaluateAuthorization(request: unknown): AuthorizationDecisionArtifact;
+}
+export interface EvaluateAuthorizationOutcome {
+  evaluateAuthorizationOutcome(
+    request: unknown,
+  ): AuthorizationEvaluationOutcome;
+}
+export interface VerifyAuthorizationEvaluationOutcome {
+  verifyAuthorizationEvaluationOutcome(request: unknown): boolean;
 }
 export interface ResolveProtectedActionRequirements {
   resolveProtectedActionRequirements(

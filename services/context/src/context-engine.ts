@@ -192,6 +192,16 @@ export class ContextEngine
     }
   }
 
+  public verifyContextRevisionAuthority(candidate: unknown): boolean {
+    try {
+      return [...this.#lineages.values()].some((lineage) =>
+        lineage.revisions.some((revision) => revision === candidate),
+      );
+    } catch {
+      return false;
+    }
+  }
+
   private composeValidated(
     request: ValidatedComposeRequest,
   ): ActiveContextRevision {

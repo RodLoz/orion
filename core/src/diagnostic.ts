@@ -70,6 +70,9 @@ export interface SkillCapabilityDiagnostic {
   readonly registeredCount: 1;
   readonly discoveredCount: 1;
   readonly emptyDiscoveryCount: 0;
+  readonly protectedInvocationSucceeded: true;
+  readonly lifecycleObserved: true;
+  readonly normalizedResultAuthorityVerified: true;
 }
 export interface SecurityCapabilityDiagnostic {
   readonly operational: true;

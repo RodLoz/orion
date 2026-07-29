@@ -120,12 +120,7 @@ describe("M8 constructed Authorization Decision Artifact failure", () => {
     expect(() => failureEngine.evaluateAuthorization(failureRequest)).toThrow(
       InvalidSecurityStateError,
     );
-    expect(calls).toEqual([
-      "requirements",
-      "context",
-      "grants",
-      "confirmation",
-    ]);
+    expect(calls).toEqual(["requirements", "context", "grants"]);
     expect(failureSource).toEqual(failureBefore);
     expect(failureRequest).toEqual(request);
     expect(Object.isFrozen(failureSource)).toBe(false);
@@ -195,4 +190,236 @@ describe("M8 constructed Authorization Decision Artifact failure", () => {
       else process.env.ORION_SECURITY_FAULT = previous;
     }
   });
+
+  it.each([
+    "createGovernedSecurityEvaluationSummary",
+    "createAuthorizationEvaluationOutcome",
+  ] as const)(
+    "contains isolated %s failure in the atomic Outcome pipeline",
+    async (factoryName) => {
+      vi.doUnmock("@orion/core");
+      vi.resetModules();
+      const ordinaryBefore = await import("../src/index.js");
+      const before = configuration(
+        ordinaryBefore.SecurityEngine,
+        sources(),
+      ).evaluateAuthorizationOutcome({
+        intent: "evaluate-authorization-outcome",
+        ...target,
+      });
+
+      vi.resetModules();
+      let capturedArtifact: unknown;
+      let capturedOutcome: unknown;
+      vi.doMock("@orion/core", async () => {
+        const actual = await vi.importActual<typeof Core>("@orion/core");
+        return {
+          ...actual,
+          createAuthorizationDecisionArtifact(value: unknown) {
+            capturedArtifact =
+              actual.createAuthorizationDecisionArtifact(value);
+            return capturedArtifact;
+          },
+          createGovernedSecurityEvaluationSummary(value: unknown) {
+            if (factoryName === "createGovernedSecurityEvaluationSummary")
+              throw new actual.InvalidSecurityStateError();
+            return actual.createGovernedSecurityEvaluationSummary(value);
+          },
+          createAuthorizationEvaluationOutcome(value: unknown) {
+            capturedOutcome =
+              actual.createAuthorizationEvaluationOutcome(value);
+            if (factoryName === "createAuthorizationEvaluationOutcome")
+              throw new actual.InvalidSecurityStateError();
+            return capturedOutcome;
+          },
+        };
+      });
+      const isolated = await import("../src/security-engine.js");
+      const { InvalidSecurityStateError } = await import("@orion/core");
+      const failureEngine = configuration(isolated.SecurityEngine, sources());
+      expect(() =>
+        failureEngine.evaluateAuthorizationOutcome({
+          intent: "evaluate-authorization-outcome",
+          ...target,
+        }),
+      ).toThrow(InvalidSecurityStateError);
+      expect(capturedArtifact).toBeDefined();
+      if (capturedOutcome !== undefined)
+        expect(
+          failureEngine.verifyAuthorizationEvaluationOutcome({
+            intent: "verify-authorization-evaluation-outcome",
+            outcome: capturedOutcome,
+            operationId: target.operationId,
+          }),
+        ).toBe(false);
+      else {
+        const actual = await vi.importActual<typeof Core>("@orion/core");
+        const partial = actual.createAuthorizationEvaluationOutcome({
+          authorization: capturedArtifact,
+          securityEvaluationSummary:
+            actual.createGovernedSecurityEvaluationSummary({
+              operationId: target.operationId,
+              subject: { kind: "anonymous" },
+              securityContext: {
+                context: "available",
+                device: "not-applicable",
+                session: "not-applicable",
+                trustLevel: "not-applicable",
+              },
+            }),
+        });
+        expect(
+          failureEngine.verifyAuthorizationEvaluationOutcome({
+            intent: "verify-authorization-evaluation-outcome",
+            outcome: partial,
+            operationId: target.operationId,
+          }),
+        ).toBe(false);
+      }
+      expect(
+        failureEngine.verifyAuthorizationEvaluationOutcome({
+          intent: "verify-authorization-evaluation-outcome",
+          outcome: before,
+          operationId: target.operationId,
+        }),
+      ).toBe(false);
+
+      vi.doUnmock("@orion/core");
+      vi.resetModules();
+      const ordinaryAfter = await import("../src/index.js");
+      const after = configuration(
+        ordinaryAfter.SecurityEngine,
+        sources(),
+      ).evaluateAuthorizationOutcome({
+        intent: "evaluate-authorization-outcome",
+        ...target,
+      });
+      expect(after).toEqual(before);
+    },
+  );
+
+  it("recovers on the same instance after isolated provenance registration failure", async () => {
+    vi.doUnmock("@orion/core");
+    vi.resetModules();
+    const security = await import("../src/index.js");
+    const engine = configuration(security.SecurityEngine, sources());
+    const ordinary = engine.evaluateAuthorizationOutcome({
+      intent: "evaluate-authorization-outcome",
+      ...target,
+    });
+    const original = WeakMap.prototype.set;
+    let failed = false;
+    let failedOutcome: object | undefined;
+    const spy = vi.spyOn(WeakMap.prototype, "set").mockImplementation(function (
+      this: WeakMap<WeakKey, unknown>,
+      key: WeakKey,
+      value: unknown,
+    ) {
+      if (
+        !failed &&
+        typeof key === "object" &&
+        key !== null &&
+        Reflect.ownKeys(key).includes("securityEvaluationSummary")
+      ) {
+        failed = true;
+        failedOutcome = key as object;
+        throw new Error("isolated-provenance-failure");
+      }
+      return Reflect.apply(original, this, [key, value]);
+    });
+    try {
+      expect(() =>
+        engine.evaluateAuthorizationOutcome({
+          intent: "evaluate-authorization-outcome",
+          ...target,
+        }),
+      ).toThrow((await import("@orion/core")).InvalidSecurityStateError);
+    } finally {
+      spy.mockRestore();
+    }
+    expect(failedOutcome).toBeDefined();
+    expect(
+      engine.verifyAuthorizationEvaluationOutcome({
+        intent: "verify-authorization-evaluation-outcome",
+        outcome: failedOutcome,
+        operationId: target.operationId,
+      }),
+    ).toBe(false);
+    const recovered = engine.evaluateAuthorizationOutcome({
+      intent: "evaluate-authorization-outcome",
+      ...target,
+    });
+    expect(recovered).toEqual(ordinary);
+    expect(
+      engine.verifyAuthorizationEvaluationOutcome({
+        intent: "verify-authorization-evaluation-outcome",
+        outcome: recovered,
+        operationId: target.operationId,
+      }),
+    ).toBe(true);
+  });
+
+  it.each(["artifact", "outcome"] as const)(
+    "observes one complete construction/registration pipeline for %s Contract",
+    async (contract) => {
+      vi.resetModules();
+      const counts = { artifact: 0, summary: 0, outcome: 0, provenance: 0 };
+      vi.doMock("@orion/core", async () => {
+        const actual = await vi.importActual<typeof Core>("@orion/core");
+        return {
+          ...actual,
+          createAuthorizationDecisionArtifact(value: unknown) {
+            counts.artifact += 1;
+            return actual.createAuthorizationDecisionArtifact(value);
+          },
+          createGovernedSecurityEvaluationSummary(value: unknown) {
+            counts.summary += 1;
+            return actual.createGovernedSecurityEvaluationSummary(value);
+          },
+          createAuthorizationEvaluationOutcome(value: unknown) {
+            counts.outcome += 1;
+            return actual.createAuthorizationEvaluationOutcome(value);
+          },
+        };
+      });
+      const isolated = await import("../src/security-engine.js");
+      const original = WeakMap.prototype.set;
+      const spy = vi
+        .spyOn(WeakMap.prototype, "set")
+        .mockImplementation(function (
+          this: WeakMap<WeakKey, unknown>,
+          key: WeakKey,
+          value: unknown,
+        ) {
+          if (
+            typeof key === "object" &&
+            key !== null &&
+            Reflect.ownKeys(key).includes("securityEvaluationSummary")
+          )
+            counts.provenance += 1;
+          return Reflect.apply(original, this, [key, value]);
+        });
+      try {
+        const engine = configuration(isolated.SecurityEngine, sources());
+        if (contract === "artifact")
+          engine.evaluateAuthorization({
+            intent: "evaluate-authorization",
+            ...target,
+          });
+        else
+          engine.evaluateAuthorizationOutcome({
+            intent: "evaluate-authorization-outcome",
+            ...target,
+          });
+      } finally {
+        spy.mockRestore();
+      }
+      expect(counts).toEqual({
+        artifact: 1,
+        summary: 1,
+        outcome: 1,
+        provenance: 1,
+      });
+    },
+  );
 });

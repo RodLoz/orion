@@ -244,7 +244,7 @@ describe("M8 authority provenance and source non-mutation", () => {
               requirements: {
                 ...target,
                 requiredPermissions: [],
-                sensitivity: "standard",
+                sensitivity: "sensitive",
               },
             }) as never,
         },
@@ -431,6 +431,7 @@ describe("M8 authority provenance and source non-mutation", () => {
 
   it("preserves reached source arrays when Confirmation authority throws", () => {
     const fixture = composed("allow");
+    fixture.sources.requirements.requirements!.sensitivity = "sensitive";
     const before = structuredClone(fixture.sources);
     const caller = structuredClone(request);
     const engine = new SecurityEngine({

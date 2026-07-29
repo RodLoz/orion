@@ -3,10 +3,10 @@
 | Field          | Value                                                   |
 | -------------- | ------------------------------------------------------- |
 | **Status**     | Active                                                  |
-| **Version**    | 1.0.0                                                   |
+| **Version**    | 1.1.0                                                   |
 | **Owner**      | O.R.I.O.N. Architecture                                 |
 | **Created**    | 2026-07-27                                              |
-| **Updated**    | 2026-07-27                                              |
+| **Updated**    | 2026-07-28                                              |
 | **Applies To** | Security, protected actions, and authorization evidence |
 
 ---
@@ -32,8 +32,14 @@ and tests without inventing authorization semantics.
 
 # Authority and Status
 
-This document is an Active Concept Specification. It governs the authorization
-concepts within its scope subject to the higher-authority ADRs and Architecture
+Version `1.1.0` is an Active Concept Specification following formal review and
+approval. Active version `1.0.0` remains preserved in the change history below.
+
+Version `1.1.0` adds an authorization-evaluation snapshot required for exact
+protected-enforcement correspondence. It does not change the accepted decision
+model, policy, evidence semantics, or ownership established by version `1.0.0`.
+
+This document remains subject to the higher-authority ADRs and Architecture
 Specifications identified in
 [Documentation Authority](../../docs/DOCUMENT-AUTHORITY.md).
 
@@ -60,6 +66,8 @@ This model defines:
 - `allow`, `deny`, and `indeterminate` decisions;
 - a deterministic decision table;
 - an immutable authorization decision artifact;
+- a co-issued Governed Security Evaluation Summary for exact downstream
+  correspondence;
 - denial versus evaluation-failure semantics;
 - ownership and enforcement boundaries; and
 - requirements that a future Security Engine specification must preserve.
@@ -163,6 +171,10 @@ source-neutral boundary:
 - Protected Action Requirements Authority Boundary;
 - Grant Evidence Authority Boundary; or
 - Security Evaluation Context Authority Boundary.
+
+The Governed Security Evaluation Summary derives authority only through the
+Security evaluation boundary's same-evaluation association with the exact
+governed Security Evaluation Context and Authorization Decision Artifact.
 
 Confirmed Confirmation Evidence must likewise originate from an authorized
 confirmation boundary outside Security.
@@ -660,6 +672,173 @@ M8 requires the governed status artifact, not Device, Session, or Trust provider
 implementations. Future value models and sources may extend the authority
 boundary without changing the three status categories.
 
+## Governed Security Evaluation Summary
+
+The Governed Security Evaluation Summary is the minimum Security-owned,
+authority-bearing projection required to preserve the exact governed Security
+Evaluation Context facts used during one authorization evaluation:
+
+```text
+{
+  operationId: AuthorizationOperationIdentifier,
+  subject: AuthorizationSubject,
+  securityContext: {
+    context: SecurityDimensionStatus,
+    device: SecurityDimensionStatus,
+    session: SecurityDimensionStatus,
+    trustLevel: SecurityDimensionStatus
+  }
+}
+```
+
+The shape is exact. No additional field is permitted.
+
+Security owns the summary's semantics. Core may custody a future shared schema
+or Contract without acquiring Security behavior. Brain, Skill, Bootstrap,
+Context, protected orchestration, and callers do not manufacture, reinterpret,
+or confer authority on the summary. Context may supply governed Context-domain
+facts to the existing Security Evaluation Context Authority Boundary, but it
+does not determine Security-owned Device, Session, or Trust Level status
+semantics.
+
+Each status is exactly one existing Security Dimension Status:
+
+- `available`;
+- `unavailable`; or
+- `not-applicable`.
+
+The summary introduces no new status category. Only the governed Security
+Evaluation Context Authority Boundary may establish these statuses for an
+evaluation.
+
+### Evaluation Source and Co-Issuance
+
+The summary MUST originate from the exact governed Security Evaluation Context
+that participates in the authorization evaluation. It MUST NOT be:
+
+- independently re-resolved after the decision;
+- reconstructed from the Authorization Decision Artifact;
+- caller supplied;
+- inferred from whether an artifact status is unavailable; or
+- manufactured by Brain, Skill, Bootstrap, Context, or protected
+  orchestration.
+
+One successful authorization evaluation conceptually produces or atomically
+co-issues two separately structured values:
+
+1. the Authorization Decision Artifact; and
+2. the Governed Security Evaluation Summary.
+
+Together they form the conceptual Authorization Evaluation Outcome. This
+outcome relation does not add fields to the Authorization Decision Artifact and
+does not change its existing exact shape.
+
+The summary preserves exactly:
+
+- the Authorization Operation Identifier evaluated by Security;
+- the Authorization Subject supplied by the governed Security Evaluation
+  Context; and
+- the `context`, `device`, `session`, and `trustLevel` statuses Security
+  actually evaluated.
+
+Security evaluation orchestration MUST obtain both values through
+Security-owned authority. A caller cannot independently combine an arbitrary
+summary and artifact and claim that they form one Authorization Evaluation
+Outcome.
+
+### Same-Evaluation Provenance
+
+Operation, subject, and status equality are necessary but not sufficient to
+establish that a summary and artifact belong to the same authorization
+evaluation.
+
+Authority provenance MUST associate the exact summary and exact Authorization
+Decision Artifact with the same evaluation. A summary from evaluation A MUST
+NOT be accepted with an artifact from evaluation B even when their operation,
+subject, and four statuses are equal.
+
+For the minimal architecture, this association may be process-local. It MUST:
+
+- be non-forgeable through ordinary caller construction;
+- bind the summary to exactly one evaluation and one operation;
+- reject a summary from an incompatible runtime;
+- lose authority through cloning, spreading, serialization, or reconstruction;
+  and
+- require no cryptography, persistence, timestamp, or distributed registry.
+
+The exact Engine mechanism belongs to the required additive ENGINE-0009
+revision.
+
+### Operation and Subject Binding
+
+The summary operation identifier MUST equal the operation identifier used by:
+
+- the Authorization Evaluation Request;
+- governed Protected Action Requirements;
+- the governed Security Evaluation Context;
+- Grant Evidence;
+- confirmed Confirmation Evidence when applicable; and
+- the Authorization Decision Artifact.
+
+The summary cannot be reused across operations.
+
+The summary subject MUST exactly equal both:
+
+- the governed Security Evaluation Context subject; and
+- the Authorization Decision Artifact subject.
+
+Anonymous and authenticated subject semantics remain unchanged. Authentication
+still grants no permission and does not authorize an action.
+
+### Permission Representation
+
+The summary has no `permissionsStatus` field. OES-0009's Permissions dimension
+continues to be represented through:
+
+- governed Protected Action Requirements;
+- the Authorization Decision Artifact's canonical evaluated permissions; and
+- governed Grant Evidence.
+
+All existing permission and Grant Evidence correspondence remains unchanged.
+
+### Evaluation-Snapshot and Currentness Semantics
+
+The summary is an authorization-evaluation snapshot. Once Security evaluates
+operation O:
+
+- the summary records the exact governed subject and statuses used by that
+  evaluation;
+- downstream enforcement compares the artifact against that snapshot;
+- downstream enforcement does not re-query current Context, Device, Session, or
+  Trust Level status; and
+- later environmental changes do not rewrite the completed evaluation facts.
+
+Existing M8 currentness requirements still apply when Security obtains and
+evaluates its governed inputs. The summary does not make stale authority
+current, create a freshness lease, extend authorization validity, or introduce
+expiration.
+
+### Privacy, Immutability, and Authority
+
+The summary exposes only:
+
+- the operation identifier;
+- the Authorization Subject; and
+- the four Security Dimension Status categories.
+
+It exposes no raw Context value, Context lineage or revision, Device or Session
+identifier, Trust score or detail, location, token, credential, Provider claim,
+policy internal, Grant Evidence detail, or confirmation content.
+
+The summary is defensively reconstructed, deeply immutable, operation-bound,
+evaluation-bound, and non-mutable by callers. Its construction does not mutate
+or freeze caller or source graphs.
+
+A matching shape does not establish authority. TypeScript branding, public
+factory construction, cloning, spreading, serialization, reconstruction,
+matching fields, or caller possession is insufficient. Authority derives only
+from the Security evaluation boundary and its exact same-evaluation provenance.
+
 # Sensitive Actions
 
 Every Protected Action contains exactly one sensitivity category:
@@ -1000,6 +1179,50 @@ boundary. It is not merely advice:
 - the boundary must not reinterpret or replace the Security decision; and
 - the artifact does not itself execute anything.
 
+Exact enforcement additionally requires the co-issued Governed Security
+Evaluation Summary. After validating both values and their same-evaluation
+provenance, the protected boundary must verify:
+
+```text
+artifact.operationId
+===
+summary.operationId
+
+artifact.subject
+===
+summary.subject
+
+artifact.securityContext.context
+===
+summary.securityContext.context
+
+artifact.securityContext.device
+===
+summary.securityContext.device
+
+artifact.securityContext.session
+===
+summary.securityContext.session
+
+artifact.securityContext.trustLevel
+===
+summary.securityContext.trustLevel
+```
+
+These comparisons are in addition to every previously required operation,
+subject, action, resource, permission, sensitivity, policy, reason, and evidence
+invariant. The artifact cannot serve as its own source of expected
+Security-context statuses.
+
+A malformed, hostile, fabricated, same-shaped, cloned, serialized,
+cross-runtime, wrong-operation, or wrong-evaluation summary is invalid
+authorization evidence and produces no valid enforcement correspondence. A
+valid same-evaluation summary whose subject or status differs from the artifact
+is an authorization-enforcement correspondence failure downstream. Security
+evaluation or source failure remains a Security-state failure under the
+existing model. ENGINE-0009 and the applicable protected-boundary Engine
+specification must specialize exact public error mappings.
+
 An `allow` artifact from another operation is invalid enforcement evidence even
 when all other fields match. The artifact is enforceable only for its bound
 operation and is not reusable authorization authority.
@@ -1234,11 +1457,16 @@ plan as authorization.
 
 A future protected boundary:
 
-- requires one valid matching `allow` artifact;
+- requires one valid matching `allow` artifact and its genuine co-issued
+  Governed Security Evaluation Summary;
 - rejects `deny`, `indeterminate`, malformed, mismatched, or absent artifacts;
-- verifies exact operation identifier and all other correspondence without
-  recomputing policy;
+- rejects a missing, fabricated, malformed, wrong-evaluation, or mismatched
+  summary;
+- verifies same-evaluation provenance and exact operation, subject, four-status,
+  and all other correspondence without recomputing policy or trusting the
+  artifact as its own expected-status source;
 - rejects an artifact produced for any other operation;
+- performs no invocation-time Security-context currentness re-query;
 - does not acquire Security semantic ownership; and
 - does not treat authorization as proof of successful execution.
 
@@ -1304,8 +1532,9 @@ Infrastructure policy.
 
 # Requirements for a Future ENGINE-0009
 
-A future Security Engine specification may be drafted under this Active Concept
-Specification.
+Active version `1.0.0` continues to govern the accepted ENGINE-0009 decision
+slice. The additive summary requirements below govern the required future
+ENGINE-0009 revision.
 
 ENGINE-0009 must define, without changing this model:
 
@@ -1316,6 +1545,10 @@ ENGINE-0009 must define, without changing this model:
 - exact validation and failure precedence;
 - a closed public error taxonomy;
 - exact authority-boundary Contracts and operation-bound governed artifacts;
+- the exact Core schema and Contract representation for the Governed Security
+  Evaluation Summary and conceptual Authorization Evaluation Outcome;
+- atomic co-issuance and process-local same-evaluation association between the
+  exact summary and exact Authorization Decision Artifact;
 - exact handling of unavailable requirements, Grant Evidence, and Security
   dimensions;
 - deterministic decision construction;
@@ -1324,6 +1557,11 @@ ENGINE-0009 must define, without changing this model:
 - architecture and diagnostics rules;
 - normative boundary, decision-table, and precedence tests; and
 - explicit deferral of enforcement and execution.
+
+ENGINE-0009 requires an additive revision defining the exact Core schema,
+evaluation-outcome or co-issued-result Contracts, process-local provenance
+mechanism, atomic same-evaluation association, exact failure mapping, and direct
+tests. This Concept revision does not modify ENGINE-0009.
 
 # Approved Model Closure
 
@@ -1344,7 +1582,10 @@ The following are deliberate model decisions, not open implementation choices:
 - configurable policy, long-term freshness/revocation infrastructure,
   distributed replay protection, and external evidence sources remain deferred.
 
-No implementation-critical semantic question remains for ENGINE-0009.
+Version `1.0.0` closed every implementation-critical semantic question for the
+M8 decision slice it authorized. Version `1.1.0` identifies one additive
+downstream-enforcement authority requirement that must be specialized by a
+future ENGINE-0009 revision before M9 acceptance.
 
 # Normative Concept Testability
 
@@ -1372,6 +1613,16 @@ proving:
 - exact matching confirmation permits evaluation to continue;
 - all multiple required permissions use AND semantics;
 - decision artifacts are deeply immutable and privacy-minimized;
+- a genuine summary and genuine artifact from the same evaluation are accepted
+  for correspondence checking;
+- fabricated, same-shaped, cloned, spread, serialized, reconstructed,
+  cross-runtime, wrong-operation, and wrong-evaluation summaries are rejected;
+- wrong summary subject is rejected;
+- independent Context, Device, Session, and Trust Level status mismatches are
+  detected;
+- exact matching of all four summary and artifact statuses is accepted;
+- downstream enforcement performs no currentness re-query;
+- the summary exposes no raw Security-context data;
 - callers and their mutable graphs are never retained or mutated; and
 - hostile runtime values produce deterministic domain failures without native
   exception leakage.
@@ -1401,7 +1652,14 @@ This Concept Specification is ready for activation when formal review confirms:
 15. The model introduces no persistence, Event runtime, Provider, Adapter,
     external IAM, or execution semantics.
 16. The Authorization Operation Identifier bound is approved or revised.
-17. No implementation-critical semantic choice remains for ENGINE-0009.
+17. The Governed Security Evaluation Summary preserves the exact subject and
+    four statuses used by one authorization evaluation.
+18. Same-evaluation provenance cannot be established by operation or field
+    equality alone.
+19. The summary and artifact are atomically co-issued without changing the
+    Authorization Decision Artifact shape or decision table.
+20. No implementation-critical semantic choice remains for the additive
+    ENGINE-0009 revision.
 
 # Explicitly Deferred
 
@@ -1411,6 +1669,8 @@ This model explicitly defers:
 - roles, groups, organizations, tenants, and delegation;
 - resource hierarchies and wildcard scopes;
 - grant expiry, revocation distribution, and temporal evaluation;
+- summary timestamps, expiration, persistence, and distributed replay
+  protection;
 - policy/grant persistence and administration;
 - Device, Session, Trust Level, location, and risk value models and Providers;
 - sensitive-action classification registry;
@@ -1421,6 +1681,32 @@ This model explicitly defers:
 - Skill selection, Planning binding, invocation, and execution;
 - Providers, Adapters, external IAM, and integrations; and
 - production enforcement infrastructure.
+
+The summary revision also introduces no Device model, Session model, Trust
+scoring model, Context payload change, audit database, external IAM, network
+call, Event runtime, policy DSL, or configurable authorization policy.
+
+# Downstream Specification Impact
+
+Following formal review and promotion of version `1.1.0` to Active:
+
+- ENGINE-0009 requires the additive revision described above;
+- CONCEPT-0005 must require the governed summary in protected Skill invocation
+  semantics and exact enforcement correspondence; and
+- ENGINE-0010 must specialize the exact Core model, resolver/verifier Contract,
+  protected request field, precedence, hostile-safe extraction, provenance,
+  failure mapping, correspondence checks, and direct test matrix.
+
+Until those revisions are approved, M9 implementation remains paused for this
+authority gap. This Concept revision does not modify any of those downstream
+specifications.
+
+# Change History
+
+| Version | Date       | Status | Change                                                                                                                                                                                   |
+| ------- | ---------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1.0.0   | 2026-07-27 | Active | Approved the minimum authorization model, fixed decision semantics, governed evidence, and Authorization Decision Artifact.                                                              |
+| 1.1.0   | 2026-07-28 | Active | Formally approved the Governed Security Evaluation Summary, exact same-evaluation provenance, and downstream four-status enforcement correspondence without changing the decision model. |
 
 # Related Documents
 
@@ -1438,6 +1724,10 @@ This model explicitly defers:
 - [ENGINE-0007 — Planning Engine](../engines/planning/ENGINE-0007-Planning-Engine.md)
 - [ENGINE-0008 — Skill Engine](../engines/skill/ENGINE-0008-Skill-Engine.md)
 - [FLOW-0001 — Voice Interaction](../flows/conversation/FLOW-0001-Voice-Interaction.md)
+
+- [ENGINE-0009 — Security Engine](../engines/security/ENGINE-0009-Security-Engine.md)
+- [CONCEPT-0005 — Skill Invocation and Execution Model](CONCEPT-0005-Skill-Invocation-and-Execution-Model.md)
+- [ENGINE-0010 — Skill Engine Protected Invocation and Execution](../engines/skill/ENGINE-0010-Skill-Engine-Protected-Invocation-and-Execution.md)
 
 # Engineering Motto
 

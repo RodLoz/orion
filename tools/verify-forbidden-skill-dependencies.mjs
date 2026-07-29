@@ -21,6 +21,14 @@ const fixtures = [
     rules: ["skill-engine-must-not-depend-on-other-engines"],
   },
   {
+    path: "services/skill/architecture-fixtures/security-engine-dependency.ts",
+    rules: ["skill-engine-must-not-depend-on-other-engines"],
+  },
+  {
+    path: "services/skill/architecture-fixtures/context-engine-dependency.ts",
+    rules: ["skill-engine-must-not-depend-on-other-engines"],
+  },
+  {
     path: "services/skill/architecture-fixtures/voice-engine-dependency.ts",
     rules: ["skill-engine-must-not-depend-on-other-engines"],
   },
