@@ -16,21 +16,24 @@ The Active Context, Reasoning, and Planning revisions respectively authorize
 
 ## Milestone Status
 
-M10 implementation is in progress.
+M10 Phase F implementation is review-accepted. The combined Phase F release
+commit and tag are pending.
 
 - Phase A — Core foundations: complete.
 - Phase B — issuer authority runtime revisions: complete.
-- Phase C/D — complete synchronous Brain runtime: implemented atomically;
-  correction pass 1 complete and pending formal re-review.
+- Phase C/D — complete synchronous Brain runtime: implemented atomically and
+  accepted by final re-review.
 - Phase E — Brain final-result authority and verifier: included in the atomic
   Phase C/D runtime.
-- Phase F — Bootstrap composition: not started.
+- Phase F-A — Bootstrap prerequisites: implemented and review-accepted.
+- Phase F-B — Bootstrap Brain composition: implemented and review-accepted.
 - Phase G — normative precedence and lifecycle completion: included in the
   atomic Phase C/D runtime.
-- Phase H — Phase C/D regression, architecture, and quality gates: complete
-  for correction pass 1; milestone-wide acceptance remains pending.
+- Phase H — Phase C/D regression, architecture, and quality gates: complete.
 
-This record does not claim that M10 is complete or acceptance-ready.
+The accepted Brain runtime and the review-accepted Bootstrap composition form
+the complete implemented M10 scope. This implementation status does not claim
+that the uncommitted Phase F work has been released or tagged.
 
 ## Phase B Issuer Authority Runtime Revisions
 
@@ -160,7 +163,8 @@ Exact final validation:
   Reasoning, and Planning: passed; and
 - `git diff --check`: passed.
 
-Phase C remains not started. This record does not claim M10 complete.
+Historical Phase B checkpoint: at this point in the implementation history,
+Phase C had not started and this record did not claim M10 complete.
 
 ### Final evidence correction validation
 
@@ -258,8 +262,8 @@ The final validation run passed 170 tests across the five focused files and
 
 ## Atomic Phase C/D — Complete Brain Runtime
 
-Status: correction pass 1 complete and ready for formal re-review. Phase C/D
-has not yet been accepted.
+Historical Phase C/D checkpoint: correction pass 1 was complete and ready for
+formal re-review; Phase C/D had not yet been accepted at that checkpoint.
 
 The standalone Phase C boundary was rejected because it could not make the
 public synchronous operation total for `respond` plus `skill-capability`.
@@ -307,9 +311,10 @@ observed collections under bounded explicit-GC runs; they do not claim
 deterministic JavaScript collection or collection of every collaborator-owned
 graph.
 
-No Bootstrap Brain composition, persistence, asynchronous orchestration,
-public registry, public test seam, or external dependency is introduced.
-M10 remains incomplete because Bootstrap composition is not implemented.
+The atomic Phase C/D change introduced no Bootstrap Brain composition,
+persistence, asynchronous orchestration, public registry, public test seam, or
+external dependency. Bootstrap composition was completed separately in Phase
+F.
 
 Atomic Phase C/D correction-pass validation performed:
 
@@ -329,6 +334,47 @@ Atomic Phase C/D correction-pass validation performed:
 - isolated `--expose-gc` Phase B authority non-retention: 1 file, 2 tests;
 - 3 Brain negative architecture fixtures; and
 - `git diff --check`.
+
+## Phase F — Bootstrap Brain Composition
+
+Phase F-A adds the process-local Brain operation allocator, the same-runtime
+Reasoning and Planning operation/verifier pairs, and the reusable configured M9
+Skill composition. Phase F-B composes exactly one compatible Context,
+Reasoning, Planning, Security, Skill, allocator, and Brain runtime graph.
+Bootstrap constructs, initializes, and starts the Brain Engine before exposing
+one frozen `orchestrateCognitiveRequest` callable. No Engine, verifier,
+authority registry, allocator, preparation operation, or lifecycle control is
+publicly exposed.
+
+The current real end-to-end Bootstrap graph completes the
+`request-more-context` branch. ENGINE-0001 intentionally supplies empty Memory
+and Knowledge reference arrays, and the accepted Reasoning runtime requests
+more Context for both anonymous and authenticated Context without authentic
+references. The already implemented and accepted Brain `response` and
+`skill-result` branches remain runtime-complete but are not currently reachable
+through this real composition. This is a Bootstrap composition reachability
+limitation, not a Brain defect.
+
+Bootstrap introduces no semantic adapter and fabricates no Memory or Knowledge
+reference. Later authentic Memory/Knowledge integration may make the other
+already implemented branches reachable without changing Brain semantics.
+
+Phase F validation includes 14 Bootstrap test files with 81 tests, the complete
+81-file repository regression with 1,678 tests, production build, all 11 test
+project typechecks, full lint, Dependency Cruiser and forbidden-dependency
+checks, the compiled Bootstrap diagnostic, and `git diff --check`.
+
+## Immutable Release Evidence
+
+The existing immutable `m10-v1.0` tag points to commit `c52da61`. It represents
+the accepted pre-Phase-F M10 baseline and does not contain Phase F-A or Phase
+F-B. The `m10-v1.0` tag must remain unchanged.
+
+Phase F-A and Phase F-B are implemented and review-accepted, but their combined
+release commit and tag are pending. After the combined Phase F commit is created
+and receives final acceptance, that scope will be represented by a new
+immutable `m10-v1.1` tag. This record does not claim that `m10-v1.1` already
+exists.
 
 ## Scope
 

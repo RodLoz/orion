@@ -1,13 +1,20 @@
 import type {
   ActiveContextRevision,
+  BindSkillToOperation,
   DiscoverSkills,
   EvaluateAuthorizationOutcome,
   GetRegisteredSkill,
   NormalizedSkillExecutionResult,
+  ProtectedInvokeSkill,
   RegisterSkillManifest,
+  ResolveGovernedAuthorizationEvaluation,
+  ResolveSkillExecutionContext,
+  ResolveSkillInvocationRequirements,
+  SelectSkill,
   SkillInvocationLifecycleEvent,
   SkillWorkflowInput,
   VerifyAuthorizationEvaluationOutcome,
+  VerifyNormalizedSkillExecutionResult,
 } from "@orion/core";
 import { SkillEngine, type SkillEngineLifecycleState } from "@orion/skill";
 import { ProcessLocalSkillExecutionContextAuthority } from "@orion/context";
@@ -30,14 +37,33 @@ export interface M9SkillDemonstration {
   readonly resultAuthorityVerified: boolean;
 }
 
-export function demonstrateM9SkillInvocation(
-  contextRevision: ActiveContextRevision,
+export interface ConfiguredM9SkillCapabilityComposition {
+  readonly selectSkill: SelectSkill;
+  readonly bindSkillToOperation: BindSkillToOperation;
+  readonly resolveSkillExecutionContext: ResolveSkillExecutionContext;
+  readonly resolveSkillInvocationRequirements: ResolveSkillInvocationRequirements;
+  readonly resolveGovernedAuthorizationEvaluation: ResolveGovernedAuthorizationEvaluation;
+  readonly protectedInvokeSkill: ProtectedInvokeSkill;
+  readonly verifyNormalizedSkillExecutionResult: VerifyNormalizedSkillExecutionResult;
+}
+
+export function composeConfiguredM9SkillCapability(
   verifyContextRevision: (candidate: unknown) => boolean,
   evaluator: EvaluateAuthorizationOutcome &
     VerifyAuthorizationEvaluationOutcome,
-): M9SkillDemonstration {
+  lifecycleObserver?: (event: SkillInvocationLifecycleEvent) => void,
+): ConfiguredM9SkillCapabilityComposition {
+  const verifyContextRevisionAuthority = verifyContextRevision;
+  const evaluateAuthorizationOutcome =
+    evaluator.evaluateAuthorizationOutcome.bind(evaluator);
+  const verifyAuthorizationEvaluationOutcome =
+    evaluator.verifyAuthorizationEvaluationOutcome.bind(evaluator);
+  const authorizationEvaluation = Object.freeze({
+    evaluateAuthorizationOutcome,
+    verifyAuthorizationEvaluationOutcome,
+  });
   const context = new ProcessLocalSkillExecutionContextAuthority(
-    verifyContextRevision,
+    verifyContextRevisionAuthority,
   );
   const sensitivity = new ProcessLocalSkillInvocationSensitivityAuthority([
     {
@@ -54,49 +80,32 @@ export function demonstrateM9SkillInvocation(
   );
   const authorization =
     new ProcessLocalGovernedAuthorizationEvaluationAuthority(
-      evaluator,
-      evaluator,
+      authorizationEvaluation,
+      authorizationEvaluation,
     );
   const contextPort = Object.freeze({
-    resolve: (request: Parameters<typeof context.resolve>[0]) =>
-      context.resolve(request),
-    verify: (
-      candidate: Parameters<typeof context.verify>[0],
-      expected: Parameters<typeof context.verify>[1],
-    ) => context.verify(candidate, expected),
+    resolve: context.resolve.bind(context),
+    verify: context.verify.bind(context),
   });
   const sensitivityPort = Object.freeze({
-    resolve: (request: Parameters<typeof sensitivity.resolve>[0]) =>
-      sensitivity.resolve(request),
-    verify: (
-      candidate: Parameters<typeof sensitivity.verify>[0],
-      expected: Parameters<typeof sensitivity.verify>[1],
-    ) => sensitivity.verify(candidate, expected),
+    resolve: sensitivity.resolve.bind(sensitivity),
+    verify: sensitivity.verify.bind(sensitivity),
   });
   const requirementsPort = Object.freeze({
-    resolve: (request: Parameters<typeof requirements.resolve>[0]) =>
-      requirements.resolve(request),
-    verify: (
-      candidate: Parameters<typeof requirements.verify>[0],
-      expected: Parameters<typeof requirements.verify>[1],
-    ) => requirements.verify(candidate, expected),
+    resolve: requirements.resolve.bind(requirements),
+    verify: requirements.verify.bind(requirements),
   });
   const authorizationPort = Object.freeze({
-    resolve: (request: Parameters<typeof authorization.resolve>[0]) =>
-      authorization.resolve(request),
-    verifyAuthorizationEvaluationOutcome: (
-      request: Parameters<
-        typeof authorization.verifyAuthorizationEvaluationOutcome
-      >[0],
-    ) => authorization.verifyAuthorizationEvaluationOutcome(request),
+    resolve: authorization.resolve.bind(authorization),
+    verifyAuthorizationEvaluationOutcome:
+      authorization.verifyAuthorizationEvaluationOutcome.bind(authorization),
   });
-  const events: SkillInvocationLifecycleEvent[] = [];
   const engine = new SkillEngine({
     context: contextPort,
     sensitivity: sensitivityPort,
     requirements: requirementsPort,
     authorization: authorizationPort,
-    lifecycleObserver: (event) => events.push(event),
+    ...(lifecycleObserver === undefined ? {} : { lifecycleObserver }),
   });
   runtime.engine = engine;
   engine.initialize();
@@ -128,37 +137,86 @@ export function demonstrateM9SkillInvocation(
       outputs: { "diagnostic.output": input.inputs["diagnostic.input"]! },
     }),
   });
-  const selection = engine.selectSkill({
+  const normalizedResultVerifier = engine.normalizedResultVerifier;
+
+  return Object.freeze({
+    selectSkill: Object.freeze({
+      selectSkill: engine.selectSkill.bind(engine),
+    }),
+    bindSkillToOperation: Object.freeze({
+      bindSkillToOperation: engine.bindSkillToOperation.bind(engine),
+    }),
+    resolveSkillExecutionContext: Object.freeze({
+      resolveSkillExecutionContext:
+        engine.resolveSkillExecutionContext.bind(engine),
+    }),
+    resolveSkillInvocationRequirements: Object.freeze({
+      resolveSkillInvocationRequirements:
+        engine.resolveSkillInvocationRequirements.bind(engine),
+    }),
+    resolveGovernedAuthorizationEvaluation: Object.freeze({
+      resolveGovernedAuthorizationEvaluation:
+        engine.resolveGovernedAuthorizationEvaluation.bind(engine),
+    }),
+    protectedInvokeSkill: Object.freeze({
+      invokeBoundSkill: engine.invokeBoundSkill.bind(engine),
+    }),
+    verifyNormalizedSkillExecutionResult: Object.freeze({
+      verify: normalizedResultVerifier.verify.bind(normalizedResultVerifier),
+    }),
+  });
+}
+
+export function demonstrateM9SkillInvocation(
+  contextRevision: ActiveContextRevision,
+  verifyContextRevision: (candidate: unknown) => boolean,
+  evaluator: EvaluateAuthorizationOutcome &
+    VerifyAuthorizationEvaluationOutcome,
+): M9SkillDemonstration {
+  const events: SkillInvocationLifecycleEvent[] = [];
+  const skill = composeConfiguredM9SkillCapability(
+    verifyContextRevision,
+    evaluator,
+    (event) => events.push(event),
+  );
+  const selection = skill.selectSkill.selectSkill({
     intent: "select-skill",
     capability: "diagnostic.invoke",
   });
   if (selection.status !== "selected")
     throw new Error("M9 Skill diagnostic selection failed.");
   const operationId = "diagnostic-m9-invocation";
-  const target = engine.bindSkillToOperation({
+  const target = skill.bindSkillToOperation.bindSkillToOperation({
     intent: "bind-skill-to-operation",
     operationId,
     binding: selection.binding,
   });
-  const projection = engine.resolveSkillExecutionContext({
-    intent: "resolve-skill-execution-context",
-    operationId,
-    contextRevision,
-  });
-  const governedRequirements = engine.resolveSkillInvocationRequirements({
-    intent: "resolve-skill-invocation-requirements",
-    target,
-  });
-  const evaluation = engine.resolveGovernedAuthorizationEvaluation({
-    intent: "resolve-governed-authorization-evaluation",
-    request: {
-      intent: "evaluate-authorization-outcome",
+  const projection =
+    skill.resolveSkillExecutionContext.resolveSkillExecutionContext({
+      intent: "resolve-skill-execution-context",
       operationId,
-      action: target.action,
-      resource: target.resource,
-    },
-  });
-  const result = engine.invokeBoundSkill({
+      contextRevision,
+    });
+  const governedRequirements =
+    skill.resolveSkillInvocationRequirements.resolveSkillInvocationRequirements(
+      {
+        intent: "resolve-skill-invocation-requirements",
+        target,
+      },
+    );
+  const evaluation =
+    skill.resolveGovernedAuthorizationEvaluation.resolveGovernedAuthorizationEvaluation(
+      {
+        intent: "resolve-governed-authorization-evaluation",
+        request: {
+          intent: "evaluate-authorization-outcome",
+          operationId,
+          action: target.action,
+          resource: target.resource,
+        },
+      },
+    );
+  const result = skill.protectedInvokeSkill.invokeBoundSkill({
     intent: "invoke-bound-skill",
     operationId,
     target,
@@ -170,12 +228,15 @@ export function demonstrateM9SkillInvocation(
   return Object.freeze({
     result,
     lifecycleTransitionCount: events.length,
-    resultAuthorityVerified: engine.normalizedResultVerifier.verify(result, {
-      operationId: target.operationId,
-      skillId: target.skillId,
-      skillVersion: target.skillVersion,
-      capability: target.capability,
-    }),
+    resultAuthorityVerified: skill.verifyNormalizedSkillExecutionResult.verify(
+      result,
+      {
+        operationId: target.operationId,
+        skillId: target.skillId,
+        skillVersion: target.skillVersion,
+        capability: target.capability,
+      },
+    ),
   });
 }
 

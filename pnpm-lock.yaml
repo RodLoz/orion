@@ -33,6 +33,9 @@ importers:
 
   services/bootstrap:
     dependencies:
+      "@orion/brain":
+        specifier: workspace:*
+        version: link:../brain
       "@orion/context":
         specifier: workspace:*
         version: link:../context

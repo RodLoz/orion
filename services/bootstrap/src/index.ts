@@ -1,5 +1,9 @@
 export { RuntimeCapabilityRegistry } from "./capability-registry.js";
 export {
+  composeBrainCapability,
+  type BrainCapabilityComposition,
+} from "./brain/brain-composition.js";
+export {
   composeContextCapability,
   type ContextCapabilityComposition,
 } from "./context/context-composition.js";
@@ -50,7 +54,9 @@ export {
   type PlanningCapabilityComposition,
 } from "./planning/planning-composition.js";
 export {
+  composeConfiguredM9SkillCapability,
   composeSkillCapability,
+  type ConfiguredM9SkillCapabilityComposition,
   type SkillCapabilityComposition,
 } from "./skill/skill-composition.js";
 export {
