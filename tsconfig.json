@@ -8,6 +8,7 @@
     { "path": "./services/knowledge" },
     { "path": "./services/reasoning" },
     { "path": "./services/planning" },
+    { "path": "./services/brain" },
     { "path": "./services/skill" },
     { "path": "./services/security" },
     { "path": "./services/bootstrap" }

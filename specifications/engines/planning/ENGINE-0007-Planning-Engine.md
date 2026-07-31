@@ -1,25 +1,29 @@
 # ENGINE-0007 — Planning Engine
 
-| Field          | Value                                                |
-| -------------- | ---------------------------------------------------- |
-| **Status**     | Active                                               |
-| **Version**    | 1.0.0                                                |
-| **Owner**      | Project Maintainers                                  |
-| **Created**    | 2026-07-20                                           |
-| **Updated**    | 2026-07-20                                           |
-| **Applies To** | Planning Engine, M6 — Planning Engine Vertical Slice |
+| Field             | Value                                                                        |
+| ----------------- | ---------------------------------------------------------------------------- |
+| **Status**        | Superseded                                                                   |
+| **Version**       | 1.0.0                                                                        |
+| **Superseded By** | [ENGINE-0007 1.1.0](ENGINE-0007-Planning-Engine-Authority-Revision-1.1.0.md) |
+| **Owner**         | Project Maintainers                                                          |
+| **Created**       | 2026-07-20                                                                   |
+| **Updated**       | 2026-07-29                                                                   |
+| **Applies To**    | Planning Engine, M6 — Planning Engine Vertical Slice                         |
 
 ---
 
 ## Status
 
-This specification is Active and authorizes the M6 Planning Engine vertical slice.
+This version is Superseded by
+[ENGINE-0007 1.1.0](ENGINE-0007-Planning-Engine-Authority-Revision-1.1.0.md)
+and is retained only as historical version 1.0.0. It is non-authoritative.
 
 The key words **MUST**, **MUST NOT**, **SHOULD**, **SHOULD NOT**, and **MAY** describe normative requirements proposed by this specification.
 
 ## Version
 
-Version `1.0.0` defines the approved first Planning Engine vertical slice.
+Version `1.0.0` historically defined the approved first Planning Engine
+vertical slice.
 
 ## Authority
 

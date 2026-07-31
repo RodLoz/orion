@@ -1,6 +1,7 @@
 import {
   ContextLineageNotFoundError,
   ContextValidationFailureError,
+  InvalidContextAuthorityStateError,
   InvalidContextInputError,
   InvalidContextLifecycleTransitionError,
   InvalidIdentityContextProjectionError,
@@ -20,8 +21,11 @@ import {
   type GetActiveContextRevisionRequest,
   type IdentityContextFragment,
   type IdentityContextProjection,
+  type VerifyActiveContextRevisionAuthority,
+  type VerifyActiveContextRevisionAuthorityRequest,
 } from "@orion/core";
 
+import { ContextAuthority } from "./context-authority.js";
 import {
   createActiveRuntimeContextRevision,
   expireRuntimeContextRevision,
@@ -59,6 +63,7 @@ const CONTEXT_FAILURES = [
   ContextLineageNotFoundError,
   ContextValidationFailureError,
   NoActiveContextRevisionError,
+  InvalidContextAuthorityStateError,
 ] as const;
 
 function isContextFailure(error: unknown): error is Error {
@@ -99,9 +104,13 @@ function sameProjection(
 }
 
 export class ContextEngine
-  implements ComposeContextRevision, GetActiveContextRevision
+  implements
+    ComposeContextRevision,
+    GetActiveContextRevision,
+    VerifyActiveContextRevisionAuthority
 {
   readonly #lineages = new Map<ContextLineageIdentity, ContextLineageState>();
+  readonly #authority = new ContextAuthority();
   #engineState: ContextEngineLifecycleState = "initialize";
 
   public constructor(private readonly construction: ContextConstructionValues) {
@@ -183,7 +192,12 @@ export class ContextEngine
       if (lineage.activeRevision.lifecycleState !== "active") {
         throw new NoActiveContextRevisionError();
       }
-      return lineage.activeRevision;
+      const candidate = lineage.activeRevision;
+      this.#authority.register(
+        candidate,
+        () => lineage.activeRevision === candidate,
+      );
+      return candidate;
     } catch (error: unknown) {
       if (isContextFailure(error)) {
         throw error;
@@ -192,14 +206,16 @@ export class ContextEngine
     }
   }
 
-  public verifyContextRevisionAuthority(candidate: unknown): boolean {
-    try {
-      return [...this.#lineages.values()].some((lineage) =>
-        lineage.revisions.some((revision) => revision === candidate),
-      );
-    } catch {
-      return false;
-    }
+  public verifyActiveContextRevisionAuthority(
+    request: VerifyActiveContextRevisionAuthorityRequest,
+  ): ActiveContextRevision;
+  public verifyActiveContextRevisionAuthority(
+    request: unknown,
+  ): ActiveContextRevision;
+  public verifyActiveContextRevisionAuthority(
+    request: unknown,
+  ): ActiveContextRevision {
+    return this.#authority.verifyActiveContextRevisionAuthority(request);
   }
 
   private composeValidated(

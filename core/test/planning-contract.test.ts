@@ -1,10 +1,14 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, expectTypeOf, it } from "vitest";
 import {
   InvalidPlanningStateError,
+  InvalidPlanningAuthorityRequestError,
+  InvalidPlanningAuthorityStateError,
+  PlanningAuthorityVerificationError,
   createCandidatePlan,
   createCandidatePlanStep,
   createPlanningExplainabilitySummary,
   createReasoningConsumptionReference,
+  type VerifyCandidatePlanAuthorityRequest,
 } from "../src/index.js";
 
 const source = () => ({
@@ -69,6 +73,91 @@ const validSources = [
 ] as const;
 
 describe("Planning Core factories", () => {
+  it("defines the exact Planning authority request and closed failures", () => {
+    const request = {
+      intent: "verify-candidate-plan-authority",
+      candidate: {} as never,
+      consumedReasoningOutcome: {} as never,
+      expectedReasoningStatus: "completed",
+      expectedReasoningCategory: "context-only",
+      expectedCandidateNextAction: "request-more-context",
+      expectedIdentityState: "authenticated",
+      expectedMemoryReferenceCount: 0,
+      expectedKnowledgeReferenceCount: 0,
+      expectedReasoningRuleCategory: "authenticated-context-only",
+    } satisfies VerifyCandidatePlanAuthorityRequest;
+    expect(Object.keys(request)).toHaveLength(10);
+    expectTypeOf<keyof VerifyCandidatePlanAuthorityRequest>().toEqualTypeOf<
+      | "intent"
+      | "candidate"
+      | "consumedReasoningOutcome"
+      | "expectedReasoningStatus"
+      | "expectedReasoningCategory"
+      | "expectedCandidateNextAction"
+      | "expectedIdentityState"
+      | "expectedMemoryReferenceCount"
+      | "expectedKnowledgeReferenceCount"
+      | "expectedReasoningRuleCategory"
+    >();
+    expect(new InvalidPlanningAuthorityRequestError().name).toBe(
+      "InvalidPlanningAuthorityRequestError",
+    );
+    expect(new PlanningAuthorityVerificationError().name).toBe(
+      "PlanningAuthorityVerificationError",
+    );
+    expect(new InvalidPlanningAuthorityStateError().name).toBe(
+      "InvalidPlanningAuthorityStateError",
+    );
+
+    const { candidate: omittedCandidate, ...missingCandidate } = request;
+    expect(omittedCandidate).toBeDefined();
+    // @ts-expect-error Candidate Plan is required.
+    const invalidMissingCandidate: VerifyCandidatePlanAuthorityRequest =
+      missingCandidate;
+    expect(invalidMissingCandidate).toBeDefined();
+
+    const {
+      consumedReasoningOutcome: omittedReasoning,
+      ...missingConsumedReasoning
+    } = request;
+    expect(omittedReasoning).toBeDefined();
+    // @ts-expect-error Exact consumed Reasoning Outcome is required.
+    const invalidMissingReasoning: VerifyCandidatePlanAuthorityRequest =
+      missingConsumedReasoning;
+    expect(invalidMissingReasoning).toBeDefined();
+
+    const {
+      expectedReasoningRuleCategory: omittedRule,
+      ...missingCorrespondence
+    } = request;
+    expect(omittedRule).toBe("authenticated-context-only");
+    // @ts-expect-error Complete Planning correspondence is required.
+    const invalidMissingCorrespondence: VerifyCandidatePlanAuthorityRequest =
+      missingCorrespondence;
+    expect(invalidMissingCorrespondence).toBeDefined();
+
+    const invalidExtra: VerifyCandidatePlanAuthorityRequest = {
+      ...request,
+      // @ts-expect-error Extra authority-request fields are prohibited.
+      extra: true,
+    };
+    expect(invalidExtra).toBeDefined();
+
+    const invalidCandidate: VerifyCandidatePlanAuthorityRequest = {
+      ...request,
+      // @ts-expect-error Candidate must be a Candidate Plan.
+      candidate: "not-a-candidate-plan",
+    };
+    expect(invalidCandidate).toBeDefined();
+
+    const invalidUpstream: VerifyCandidatePlanAuthorityRequest = {
+      ...request,
+      // @ts-expect-error Consumed input must be a Reasoning Outcome.
+      consumedReasoningOutcome: "not-a-reasoning-outcome",
+    };
+    expect(invalidUpstream).toBeDefined();
+  });
+
   it("constructs both exact immutable step variants", () => {
     const request = createCandidatePlanStep({
       ordinal: 1,

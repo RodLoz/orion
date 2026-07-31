@@ -1,4 +1,9 @@
-import type { ActiveContextRevision } from "./context.js";
+import type {
+  ActiveContextRevision,
+  ContextLineageIdentity,
+  ContextRevisionIdentity,
+  ContextRevisionNumber,
+} from "./context.js";
 import type { CurrentIdentity } from "./identity.js";
 
 export type ComposeContextTarget =
@@ -27,6 +32,20 @@ export interface GetActiveContextRevisionRequest {
 export interface GetActiveContextRevision {
   getActiveContextRevision(
     request: GetActiveContextRevisionRequest,
+  ): ActiveContextRevision;
+}
+
+export interface VerifyActiveContextRevisionAuthorityRequest {
+  readonly intent: "verify-active-context-revision-authority";
+  readonly candidate: ActiveContextRevision;
+  readonly expectedLineageIdentity: ContextLineageIdentity;
+  readonly expectedRevisionIdentity: ContextRevisionIdentity;
+  readonly expectedRevisionNumber: ContextRevisionNumber;
+}
+
+export interface VerifyActiveContextRevisionAuthority {
+  verifyActiveContextRevisionAuthority(
+    request: VerifyActiveContextRevisionAuthorityRequest,
   ): ActiveContextRevision;
 }
 
@@ -75,5 +94,26 @@ export class NoActiveContextRevisionError extends Error {
   public constructor() {
     super("No Active Context Revision is available.");
     this.name = "NoActiveContextRevisionError";
+  }
+}
+
+export class InvalidContextAuthorityRequestError extends Error {
+  public constructor() {
+    super("Context authority request is invalid.");
+    this.name = "InvalidContextAuthorityRequestError";
+  }
+}
+
+export class ContextAuthorityVerificationError extends Error {
+  public constructor() {
+    super("Context authority verification failed.");
+    this.name = "ContextAuthorityVerificationError";
+  }
+}
+
+export class InvalidContextAuthorityStateError extends Error {
+  public constructor() {
+    super("Context authority state is invalid.");
+    this.name = "InvalidContextAuthorityStateError";
   }
 }

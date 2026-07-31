@@ -303,8 +303,9 @@ export function composeDiagnosticRuntime(): DiagnosticResult {
     initialRevision.lineageIdentity !== successorRevision.lineageIdentity ||
     initialRevision.revisionNumber !== 1 ||
     successorRevision.revisionNumber !== 2 ||
-    initialRevision.lifecycleState !== "expired" ||
+    initialRevision.lifecycleState !== "active" ||
     successorRevision.lifecycleState !== "active" ||
+    retrievedSuccessor === initialRevision ||
     retrievedSuccessor.revisionIdentity !== successorRevision.revisionIdentity
   ) {
     throw new Error("Context capability diagnostic failed.");
@@ -414,9 +415,30 @@ export function composeDiagnosticRuntime(): DiagnosticResult {
   ) {
     throw new Error("Security capability diagnostic failed.");
   }
+  const authoritativeSuccessor =
+    context.getActiveContextRevision.getActiveContextRevision({
+      lineageIdentity: successorRevision.lineageIdentity,
+    });
   const m9 = demonstrateM9SkillInvocation(
-    successorRevision,
-    context.verifyContextRevisionAuthority,
+    authoritativeSuccessor,
+    (candidate) => {
+      if (candidate !== authoritativeSuccessor) return false;
+      try {
+        return (
+          context.verifyActiveContextRevisionAuthority.verifyActiveContextRevisionAuthority(
+            {
+              intent: "verify-active-context-revision-authority",
+              candidate: authoritativeSuccessor,
+              expectedLineageIdentity: authoritativeSuccessor.lineageIdentity,
+              expectedRevisionIdentity: authoritativeSuccessor.revisionIdentity,
+              expectedRevisionNumber: authoritativeSuccessor.revisionNumber,
+            },
+          ) === authoritativeSuccessor
+        );
+      } catch {
+        return false;
+      }
+    },
     security.authorizationEvaluation,
   );
   if (

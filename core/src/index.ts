@@ -22,6 +22,53 @@ export type {
   SkillCapabilityDiagnostic,
 } from "./diagnostic.js";
 export {
+  brainDiagnosticCorrelationIdentifier,
+  brainRequestIdentifier,
+  createBrainExecutionIntent,
+  createBrainOrchestrationLifecycleEvent,
+  createFinalCognitiveResult,
+  createNormalizedCognitiveRequest,
+  type BrainDiagnosticCorrelationIdentifier,
+  type BrainExecutionIntent,
+  type BrainOrchestrationLifecycleEvent,
+  type BrainOrchestrationLifecycleState,
+  type BrainOrchestrationTransitionCategory,
+  type BrainRequestIdentifier,
+  type FinalCognitiveRequestMoreContext,
+  type FinalCognitiveResponse,
+  type FinalCognitiveResult,
+  type FinalCognitiveSkillResult,
+  type NormalizedCognitiveRequest,
+} from "./brain.js";
+export type {
+  AllocateAuthorizationOperationIdentifier,
+  AllocateAuthorizationOperationIdentifierRequest,
+  BrainConfiguration,
+  BrainContextAuthorityPort,
+  BrainPlanningAuthorityPort,
+  BrainReasoningAuthorityPort,
+  ObserveBrainOrchestrationLifecycle,
+  OrchestrateCognitiveRequest,
+  VerifyFinalCognitiveResponseRequest,
+  VerifyFinalCognitiveResult,
+  VerifyFinalCognitiveResultRequest,
+  VerifyFinalRequestMoreContextRequest,
+  VerifyFinalSkillResultRequest,
+} from "./brain-contracts.js";
+export {
+  BrainAuthorizationResolutionError,
+  BrainContextResolutionError,
+  BrainPlanningResolutionError,
+  BrainProtectedInvocationError,
+  BrainReasoningResolutionError,
+  BrainSkillCoordinationError,
+  InvalidBrainAuthorityError,
+  InvalidBrainExecutionStateError,
+  InvalidBrainPlanError,
+  InvalidBrainRequestError,
+  InvalidFinalCognitiveResultError,
+} from "./brain-errors.js";
+export {
   DuplicateMemoryIdentityError,
   InvalidMemoryIdentityError,
   InvalidMemoryInputError,
@@ -92,8 +139,11 @@ export {
   type RetrievedMemory,
 } from "./memory.js";
 export {
+  ContextAuthorityVerificationError,
   ContextLineageNotFoundError,
   ContextValidationFailureError,
+  InvalidContextAuthorityRequestError,
+  InvalidContextAuthorityStateError,
   InvalidContextInputError,
   InvalidContextLifecycleTransitionError,
   InvalidIdentityContextProjectionError,
@@ -104,6 +154,8 @@ export {
   type ContextConstructionValues,
   type GetActiveContextRevision,
   type GetActiveContextRevisionRequest,
+  type VerifyActiveContextRevisionAuthority,
+  type VerifyActiveContextRevisionAuthorityRequest,
 } from "./context-contracts.js";
 export {
   contextCreatedAt,
@@ -240,14 +292,19 @@ export {
 export {
   InactiveContextError,
   InvalidActiveContextError,
+  InvalidReasoningAuthorityRequestError,
+  InvalidReasoningAuthorityStateError,
   InvalidKnowledgeReferenceError,
   InvalidMemoryReferenceError,
   InvalidReasoningInputError,
   InvalidReasoningQueryError,
   InvalidReasoningStateError,
   ReasoningRuleFailureError,
+  ReasoningAuthorityVerificationError,
   type EvaluateReasoning,
   type EvaluateReasoningRequest,
+  type VerifyReasoningOutcomeAuthority,
+  type VerifyReasoningOutcomeAuthorityRequest,
 } from "./reasoning-contracts.js";
 export {
   CANDIDATE_CONCLUSION_MAX_CODE_POINTS,
@@ -277,12 +334,17 @@ export {
   type ReasoningRuleCategory,
 } from "./reasoning.js";
 export {
+  InvalidPlanningAuthorityRequestError,
+  InvalidPlanningAuthorityStateError,
   InvalidPlanningInputError,
   InvalidPlanningStateError,
   InvalidReasoningOutcomeError,
   PlanningRuleFailureError,
+  PlanningAuthorityVerificationError,
   type CreateCandidatePlan,
   type CreateCandidatePlanRequest,
+  type VerifyCandidatePlanAuthority,
+  type VerifyCandidatePlanAuthorityRequest,
 } from "./planning-contracts.js";
 export {
   createCandidatePlan,

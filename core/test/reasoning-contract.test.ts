@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, expectTypeOf, it } from "vitest";
 import {
   CANDIDATE_CONCLUSION_MAX_CODE_POINTS,
   CANDIDATE_RESPONSE_MAX_CODE_POINTS,
@@ -7,6 +7,9 @@ import {
   InvalidReasoningExplainabilityValueError,
   InvalidReasoningOutcomeValueError,
   InvalidReasoningQueryValueError,
+  InvalidReasoningAuthorityRequestError,
+  InvalidReasoningAuthorityStateError,
+  ReasoningAuthorityVerificationError,
   REASONING_QUERY_MAX_CODE_POINTS,
   candidateConclusion,
   candidateResponse,
@@ -14,6 +17,7 @@ import {
   createReasoningExplainabilitySummary,
   createReasoningOutcome,
   reasoningQuery,
+  type VerifyReasoningOutcomeAuthorityRequest,
 } from "../src/index.js";
 
 const contextReference = () => ({
@@ -25,6 +29,83 @@ const contextReference = () => ({
 });
 
 describe("Reasoning Core domain", () => {
+  it("defines the exact Reasoning authority request and closed failures", () => {
+    const request = {
+      intent: "verify-reasoning-outcome-authority",
+      candidate: {} as never,
+      consumedContextRevision: {} as never,
+      expectedLineageIdentity: "context.lineage.m5" as never,
+      expectedRevisionIdentity: "context.revision.m5" as never,
+      expectedRevisionNumber: 1 as never,
+    } satisfies VerifyReasoningOutcomeAuthorityRequest;
+    expect(Object.keys(request)).toHaveLength(6);
+    expectTypeOf<keyof VerifyReasoningOutcomeAuthorityRequest>().toEqualTypeOf<
+      | "intent"
+      | "candidate"
+      | "consumedContextRevision"
+      | "expectedLineageIdentity"
+      | "expectedRevisionIdentity"
+      | "expectedRevisionNumber"
+    >();
+    expect(new InvalidReasoningAuthorityRequestError().name).toBe(
+      "InvalidReasoningAuthorityRequestError",
+    );
+    expect(new ReasoningAuthorityVerificationError().name).toBe(
+      "ReasoningAuthorityVerificationError",
+    );
+    expect(new InvalidReasoningAuthorityStateError().name).toBe(
+      "InvalidReasoningAuthorityStateError",
+    );
+
+    const { candidate: omittedCandidate, ...missingCandidate } = request;
+    expect(omittedCandidate).toBeDefined();
+    // @ts-expect-error Candidate is required.
+    const invalidMissingCandidate: VerifyReasoningOutcomeAuthorityRequest =
+      missingCandidate;
+    expect(invalidMissingCandidate).toBeDefined();
+
+    const {
+      consumedContextRevision: omittedContext,
+      ...missingConsumedContext
+    } = request;
+    expect(omittedContext).toBeDefined();
+    // @ts-expect-error Exact consumed Context is required.
+    const invalidMissingContext: VerifyReasoningOutcomeAuthorityRequest =
+      missingConsumedContext;
+    expect(invalidMissingContext).toBeDefined();
+
+    const {
+      expectedRevisionIdentity: omittedRevision,
+      ...missingCorrespondence
+    } = request;
+    expect(omittedRevision).toBeDefined();
+    // @ts-expect-error Complete Context correspondence is required.
+    const invalidMissingCorrespondence: VerifyReasoningOutcomeAuthorityRequest =
+      missingCorrespondence;
+    expect(invalidMissingCorrespondence).toBeDefined();
+
+    const invalidExtra: VerifyReasoningOutcomeAuthorityRequest = {
+      ...request,
+      // @ts-expect-error Extra authority-request fields are prohibited.
+      extra: true,
+    };
+    expect(invalidExtra).toBeDefined();
+
+    const invalidCandidate: VerifyReasoningOutcomeAuthorityRequest = {
+      ...request,
+      // @ts-expect-error Candidate must be a Reasoning Outcome.
+      candidate: "not-a-reasoning-outcome",
+    };
+    expect(invalidCandidate).toBeDefined();
+
+    const invalidUpstream: VerifyReasoningOutcomeAuthorityRequest = {
+      ...request,
+      // @ts-expect-error Consumed input must be an Active Context Revision.
+      consumedContextRevision: "not-a-context-revision",
+    };
+    expect(invalidUpstream).toBeDefined();
+  });
+
   it.each([
     [
       reasoningQuery,

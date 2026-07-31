@@ -29,6 +29,33 @@ module.exports = {
       },
     },
     {
+      name: "brain-engine-must-not-depend-on-other-engines-or-bootstrap",
+      comment:
+        "Brain coordinates only through Core-custodied Contracts and never imports concrete Engine or Bootstrap implementations.",
+      severity: "error",
+      from: { path: "^services/brain/(src|architecture-fixtures)" },
+      to: {
+        path: "^services/(?!brain/)|^(apps|packages|infrastructure|infraestructure)/",
+      },
+    },
+    {
+      name: "brain-engine-must-not-depend-on-external-packages",
+      comment: "Brain is framework-free and depends only on @orion/core.",
+      severity: "error",
+      from: { path: "^services/brain/(src|architecture-fixtures)" },
+      to: {
+        dependencyTypes: [
+          "npm",
+          "npm-dev",
+          "npm-no-pkg",
+          "npm-optional",
+          "npm-peer",
+          "npm-bundled",
+        ],
+        pathNot: "^@orion/core$",
+      },
+    },
+    {
       name: "identity-engine-must-not-depend-on-concrete-outer-layers",
       comment:
         "Identity Engine owns domain behavior and may depend only inward on Core abstractions.",

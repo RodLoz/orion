@@ -26,7 +26,10 @@ import {
   type KnowledgeReference,
   type MemoryReference,
   type ReasoningOutcome,
+  type VerifyReasoningOutcomeAuthority,
+  type VerifyReasoningOutcomeAuthorityRequest,
 } from "@orion/core";
+import { ReasoningAuthority } from "./reasoning-authority.js";
 
 interface NormalizedRequest {
   readonly context: ActiveContextRevision;
@@ -41,8 +44,11 @@ interface ValidatedRequestShape {
   readonly hasKnowledgeReferences: boolean;
 }
 
-export class ReasoningEngine implements EvaluateReasoning {
+export class ReasoningEngine
+  implements EvaluateReasoning, VerifyReasoningOutcomeAuthority
+{
   #state: ReasoningEngineLifecycleState = "initialize";
+  readonly #authority = new ReasoningAuthority();
   public get engineState(): ReasoningEngineLifecycleState {
     return this.#state;
   }
@@ -62,7 +68,8 @@ export class ReasoningEngine implements EvaluateReasoning {
   public evaluateReasoning(request: unknown): ReasoningOutcome {
     if (this.#state !== "running") throw new InvalidReasoningStateError();
     const top = this.validateTopLevel(request);
-    const context = this.validateContextField(top.source);
+    const suppliedContext = this.captureContextField(top.source);
+    const context = this.validateContextField(suppliedContext);
     if (context.lifecycleState !== "active") throw new InactiveContextError();
     const query = this.validateQueryField(top.source);
     const memoryReferences = this.validateMemoryReferences(
@@ -73,9 +80,19 @@ export class ReasoningEngine implements EvaluateReasoning {
       top.source,
       top.hasKnowledgeReferences,
     );
-    return this.evaluateRules(
+    const outcome = this.evaluateRules(
       Object.freeze({ context, query, memoryReferences, knowledgeReferences }),
     );
+    this.#authority.register(outcome, suppliedContext);
+    return outcome;
+  }
+
+  public verifyReasoningOutcomeAuthority(
+    request: VerifyReasoningOutcomeAuthorityRequest,
+  ): ReasoningOutcome;
+  public verifyReasoningOutcomeAuthority(request: unknown): ReasoningOutcome;
+  public verifyReasoningOutcomeAuthority(request: unknown): ReasoningOutcome {
+    return this.#authority.verifyReasoningOutcomeAuthority(request);
   }
 
   private validateTopLevel(value: unknown): ValidatedRequestShape {
@@ -101,11 +118,22 @@ export class ReasoningEngine implements EvaluateReasoning {
     }
   }
 
-  private validateContextField(
+  private captureContextField(
     source: Record<string, unknown>,
   ): ActiveContextRevision {
     try {
-      return this.validateContext(Reflect.get(source, "activeContextRevision"));
+      return Reflect.get(
+        source,
+        "activeContextRevision",
+      ) as ActiveContextRevision;
+    } catch {
+      throw new InvalidActiveContextError();
+    }
+  }
+
+  private validateContextField(value: unknown): ActiveContextRevision {
+    try {
+      return this.validateContext(value);
     } catch (error: unknown) {
       if (error instanceof InvalidActiveContextError) throw error;
       throw new InvalidActiveContextError();

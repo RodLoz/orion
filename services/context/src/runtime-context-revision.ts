@@ -45,9 +45,7 @@ export function createActiveRuntimeContextRevision(
       ? {}
       : { parentRevisionIdentity: input.parentRevisionIdentity }),
     creationMetadata,
-    get lifecycleState() {
-      return lifecycle.state;
-    },
+    lifecycleState: "active",
     fragments,
   });
 

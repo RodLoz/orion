@@ -145,7 +145,7 @@ describe("ContextEngine", () => {
     expect(successor.revisionNumber).toBe(2);
     expect(successor.parentRevisionIdentity).toBe(first.revisionIdentity);
     expect(successor.lifecycleState).toBe("active");
-    expect(first.lifecycleState).toBe("expired");
+    expect(first.lifecycleState).toBe("active");
     expect(
       JSON.stringify({
         fragments: first.fragments,

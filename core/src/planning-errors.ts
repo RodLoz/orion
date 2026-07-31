@@ -26,6 +26,33 @@ export class PlanningRuleFailureError extends PlanningContractError {
   }
 }
 
+export class InvalidPlanningAuthorityRequestError extends PlanningContractError {
+  public constructor() {
+    super(
+      "Planning authority request is invalid.",
+      "InvalidPlanningAuthorityRequestError",
+    );
+  }
+}
+
+export class PlanningAuthorityVerificationError extends PlanningContractError {
+  public constructor() {
+    super(
+      "Planning authority verification failed.",
+      "PlanningAuthorityVerificationError",
+    );
+  }
+}
+
+export class InvalidPlanningAuthorityStateError extends PlanningContractError {
+  public constructor() {
+    super(
+      "Planning authority state is invalid.",
+      "InvalidPlanningAuthorityStateError",
+    );
+  }
+}
+
 export class InvalidPlanningStateError extends PlanningContractError {
   public constructor() {
     super("Planning Engine state is invalid.", "InvalidPlanningStateError");

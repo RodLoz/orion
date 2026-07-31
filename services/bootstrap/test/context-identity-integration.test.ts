@@ -35,9 +35,18 @@ describe("Context and Identity composition", () => {
       currentIdentity: authenticated,
     });
 
-    expect(first.lifecycleState).toBe("expired");
+    expect(first.lifecycleState).toBe("active");
+    expect(successor).not.toBe(first);
     expect(successor.lifecycleState).toBe("active");
     expect(successor.fragments[0].projection.state).toBe("authenticated");
+  });
+
+  it("exposes only the Active Context authority verifier", () => {
+    const context = composeContextCapability();
+    expect(context).not.toHaveProperty("verifyContextRevisionAuthority");
+    expect(context.verifyActiveContextRevisionAuthority).toHaveProperty(
+      "verifyActiveContextRevisionAuthority",
+    );
   });
 
   it("preserves unresolved Identity failure before Context activation", () => {

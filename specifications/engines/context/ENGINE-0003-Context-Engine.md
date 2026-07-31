@@ -1,19 +1,22 @@
 # ENGINE-0003 — Context Engine
 
-| Field          | Value                                       |
-| -------------- | ------------------------------------------- |
-| **Status**     | Active                                      |
-| **Version**    | 1.0.0                                       |
-| **Owner**      | Project Maintainers                         |
-| **Created**    | 2026-07-19                                  |
-| **Updated**    | 2026-07-19                                  |
-| **Applies To** | Context Engine, M2 — Context Vertical Slice |
+| Field             | Value                                                                       |
+| ----------------- | --------------------------------------------------------------------------- |
+| **Status**        | Superseded                                                                  |
+| **Version**       | 1.0.0                                                                       |
+| **Superseded By** | [ENGINE-0003 1.1.0](ENGINE-0003-Context-Engine-Authority-Revision-1.1.0.md) |
+| **Owner**         | Project Maintainers                                                         |
+| **Created**       | 2026-07-19                                                                  |
+| **Updated**       | 2026-07-29                                                                  |
+| **Applies To**    | Context Engine, M2 — Context Vertical Slice                                 |
 
 ---
 
 ## Status
 
-This specification is Active and governs M2 implementation according to the documentation authority and status rules.
+This version is Superseded by
+[ENGINE-0003 1.1.0](ENGINE-0003-Context-Engine-Authority-Revision-1.1.0.md)
+and is retained only as historical version 1.0.0. It is non-authoritative.
 
 The key words **MUST**, **MUST NOT**, **SHOULD**, **SHOULD NOT**, and **MAY** describe normative requirements within this specification.
 

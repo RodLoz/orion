@@ -1,3 +1,9 @@
+import type {
+  ContextLineageIdentity,
+  ContextRevisionIdentity,
+  ContextRevisionNumber,
+  ActiveContextRevision,
+} from "./context.js";
 import type { ReasoningOutcome } from "./reasoning.js";
 
 export interface EvaluateReasoningRequest {
@@ -9,6 +15,21 @@ export interface EvaluateReasoningRequest {
 }
 export interface EvaluateReasoning {
   evaluateReasoning(request: EvaluateReasoningRequest): ReasoningOutcome;
+}
+
+export interface VerifyReasoningOutcomeAuthorityRequest {
+  readonly intent: "verify-reasoning-outcome-authority";
+  readonly candidate: ReasoningOutcome;
+  readonly consumedContextRevision: ActiveContextRevision;
+  readonly expectedLineageIdentity: ContextLineageIdentity;
+  readonly expectedRevisionIdentity: ContextRevisionIdentity;
+  readonly expectedRevisionNumber: ContextRevisionNumber;
+}
+
+export interface VerifyReasoningOutcomeAuthority {
+  verifyReasoningOutcomeAuthority(
+    request: VerifyReasoningOutcomeAuthorityRequest,
+  ): ReasoningOutcome;
 }
 
 class ReasoningContractError extends Error {
@@ -58,5 +79,32 @@ export class ReasoningRuleFailureError extends ReasoningContractError {
 export class InvalidReasoningStateError extends ReasoningContractError {
   public constructor() {
     super("Reasoning Engine state is invalid.", "InvalidReasoningStateError");
+  }
+}
+
+export class InvalidReasoningAuthorityRequestError extends ReasoningContractError {
+  public constructor() {
+    super(
+      "Reasoning authority request is invalid.",
+      "InvalidReasoningAuthorityRequestError",
+    );
+  }
+}
+
+export class ReasoningAuthorityVerificationError extends ReasoningContractError {
+  public constructor() {
+    super(
+      "Reasoning authority verification failed.",
+      "ReasoningAuthorityVerificationError",
+    );
+  }
+}
+
+export class InvalidReasoningAuthorityStateError extends ReasoningContractError {
+  public constructor() {
+    super(
+      "Reasoning authority state is invalid.",
+      "InvalidReasoningAuthorityStateError",
+    );
   }
 }

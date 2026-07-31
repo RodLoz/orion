@@ -1,19 +1,22 @@
 # ENGINE-0006 — Reasoning Engine
 
-| Field          | Value                                                  |
-| -------------- | ------------------------------------------------------ |
-| **Status**     | Active                                                 |
-| **Version**    | 1.0.0                                                  |
-| **Owner**      | Project Maintainers                                    |
-| **Created**    | 2026-07-20                                             |
-| **Updated**    | 2026-07-20                                             |
-| **Applies To** | Reasoning Engine, M5 — Reasoning Engine Vertical Slice |
+| Field             | Value                                                                         |
+| ----------------- | ----------------------------------------------------------------------------- |
+| **Status**        | Superseded                                                                    |
+| **Version**       | 1.0.0                                                                         |
+| **Superseded By** | [ENGINE-0006 1.1.0](ENGINE-0006-Reasoning-Engine-Authority-Revision-1.1.0.md) |
+| **Owner**         | Project Maintainers                                                           |
+| **Created**       | 2026-07-20                                                                    |
+| **Updated**       | 2026-07-29                                                                    |
+| **Applies To**    | Reasoning Engine, M5 — Reasoning Engine Vertical Slice                        |
 
 ---
 
 ## Status
 
-This specification is Active and authorizes M5 implementation according to the documentation authority rules.
+This version is Superseded by
+[ENGINE-0006 1.1.0](ENGINE-0006-Reasoning-Engine-Authority-Revision-1.1.0.md)
+and is retained only as historical version 1.0.0. It is non-authoritative.
 
 The key words **MUST**, **MUST NOT**, **SHOULD**, **SHOULD NOT**, and **MAY** describe normative requirements proposed by this specification.
 

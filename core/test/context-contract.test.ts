@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, expectTypeOf, it } from "vitest";
 
 import {
   InvalidContextCreatedAtError,
@@ -6,12 +6,16 @@ import {
   InvalidContextLineageIdentityError,
   InvalidContextRevisionIdentityError,
   InvalidContextRevisionNumberError,
+  InvalidContextAuthorityRequestError,
+  ContextAuthorityVerificationError,
+  InvalidContextAuthorityStateError,
   contextCreatedAt,
   contextLifecycleState,
   contextLineageIdentity,
   contextRevisionIdentity,
   contextRevisionNumber,
   type ContextLifecycleState,
+  type VerifyActiveContextRevisionAuthorityRequest,
 } from "../src/index.js";
 
 describe("Context domain Contracts", () => {
@@ -108,5 +112,78 @@ describe("Context domain Contracts", () => {
       expect(error).toBeInstanceOf(InvalidContextLineageIdentityError);
       expect((error as Error).message).not.toContain(secret);
     }
+  });
+
+  it("defines the Active Context authority request and closed failures", () => {
+    const request = {
+      intent: "verify-active-context-revision-authority",
+      candidate: {} as never,
+      expectedLineageIdentity: "context.lineage.1" as never,
+      expectedRevisionIdentity: "context.revision.1" as never,
+      expectedRevisionNumber: 1 as never,
+    } satisfies VerifyActiveContextRevisionAuthorityRequest;
+    expect(Object.keys(request)).toEqual([
+      "intent",
+      "candidate",
+      "expectedLineageIdentity",
+      "expectedRevisionIdentity",
+      "expectedRevisionNumber",
+    ]);
+    expectTypeOf<
+      keyof VerifyActiveContextRevisionAuthorityRequest
+    >().toEqualTypeOf<
+      | "intent"
+      | "candidate"
+      | "expectedLineageIdentity"
+      | "expectedRevisionIdentity"
+      | "expectedRevisionNumber"
+    >();
+    expect(new InvalidContextAuthorityRequestError().name).toBe(
+      "InvalidContextAuthorityRequestError",
+    );
+    expect(new ContextAuthorityVerificationError().name).toBe(
+      "ContextAuthorityVerificationError",
+    );
+    expect(new InvalidContextAuthorityStateError().name).toBe(
+      "InvalidContextAuthorityStateError",
+    );
+
+    const { candidate: omittedCandidate, ...missingCandidate } = request;
+    expect(omittedCandidate).toBeDefined();
+    // @ts-expect-error Candidate is required.
+    const invalidMissingCandidate: VerifyActiveContextRevisionAuthorityRequest =
+      missingCandidate;
+    expect(invalidMissingCandidate).toBeDefined();
+
+    const {
+      expectedRevisionNumber: omittedRevisionNumber,
+      ...missingRevisionNumber
+    } = request;
+    expect(omittedRevisionNumber).toBe(1);
+    // @ts-expect-error Every lineage/revision expectation is required.
+    const invalidMissingRevision: VerifyActiveContextRevisionAuthorityRequest =
+      missingRevisionNumber;
+    expect(invalidMissingRevision).toBeDefined();
+
+    const invalidExtra: VerifyActiveContextRevisionAuthorityRequest = {
+      ...request,
+      // @ts-expect-error Extra authority-request fields are prohibited.
+      extra: true,
+    };
+    expect(invalidExtra).toBeDefined();
+
+    const invalidCandidate: VerifyActiveContextRevisionAuthorityRequest = {
+      ...request,
+      // @ts-expect-error Candidate must be an Active Context Revision.
+      candidate: "not-a-context-revision",
+    };
+    expect(invalidCandidate).toBeDefined();
+
+    const invalidExpectedType: VerifyActiveContextRevisionAuthorityRequest = {
+      ...request,
+      // @ts-expect-error Revision number must retain its exact branded type.
+      expectedRevisionNumber: "1",
+    };
+    expect(invalidExpectedType).toBeDefined();
   });
 });

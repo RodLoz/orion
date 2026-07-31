@@ -11,14 +11,25 @@ import {
   type CandidatePlan,
   type CreateCandidatePlan,
   type ReasoningOutcome,
+  type VerifyCandidatePlanAuthority,
+  type VerifyCandidatePlanAuthorityRequest,
 } from "@orion/core";
 import { selectPlanningRule } from "./planning-rules.js";
+import { PlanningAuthority } from "./planning-authority.js";
 
 export type PlanningEngineLifecycleState =
   "initialize" | "ready" | "running" | "stopped";
 
-export class PlanningEngine implements CreateCandidatePlan {
+interface ValidatedOutcome {
+  readonly supplied: ReasoningOutcome;
+  readonly normalized: ReasoningOutcome;
+}
+
+export class PlanningEngine
+  implements CreateCandidatePlan, VerifyCandidatePlanAuthority
+{
   #state: PlanningEngineLifecycleState = "initialize";
+  readonly #authority = new PlanningAuthority();
   public get engineState(): PlanningEngineLifecycleState {
     return this.#state;
   }
@@ -38,9 +49,19 @@ export class PlanningEngine implements CreateCandidatePlan {
   public createCandidatePlan(request: unknown): CandidatePlan {
     if (this.#state !== "running") throw new InvalidPlanningStateError();
     const source = this.validateRequest(request);
-    const outcome = this.validateOutcomeField(source);
+    const { supplied, normalized: outcome } = this.validateOutcomeField(source);
     this.validateOutcomeSemantics(outcome);
-    return this.evaluateRule(outcome);
+    const candidate = this.evaluateRule(outcome);
+    this.#authority.register(candidate, supplied);
+    return candidate;
+  }
+
+  public verifyCandidatePlanAuthority(
+    request: VerifyCandidatePlanAuthorityRequest,
+  ): CandidatePlan;
+  public verifyCandidatePlanAuthority(request: unknown): CandidatePlan;
+  public verifyCandidatePlanAuthority(request: unknown): CandidatePlan {
+    return this.#authority.verifyCandidatePlanAuthority(request);
   }
 
   private validateRequest(value: unknown): Record<string, unknown> {
@@ -72,10 +93,13 @@ export class PlanningEngine implements CreateCandidatePlan {
 
   private validateOutcomeField(
     source: Record<string, unknown>,
-  ): ReasoningOutcome {
+  ): ValidatedOutcome {
     try {
       const captured = Reflect.get(source, "reasoningOutcome");
-      return createReasoningOutcome(normalizeOutcomeInput(captured));
+      return Object.freeze({
+        supplied: captured as ReasoningOutcome,
+        normalized: createReasoningOutcome(normalizeOutcomeInput(captured)),
+      });
     } catch {
       throw new InvalidReasoningOutcomeError();
     }
