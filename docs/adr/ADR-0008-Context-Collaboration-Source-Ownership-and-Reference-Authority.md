@@ -2,11 +2,11 @@
 
 | Field             | Value                 |
 | ----------------- | --------------------- |
-| **Status**        | Draft                 |
-| **Version**       | 0.1.0                 |
+| **Status**        | Active                |
+| **Version**       | 1.0.0                 |
 | **Owner**         | Orion Architecture    |
 | **Created**       | 2026-08-04            |
-| **Updated**       | 2026-08-04            |
+| **Updated**       | 2026-08-09            |
 | **Decision Type** | Architecture Decision |
 
 ---
@@ -120,6 +120,7 @@ A proposed revision to an existing ADR or Concept that conflicts with the owners
 | Version | Date       | Description                                                          |
 | ------- | ---------- | -------------------------------------------------------------------- |
 | 0.1.0   | 2026-08-04 | Initial draft derived from the non-normative source decision record. |
+| 1.0.0   | 2026-08-09 | Approved architectural decision.                                     |
 
 # Engineering Motto
 
