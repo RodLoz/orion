@@ -17,7 +17,7 @@ Context Revision preparation can request cognitive references from independent s
 
 Participation across these capability boundaries may be protected. Permission for participation introduces three related architectural questions: which capability owns authorization meaning, which boundary applies an authorization decision, and what remains true about that decision after a reference passes through the protected boundary.
 
-Existing architecture already separates Security-owned decisions from enforcement in other protected interactions. ADR-0008 through ADR-0011 provide Draft provisional predecessors for cognitive-reference authority, Context Revision stability, retrieval semantics, and currentness. This ADR specializes the authorization boundary for retrieval participation without redefining those responsibilities or treating a Draft predecessor as approved authority.
+Existing architecture already separates Security-owned decisions from enforcement in other protected interactions. ADR-0008 through ADR-0011 provide Draft provisional predecessors for cognitive-reference authority, Context Revision stability, retrieval semantics, and currentness. This ADR specializes the authorization boundary for retrieval participation without redefining those responsibilities or treating a Draft predecessor as approved authority. It formalizes only the authorization distinctions derived from D-016 through D-018 in the non-normative source decision record.
 
 # Problem Statement
 

@@ -145,6 +145,7 @@ Rejected because conveying a request or returned value does not establish its ar
 - [CONCEPT-0001 — Memory Model](../../specifications/concepts/CONCEPT-0001-Memory-Model.md)
 - [CONCEPT-0002 — Knowledge Model](../../specifications/concepts/CONCEPT-0002-Knowledge-Model.md)
 - [CONCEPT-0003 — Context Model](../../specifications/concepts/CONCEPT-0003-Context-Model.md)
+- [DECISION-0001 — Context Collection Semantics](../decisions/DECISION-0001-Context-Collection-Semantics.md) — Non-normative source decision record.
 - [Documentation Authority](../DOCUMENT-AUTHORITY.md)
 - [OES-0008 — Documentation Standards](../engineering/OES-0008-Documentation-Standards.md)
 - [OES-0010 — Versioning Standards](../engineering/OES-0010-Versioning-Standards.md)

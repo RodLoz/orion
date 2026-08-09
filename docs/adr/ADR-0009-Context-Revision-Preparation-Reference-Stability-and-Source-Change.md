@@ -17,7 +17,7 @@ Context is prepared from cognitive references supplied by independent capability
 
 The Context Model already governs Context Revision identity, lineage, lifecycle states, activation, and immutability. Within that model, collaboration needs a precise relationship to revision preparation. The incorporated references also need one unambiguous closure boundary so validation, activation, and downstream reasoning concern the same evidence. Later changes within a source domain need treatment that preserves both the source's independent lifecycle and the historical integrity of an existing Context Revision.
 
-This ADR addresses those connected boundaries without redefining the terminology or lifecycle governed by the Context Model.
+This ADR addresses those connected boundaries without redefining the terminology or lifecycle governed by the Context Model. It formalizes only the lifecycle distinctions derived from D-007 through D-009 in the non-normative source decision record.
 
 # Problem Statement
 
