@@ -2,11 +2,11 @@
 
 | Field             | Value                 |
 | ----------------- | --------------------- |
-| **Status**        | Draft                 |
-| **Version**       | 0.1.0                 |
+| **Status**        | Active                |
+| **Version**       | 1.0.0                 |
 | **Owner**         | Orion Architecture    |
 | **Created**       | 2026-08-04            |
-| **Updated**       | 2026-08-04            |
+| **Updated**       | 2026-08-09            |
 | **Decision Type** | Architecture Decision |
 
 ---
@@ -17,7 +17,7 @@ Context Revision preparation can involve cognitive references supplied by multip
 
 Retrieval crosses capability boundaries but does not collapse them. A Context need is communicated to sources, each source applies that need within its own domain, and candidate references become available for later Context consideration. Several participants may therefore contribute to the collaboration without sharing one undifferentiated retrieval responsibility.
 
-ADR-0008 and ADR-0009 provide Draft provisional predecessors for the collaboration, authority, preparation, and reference-set stability boundaries. This ADR preserves their Draft status and formalizes only the retrieval ownership distinctions derived from D-010 through D-012.
+ADR-0008 and ADR-0009 provide Active normative predecessors for the collaboration, authority, preparation, and reference-set stability boundaries. This ADR preserves their accepted boundaries and formalizes only the retrieval ownership distinctions derived from D-010 through D-012.
 
 ## Problem Statement
 
@@ -140,8 +140,8 @@ Rejected because conveying a request or returned value does not establish its ar
 - [ADR-0003 — Engine Communication Model](ADR-0003-Engine-Communication-Model.md)
 - [ADR-0005 — Memory Architecture Principles](<ADR-0005 — Memory Architecture Principles>)
 - [ADR-0007 — Brain Orchestration Ownership and Planning Binding](ADR-0007-Brain-Orchestration-Ownership-and-Planning-Binding.md)
-- [ADR-0008 — Context Collaboration, Source Ownership, and Reference Authority](ADR-0008-Context-Collaboration-Source-Ownership-and-Reference-Authority.md) — Draft provisional predecessor while applicable.
-- [ADR-0009 — Context Revision Preparation, Reference Stability, and Source Change](ADR-0009-Context-Revision-Preparation-Reference-Stability-and-Source-Change.md) — Draft provisional predecessor while applicable.
+- [ADR-0008 — Context Collaboration, Source Ownership, and Reference Authority](ADR-0008-Context-Collaboration-Source-Ownership-and-Reference-Authority.md) — Active normative predecessor.
+- [ADR-0009 — Context Revision Preparation, Reference Stability, and Source Change](ADR-0009-Context-Revision-Preparation-Reference-Stability-and-Source-Change.md) — Active normative predecessor.
 - [CONCEPT-0001 — Memory Model](../../specifications/concepts/CONCEPT-0001-Memory-Model.md)
 - [CONCEPT-0002 — Knowledge Model](../../specifications/concepts/CONCEPT-0002-Knowledge-Model.md)
 - [CONCEPT-0003 — Context Model](../../specifications/concepts/CONCEPT-0003-Context-Model.md)
@@ -161,6 +161,7 @@ Review may also follow later accepted decisions concerning currentness, authoriz
 | Version | Date       | Description                                                          |
 | ------- | ---------- | -------------------------------------------------------------------- |
 | 0.1.0   | 2026-08-04 | Initial draft derived from the non-normative source decision record. |
+| 1.0.0   | 2026-08-09 | Approved architectural decision.                                     |
 
 ## Engineering Motto
 
