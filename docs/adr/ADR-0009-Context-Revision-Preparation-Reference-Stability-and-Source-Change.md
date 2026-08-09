@@ -2,18 +2,18 @@
 
 | Field             | Value                 |
 | ----------------- | --------------------- |
-| **Status**        | Draft                 |
-| **Version**       | 0.1.0                 |
+| **Status**        | Active                |
+| **Version**       | 1.0.0                 |
 | **Owner**         | Orion Architecture    |
 | **Created**       | 2026-08-04            |
-| **Updated**       | 2026-08-04            |
+| **Updated**       | 2026-08-09            |
 | **Decision Type** | Architecture Decision |
 
 ---
 
 # Context
 
-Context is prepared from cognitive references supplied by independent capability domains. Those sources retain their established semantics, lifecycles, and reference authority while Context determines which available references participate in a Context Revision. ADR-0008 records the provisional ownership and authority predecessor for that collaboration and remains Draft at the time of this ADR.
+Context is prepared from cognitive references supplied by independent capability domains. Those sources retain their established semantics, lifecycles, and reference authority while Context determines which available references participate in a Context Revision. ADR-0008 establishes the authoritative ownership and authority predecessor for that collaboration.
 
 The Context Model already governs Context Revision identity, lineage, lifecycle states, activation, and immutability. Within that model, collaboration needs a precise relationship to revision preparation. The incorporated references also need one unambiguous closure boundary so validation, activation, and downstream reasoning concern the same evidence. Later changes within a source domain need treatment that preserves both the source's independent lifecycle and the historical integrity of an existing Context Revision.
 
@@ -125,7 +125,7 @@ Rejected because immutable individual references do not close aggregate membersh
 - [ADR-0003 — Engine Communication Model](ADR-0003-Engine-Communication-Model.md)
 - [ADR-0005 — Memory Architecture Principles](<ADR-0005 — Memory Architecture Principles>)
 - [ADR-0007 — Brain Orchestration Ownership and Planning Binding](ADR-0007-Brain-Orchestration-Ownership-and-Planning-Binding.md)
-- [ADR-0008 — Context Collaboration, Source Ownership, and Reference Authority](ADR-0008-Context-Collaboration-Source-Ownership-and-Reference-Authority.md) — Draft provisional predecessor while applicable.
+- [ADR-0008 — Context Collaboration, Source Ownership, and Reference Authority](ADR-0008-Context-Collaboration-Source-Ownership-and-Reference-Authority.md) — Active normative predecessor.
 - [CONCEPT-0001 — Memory Model](../../specifications/concepts/CONCEPT-0001-Memory-Model.md)
 - [CONCEPT-0002 — Knowledge Model](../../specifications/concepts/CONCEPT-0002-Knowledge-Model.md)
 - [CONCEPT-0003 — Context Model](../../specifications/concepts/CONCEPT-0003-Context-Model.md)
@@ -145,6 +145,7 @@ Review may also follow introduction of a new Context Source category whose lifec
 | Version | Date       | Description                                                          |
 | ------- | ---------- | -------------------------------------------------------------------- |
 | 0.1.0   | 2026-08-04 | Initial draft derived from the non-normative source decision record. |
+| 1.0.0   | 2026-08-09 | Approved architectural decision.                                     |
 
 # Engineering Motto
 
