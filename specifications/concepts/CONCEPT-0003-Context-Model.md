@@ -1,12 +1,12 @@
 # CONCEPT-0003 — Context Model
 
 | Field | Value |
-|--------|--------|
+| -------------- | ----------------------- |
 | **Status** | Active |
-| **Version** | 3.1.0 |
+| **Version**    | 3.2.0                   |
 | **Owner** | O.R.I.O.N. Architecture |
 | **Created** | 2026-07-11 |
-| **Updated** | 2026-07-19 |
+| **Updated**    | 2026-08-10              |
 | **Applies To** | Entire Platform |
 
 ---
@@ -126,7 +126,7 @@ Such concerns belong to implementation-level specifications and Engine documenta
 The following definitions establish the terminology used throughout this specification.
 
 | Term | Definition |
-|------|------------|
+| -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Context** | The temporary selection or projection of information relevant to the current operational or reasoning situation. |
 | **Context Fragment** | An independent unit of contextual information that contributes to the construction of a Context Revision. |
 | **Active Context** | A Context Revision whose lifecycle state is Active and which is valid for consumption. |
@@ -135,11 +135,18 @@ The following definitions establish the terminology used throughout this specifi
 | **Context Lifetime** | The period during which a Context remains valid for reasoning purposes. |
 | **Context Lineage** | The logical evolution of related Context Revisions. |
 | **Context Lineage Identity** | The stable identity shared by every Context Revision in one Context Lineage. |
-| **Context Revision** | One immutable representation of Context within a Context Lineage. |
+| **Context Revision** | One identity-bearing representation of Context within a Context Lineage. |
 | **Context Revision Identity** | The unique identity assigned to one Context Revision. |
 | **Context Snapshot** | An immutable materialized representation of one Context Revision. |
-| **Logical Reconstruction** | Construction of a logically equivalent Context Revision from authoritative, version-identifiable source revisions. |
-| **Exact Replay** | Exact reproduction of the Context Revision consumed by a reasoning cycle from sufficient immutable historical evidence. |
+| **Candidate Context Revision**   | A Context Revision under preparation that has not entered the Active lifecycle state.                                                                                               |
+| **Candidate Reference**          | A source-issued reference made available for Context consideration but not yet incorporated into a Context Revision.                                                                |
+| **Source Currentness**           | The issuing source's determination that a reference is current within its source-owned semantic and lifecycle boundary.                                                             |
+| **Contextual Currentness**       | Context's determination that a source-current reference is suitable for consideration within a particular candidate Context Revision.                                               |
+| **Refresh**                      | Later consideration of source-owned information without itself creating or mutating a Context Revision.                                                                             |
+| **Recollection**                 | Obtaining or making Candidate References available for possible later Context-owned preparation without itself incorporating them.                                                  |
+| **Repeated Context Preparation** | A later Context-owned preparation activity operating through the accepted Context Revision lifecycle.                                                                               |
+| **Logical Reconstruction**       | Construction of a distinct, logically equivalent Context Revision from the required authoritative, version-identifiable source revisions and other required authoritative evidence. |
+| **Exact Replay**                 | Exact reproduction of the Context Revision consumed by an identified reasoning cycle from sufficient retained immutable evidence.                                                   |
 | **Reasoning Cycle** | A complete execution cycle during which exactly one immutable Active Context Revision is consumed by the Reasoning Engine. |
 
 # 5. Terminology Conventions
@@ -149,9 +156,9 @@ The following conventions are used throughout this specification to ensure consi
 These conventions apply to all current and future O.R.I.O.N. specifications unless explicitly overridden.
 
 | Convention | Meaning | Example |
-|------------|---------|---------|
+| -------------- | ------------------------------------------------------------------------------------- | ---------------------------------------------------- |
 | **PascalCase** | Architectural concepts, engines, and major platform components. | `Context`, `Memory`, `Knowledge`, `Reasoning Engine` |
-| *italic* | First introduction of a new conceptual term. | *Context Fragment* |
+| _italic_       | First introduction of a new conceptual term.                                          | _Context Fragment_                                   |
 | `code` | Technical identifiers, interfaces, properties, contracts, or implementation examples. | `lineageId`, `revisionId`, `ContextBuilder` |
 | **UPPERCASE** | Reserved keywords, logical states, or platform constants. | `ACTIVE`, `EXPIRED`, `INVALID` |
 
@@ -191,7 +198,7 @@ Examples:
 Unless otherwise specified, the following terminology is used consistently throughout the platform.
 
 | Term | Description |
-|------|-------------|
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Context** | The architectural concept representing temporary operational information. |
 | **context** | A concrete instance of Context. |
 | **Active Context** | A Context Revision in the Active lifecycle state and valid for consumption. It is not a separate identity model. |
@@ -200,7 +207,7 @@ Unless otherwise specified, the following terminology is used consistently throu
 | **Context Source** | A Context-facing role that contributes information through a domain-owned Contract while preserving the authoritative owner and source-revision semantics. |
 | **Context Lineage** | The logical evolution shared by related Context Revisions. |
 | **Context Lineage Identity** | The stable identity of one Context Lineage. |
-| **Context Revision** | One immutable representation of Context within a lineage. |
+| **Context Revision** | One identity-bearing representation of Context within a lineage. |
 | **Context Revision Identity** | The unique identity of one Context Revision. |
 | **Context Snapshot** | An immutable materialized representation associated with one Context Revision Identity. |
 
@@ -234,7 +241,7 @@ Examples:
 
 - A Context **MUST** have a unique identity.
 - Context **MUST NOT** duplicate Knowledge.
-- A Context Fragment **MAY** originate from an external Provider.
+- A Context Fragment **MAY** be supplied by an external Provider through an accepted architectural boundary without making that Provider its semantic owner, issuing source, or authority origin.
 - A Context Builder **SHOULD** preserve deterministic composition whenever possible.
 
 ---
@@ -313,9 +320,9 @@ Context only assembles what is currently relevant.
 
 ## 5.7 DG-007 — Support Continuous Evolution
 
-Context MUST evolve as new information becomes available.
+Context MUST support prospective evolution as new information becomes available without mutating an existing Context Revision.
 
-Instead of modifying an existing Context Revision, the platform creates a new revision representing the updated operational state within the applicable lineage.
+Later information may be considered through later Context-owned preparation. The information becoming available does not itself create a new revision.
 
 ---
 
@@ -476,7 +483,7 @@ For example:
 
 - intentionally retained experience originates from Memory
 - accepted claims originate from Knowledge
-- device state originates from Providers
+- device state originates from the applicable qualified issuing source or domain capability and may be supplied by Providers
 - identity information originates from the Identity Engine
 
 This principle minimizes duplication and preserves consistency across the platform.
@@ -489,7 +496,7 @@ Once a reasoning cycle begins, the Active Context Revision is immutable.
 
 No component may modify the Context currently being consumed by the Reasoning Engine.
 
-Changes occurring during execution SHALL initiate creation of a new Context Revision.
+Changes occurring during execution SHALL NOT modify the Active Context Revision and may be considered only through later Context-owned preparation where applicable.
 
 This guarantees deterministic reasoning and reproducibility.
 
@@ -499,7 +506,7 @@ This guarantees deterministic reasoning and reproducibility.
 
 Context is never modified in place.
 
-Each meaningful change results in the creation of a new Context Revision within the applicable Context Lineage.
+A meaningful change may become relevant to later Context-owned preparation. A distinct successor Context Revision exists only when the accepted preparation, incorporation, validation, and activation boundaries result in one within the applicable Context Lineage.
 
 Each revision has its own unique Context Revision Identity while the Context Lineage Identity remains stable across related revisions.
 
@@ -522,11 +529,11 @@ Explainability is a first-class architectural requirement.
 
 ## 7.8 CP-008 — Context Supports Conditional Reconstruction
 
-Context SHOULD support Logical Reconstruction when authoritative, version-identifiable source revisions remain available.
+Context SHOULD support Logical Reconstruction when the required authoritative, version-identifiable source revisions and other required authoritative evidence remain available.
 
-Logical Reconstruction produces a logically equivalent Context Revision. It does not guarantee exact reproduction.
+Logical Reconstruction produces a distinct, logically equivalent Context Revision. Logical equivalence does not imply identity, lifecycle, historical-status, or Exact Replay equivalence.
 
-Exact Replay requires retained immutable historical evidence sufficient to reproduce the exact Context Revision consumed by a reasoning cycle.
+Exact Replay requires sufficient retained immutable evidence to reproduce the exact Context Revision consumed by an identified reasoning cycle.
 
 ---
 
@@ -637,7 +644,7 @@ For example:
 - Identity information remains owned by the Identity Engine.
 - Intentionally retained experience remains owned by Memory.
 - Domain knowledge remains owned by the Knowledge Engine.
-- Device information remains owned by infrastructure providers.
+- Device information remains owned by the applicable accepted domain capability or qualified issuing source; Provider supply or infrastructure placement does not transfer that ownership.
 
 The Context Builder assembles references to these sources into a coherent operational representation.
 
@@ -662,7 +669,7 @@ Every Active Context Revision:
 
 Exactly one immutable Active Context Revision is consumed during a single reasoning cycle.
 
-If operational reality changes while reasoning is in progress, the current Active Context Revision remains unchanged and a new revision begins its own creation lifecycle for a subsequent reasoning cycle.
+If operational reality changes while reasoning is in progress, the current Active Context Revision remains unchanged. The change may become relevant to later Context-owned preparation for a subsequent reasoning cycle but does not itself create a revision.
 
 ---
 
@@ -700,7 +707,7 @@ Examples include:
 - Running Skills
 - Infrastructure observations exposed through a domain-owned Contract
 
-Each source MUST identify the authoritative owner of the underlying information. When reproducibility is required, it SHOULD identify freshness and an authoritative source revision. A Provider, Adapter, Event, Skill, or Infrastructure component does not acquire domain authority merely by supplying an observation.
+Each source MUST identify the authoritative owner of the underlying information. When reproducibility is required, it SHOULD identify Source Currentness and an authoritative source revision. A Provider, Adapter, Event, Skill, or Infrastructure component does not acquire domain authority merely by supplying an observation.
 
 ---
 
@@ -760,7 +767,7 @@ Each lineage has one stable Context Lineage Identity shared by every revision in
 
 ## Context Revision
 
-A Context Revision is one immutable representation of Context within a lineage.
+A Context Revision is one identity-bearing representation of Context within a lineage.
 
 Every Context Revision MUST have:
 
@@ -793,7 +800,7 @@ Snapshots MAY be preserved for:
 
 Snapshots are optional. A Snapshot never becomes Active again and does not become cognitive Memory merely because it is retained.
 
-If the platform claims Exact Replay or exact historical reproducibility for a reasoning cycle, it MUST retain a Context Snapshot or an equivalent immutable representation sufficient to reproduce the exact revision consumed.
+If the platform claims Exact Replay or exact historical reproducibility for a reasoning cycle, it MUST retain sufficient retained immutable evidence to reproduce the exact revision consumed. A Context Snapshot is one possible evidence representation but is not architecturally required.
 
 The Context Engine owns the semantics of Context Snapshots and Context Lineage metadata. Physical persistence remains delegated through architectural Contracts and implementation layers. Retention MUST comply with Security and privacy governance.
 
@@ -865,7 +872,7 @@ Examples include:
 - Knowledge references
 - Environmental conditions
 
-Collecting begins creation of a new Context Revision. At this stage, the revision does not yet exist as a unified representation.
+Collecting begins preparation of a candidate Context Revision. At this stage, the candidate does not yet exist as a unified representation.
 
 ---
 
@@ -882,18 +889,22 @@ Composition is responsible for:
 
 Composition MUST NOT modify the authoritative information contributed by Context Sources.
 
+During Context-owned preparation, Candidate References may be considered and incorporated according to the accepted Context semantics. Any resolution or conflict assessment that can change incorporation MUST complete before the complete incorporated-reference set closes and validation begins. Closure makes that set stable and is a semantic boundary, not a lifecycle state.
+
 ---
 
 ## Validating
 
-Before becoming Active, the composed Context Revision SHALL be validated.
+Before becoming Active, the candidate Context Revision SHALL be validated. Validation evaluates the candidate whose complete incorporated-reference set is already closed and stable.
 
 Validation ensures that:
 
 - required fragments exist,
 - metadata is complete,
-- conflicting information has been resolved,
+- incorporation-changing conflict resolution was completed before validation began,
 - Context satisfies architectural constraints.
+
+Validation MUST NOT add, remove, replace, reorder, substitute, or otherwise alter the incorporated-reference set.
 
 If validation fails, the Context MUST NOT become active.
 
@@ -910,9 +921,11 @@ During this phase:
 - Reasoning executes.
 - Skills access contextual information.
 
-Only a validated Context Revision may enter this state. Once Active, the revision MUST NOT be modified in place.
+Only a validated Context Revision may enter this state. Activation changes lifecycle status only and MUST NOT add, remove, replace, reorder, substitute, or otherwise alter the incorporated-reference set. Once Active, the revision MUST NOT be modified in place and remains immutable for the remainder of its lifecycle.
 
-Updating is not a Context Revision lifecycle state. When operational reality changes, a new revision begins its own Collecting → Composing → Validating lifecycle while the currently Active revision remains immutable.
+Later source change, currentness change, delivery, policy change, or other later evidence MUST NOT mutate the stable incorporated-reference set or the Active or historical Context Revision.
+
+Updating is not a Context Revision lifecycle state. Operational change does not itself mutate the currently Active revision or create a successor. Where later Context-owned preparation occurs, it uses the existing Collecting → Composing → Validating lifecycle.
 
 ---
 
@@ -1080,7 +1093,7 @@ Implementations MAY represent metadata using any suitable format.
 Every Context Revision SHOULD conceptually expose metadata equivalent to the following.
 
 | Property | Description |
-|----------|-------------|
+| -------------------------- | ----------------------------------------------------------------------------- |
 | Context Lineage Identity | Stable identifier of the logical Context Lineage. |
 | Context Revision Identity | Unique identifier of this Context Revision. |
 | Revision Order | Revision number or equivalent ordering semantic within the lineage. |
@@ -1103,7 +1116,7 @@ Every Context Revision SHALL exist in one conceptual lifecycle state.
 Possible states include:
 
 | State | Description |
-|-------|-------------|
+| ---------- | ------------------------------------------------------------------ |
 | Collecting | A new Context Revision is gathering source information. |
 | Composing | Context Fragments are being assembled into the new revision. |
 | Validating | The new revision is undergoing validation. |
@@ -1127,7 +1140,7 @@ Once a Context Revision becomes Active:
 - Creation timestamp SHALL remain unchanged.
 - Fragment composition SHALL remain immutable.
 
-Any meaningful operational change SHALL initiate a new Context Revision with its own Revision Identity and metadata within the applicable lineage.
+Any meaningful operational change MAY become relevant to later Context-owned preparation but does not itself create or mutate a Context Revision. A distinct revision receives its own Revision Identity and metadata only when the accepted Context-owned lifecycle results in that revision within the applicable lineage.
 
 ---
 
@@ -1149,11 +1162,25 @@ Maintaining this separation preserves conceptual clarity and minimizes coupling 
 
 ---
 
+## Persistence and Historical Evidence
+
+Persistence preserves the same architectural artifact or Context Revision and its identity. It does not create another, successor, or reconstructed revision. Persistence does not rerun retrieval, incorporation, Context preparation, authority verification, currentness assessment, reasoning, or Brain cognitive execution. It MUST NOT create, transfer, renew, replace, or independently verify authority; renew or repeat authority verification or authorization; establish present Source Currentness or Contextual Currentness; perform new incorporation; create a new failure or Brain result; or constitute new Context or Brain execution.
+
+Retention alone does not establish sufficient evidence for Logical Reconstruction or Exact Replay. Storage or persistence does not acquire Context, source, Security, Brain, Bootstrap, Core, or failure ownership.
+
+Retained historical evidence preserves attribution and evidence of historical architectural facts. It does not automatically become present authority, newly verified authority, present authorization, present Source Currentness, present Contextual Currentness, new incorporation, a new failure, or a new Brain result. Historical fact remains distinct from a present architectural act.
+
+---
+
 ## Logical Reconstruction
 
-Logical Reconstruction is the ability to construct a logically equivalent Context Revision from authoritative, version-identifiable source revisions.
+Logical Reconstruction is the construction of a distinct, logically equivalent Context Revision from the required authoritative, version-identifiable source revisions and other required authoritative evidence.
 
-Logical Reconstruction is possible only while the required source revisions remain available. Context SHOULD support Logical Reconstruction when source revision semantics permit it, but reconstruction is not guaranteed unconditionally.
+Logical Reconstruction creates a distinct Context Revision Identity and does not recreate the original Context Revision Identity, lifecycle history, or historical lifecycle status. The reconstructed revision belongs to the applicable Context Lineage only according to the existing Context-owned identity and lineage semantics. Logical equivalence does not imply identity equivalence, lifecycle equivalence, historical-status equivalence, or Exact Replay equivalence.
+
+Logical Reconstruction MUST NOT be claimed when any required authoritative evidence is unavailable. Current source state and present configurable policy MUST NOT substitute for required historical authoritative evidence.
+
+Persistence, refresh, recollection, repeated Context preparation, historical reproduction, and Brain cognitive execution are not by themselves Logical Reconstruction.
 
 Context references or projections SHOULD identify authoritative source revisions when reproducibility is required. Such references MUST NOT imply ownership transfer. Memory, Knowledge, Identity, Planning, and other source capabilities remain owners of their underlying information.
 
@@ -1161,16 +1188,23 @@ Context references or projections SHOULD identify authoritative source revisions
 
 ## Exact Replay
 
-Exact Replay is distinct from Logical Reconstruction.
+Exact Replay is the exact reproduction of the Context Revision consumed by an identified reasoning cycle. It is distinct from Logical Reconstruction and is not satisfied by logical equivalence alone.
 
-Exact Replay requires sufficient immutable historical evidence to reproduce the exact Context Revision consumed by a reasoning cycle.
+Exact Replay requires sufficient retained immutable evidence for that exact reproduction. It does not create a replacement Context Revision or replacement identity and MUST NOT reopen, reactivate, or mutate the original revision.
 
-If exact replay or exact historical reproducibility is claimed, the platform MUST retain either:
+Exact Replay does not rerun or renew retrieval, incorporation, authority verification, authorization, currentness assessment, Context preparation, reasoning, or Brain cognitive execution. It reproduces the consumed Context Revision; it does not reenact the surrounding execution.
 
-- an immutable Context Snapshot; or
-- an equivalent immutable representation sufficient to reproduce the exact revision.
+If Exact Replay or exact historical reproducibility is claimed, the platform MUST retain sufficient retained immutable evidence to reproduce the exact revision. A Context Snapshot MAY serve as one possible representation of that evidence.
 
 Snapshots are not required for every Context Revision by this conceptual model.
+
+---
+
+## Historical Reproduction
+
+Historical reproduction is the neutral term for reproduction of retained historical artifacts or outcomes outside Exact Replay's precise Context Revision meaning. It remains distinct from Logical Reconstruction and Exact Replay.
+
+Historical reproduction MUST NOT mint authority, perform new authority verification or authorization, establish present Source Currentness or Contextual Currentness, perform new incorporation, transfer failure ownership, or create a new Brain cognitive execution merely through reproduction.
 
 ---
 
@@ -1238,6 +1272,24 @@ This minimizes synchronization complexity while preserving consistency.
 
 ---
 
+## Retrieval Collaboration Boundaries
+
+Retrieval collaboration is part of Context Revision preparation, but it does not merge the responsibilities of Context, participating sources, Security, or protected architectural boundaries. The distinctions below define conceptual ownership and do not prescribe runtime sequencing or communication behavior.
+
+Context owns retrieval initiation and the architectural semantics of a retrieval request expressing its need for potentially relevant references. Each participating source interprets that request, performs retrieval, and owns the semantics of its references and source result within its own domain. Context owns the architectural semantics of the aggregate returned set as Candidate References made available for Context consideration. Source-reference semantics, source-result semantics, and aggregate returned-set semantics remain distinct.
+
+Candidate availability is not incorporation. Context separately owns the decision to incorporate a Candidate Reference into a candidate Context Revision. Retrieval, aggregation, delivery, authority, authority verification, authorization, currentness, ranking, preference, selection, transport, persistence, or consumption does not by itself constitute incorporation.
+
+The issuing source is the authority origin for each reference it issues and owns authority verification within the applicable source authority boundary. Context validation is not source-authority verification. Authority remains attributable to the issuing source through aggregation, delivery, incorporation, and consumption. Aggregation, delivery, candidate availability, incorporation, ranking, preference, persistence, transport, and consumption MUST NOT mint, replace, or transfer source authority.
+
+Each issuing source owns Source Currentness for its references. Context owns Contextual Currentness for a source-current reference considered within a particular candidate Context Revision. Source Currentness is not Contextual Currentness, and neither form of currentness constitutes authority, authorization, or incorporation. Retrieval, delivery, ranking, preference, selection, and historical preservation MUST NOT establish present Source Currentness or Contextual Currentness. A later currentness change MUST NOT mutate a Context Revision whose incorporated-reference set is stable or whose lifecycle state is Active or historical.
+
+Security owns authorization semantics and authorization decisions governing retrieval participation. Applicable protected architectural boundaries own enforcement of those decisions without acquiring Security semantics. Context does not acquire authorization ownership by initiating retrieval, and a source does not acquire it by performing retrieval. Authorization remains distinct from authority, authority verification, both forms of currentness, candidate availability, and incorporation.
+
+An authorized or permitted reference is one whose participation was permitted under the applicable Security-owned authorization decision and protected-boundary enforcement. That status does not redefine source authority or currentness. Successful retrieval, candidate availability, or incorporation does not by itself prove, recreate, renew, or grant authorization.
+
+---
+
 ## Conceptual Composition
 
 The conceptual composition of Context can be represented as follows.
@@ -1269,7 +1321,7 @@ graph TD
 Each fragment remains owned by its originating architectural component.
 
 | Context Fragment | Architectural Owner |
-|------------------|---------------------|
+| -------------------- | ----------------------------------------------------------------------------------------- |
 | User Context | Identity Engine |
 | Session Context | Context Engine |
 | Planning Context | Planning Engine |
@@ -1291,24 +1343,23 @@ The following constraints apply.
 - Context SHALL remain deterministic.
 - Context SHALL preserve ownership boundaries.
 - Context SHALL avoid unnecessary duplication.
-- Context SHOULD support Logical Reconstruction when required authoritative source revisions remain available.
+- Context SHOULD support Logical Reconstruction when the required authoritative, version-identifiable source revisions and other required authoritative evidence remain available.
 
 ---
 
 ## Composition Outcome
 
-The output of successful Context composition and validation is one immutable Active Context Revision representing the complete operational state required for one reasoning cycle.
+The output of successful Context composition is a candidate Context Revision whose complete incorporated-reference set is closed and stable. Validation evaluates that stable candidate without altering the set. Successful validation permits the candidate to enter the Active lifecycle state, and activation changes lifecycle status only.
 
-This Active Context Revision becomes the only contextual representation consumed by the reasoning cycle. A meaningful change initiates creation of a new Context Revision.
+This Active Context Revision becomes the only contextual representation consumed by the reasoning cycle. A meaningful change may be considered through later Context-owned preparation but does not itself create a revision.
 
 ---
 
 > **IMPORTANT**
 >
-> Context composition defines *what* becomes part of Context.
+> Context composition defines _what_ becomes part of Context.
 >
 > The algorithm responsible for performing this composition belongs to the Context Engine Specification and is intentionally outside the scope of this document.
-
 
 # 14. Context Resolution
 
@@ -1330,7 +1381,7 @@ Context Resolution exists to ensure that the resulting Active Context Revision i
 - Supports conditional Logical Reconstruction
 - Free of unresolved conflicts
 
-Resolution SHALL occur before a Context becomes Active.
+Any resolution that can change incorporation SHALL occur before the incorporated-reference set closes and validation begins.
 
 ---
 
@@ -1346,15 +1397,15 @@ Determinism is essential for reproducibility, debugging, auditing, and explainab
 
 ### 14.2 CR-002 — Preserve Authoritative Sources
 
-Whenever multiple Context Sources provide equivalent information, preference SHALL be given to the authoritative source.
+Source authority establishes provenance and semantic authority for a source-owned reference. It does not establish a universal ranking or cross-source priority order.
 
 Context MUST NOT redefine authoritative information.
 
 ---
 
-### 14.3 CR-003 — Explicit User Intent Prevails
+### 14.3 CR-003 — Preserve Explicit User Intent
 
-When a verified user instruction conflicts with inferred contextual information, explicit user intent SHALL take precedence unless doing so violates platform constraints or security policies.
+Verified user intent retains its accepted semantic authority within the user-intent boundary. It does not establish universal precedence over other authoritative domains, and its contextual treatment remains subject to applicable capability-owned decisions, platform constraints, and Security-owned authorization.
 
 ---
 
@@ -1383,7 +1434,7 @@ Implementations SHOULD preserve sufficient information to describe:
 Context conflicts generally fall into one of the following categories.
 
 | Category | Description |
-|----------|-------------|
+| ------------- | --------------------------------------------------------------------- |
 | Complementary | Multiple fragments contribute different information without conflict. |
 | Redundant | Multiple fragments provide equivalent information. |
 | Conflicting | Fragments disagree on the same contextual fact. |
@@ -1403,7 +1454,7 @@ A[Context Fragments]
 
 A --> B{Conflict?}
 
-B -->|No| C[Compose Active Context]
+B -->|No| C[Close Incorporated-Reference Set]
 
 B -->|Yes| D[Apply Resolution Rules]
 
@@ -1411,28 +1462,24 @@ D --> E[Resolved Context]
 
 E --> C
 
-C --> F[Reasoning]
+C --> F[Validate Candidate Context]
+
+F --> G[Activate Context]
+
+G --> H[Reasoning]
 ```
 
 ---
 
-## Resolution Priority
+## Resolution Policy Boundary
 
-When multiple Context Sources provide conflicting information, precedence MUST be determined by the authoritative domain and applicable policy. Source type alone does not establish universal authority.
+Configuration may constrain or parameterize only a decision already owned by an accepted architectural capability. Configuration is not itself a capability, semantic owner, authority owner, retrieval owner, currentness owner, incorporation owner, failure owner, orchestrator, or composition authority.
 
-| Priority | Source |
-|----------|--------|
-| 1 | Explicit User Input |
-| 2 | Platform Policies |
-| 3 | Verified Context Sources |
-| 4 | Identity Information |
-| 5 | Memory References |
-| 6 | Knowledge References |
-| 7 | Default Values |
+Relevance is distinct from authority, authorization, currentness, and incorporation. Ranking and scoring are distinct from authority, authority verification, authorization, currentness, and retrieval ownership. Selection is distinct from retrieval ownership, incorporation, and present contextual suitability. Preference is distinct from authorization and architectural composition authority. Source priority does not constitute authority precedence.
 
-The table above is an illustrative fallback, not a canonical universal ordering. Security and platform policy govern protected actions; Identity authority governs verified identity fields; users govern their preferences; Knowledge authority governs accepted claims; and Memory remains evidence of retained experience rather than truth authority.
+Candidate ranking, scoring, selection, preference, or source priority MUST NOT mint authority, replace authority verification, establish authorization, establish Source Currentness or Contextual Currentness, or perform incorporation. Context retains its incorporation decision. Sources retain their semantics, authority, authority verification, lifecycle, and Source Currentness. Security retains authorization semantics and decisions, and applicable protected architectural boundaries retain enforcement responsibility.
 
-Implementation-specific scoring mechanisms are outside the scope of this specification.
+Concrete ranking, scoring, selection, preference, source-priority, and conflict-resolution criteria remain outside this conceptual model.
 
 ---
 
@@ -1458,7 +1505,7 @@ The chosen strategy is implementation-dependent.
 
 > **IMPORTANT**
 >
-> Context Resolution determines which information becomes part of the Active Context Revision.
+> Context Resolution may inform incorporation while a candidate Context Revision is under preparation. Incorporation-changing resolution completes before the incorporated-reference set closes and validation begins.
 >
 > It does not perform reasoning, planning, or business decision making.
 
@@ -1630,7 +1677,7 @@ Arbitrary or implicit state modifications are prohibited.
 
 Once a Context Revision enters the Active state, its contextual information SHALL remain immutable.
 
-Subsequent operational changes SHALL initiate a new Context Revision rather than modifying the existing one.
+Subsequent operational changes SHALL NOT modify the existing revision and may become relevant to later Context-owned preparation without automatically creating a successor revision.
 
 ---
 
@@ -1650,6 +1697,22 @@ No implementation may bypass mandatory lifecycle stages without preserving their
 
 ---
 
+## Prospective Context Evolution
+
+Refresh means later consideration of source-owned information. It remains distinct from recollection, repeated Context preparation, source or currentness change, configuration change, revision or successor creation, incorporation, validation, activation, Logical Reconstruction, Exact Replay, historical reproduction, and Brain cognitive execution. Refresh alone MUST NOT reopen or mutate a stable incorporated-reference set or an Active or historical Context Revision; create a successor; perform incorporation, validation, or activation; or perform Brain cognitive execution.
+
+Recollection means obtaining or making Candidate References available for possible later Context-owned preparation. It remains distinct from refresh, repeated preparation, revision or successor creation, incorporation, validation, activation, Logical Reconstruction, Exact Replay, and Brain cognitive execution. Recollection alone MUST NOT mutate an existing stable, Active, or historical Context Revision or create a successor.
+
+Repeated Context Preparation is a Context-owned architectural activity distinct from merely observing source change, refresh alone, recollection alone, configuration change alone, Brain cognitive execution, persistence, Logical Reconstruction, and Exact Replay. It may produce a candidate Context Revision only through the accepted Context-owned preparation lifecycle. It does not necessarily produce or activate a successor. A successor exists only when the applicable Context-owned preparation, incorporation, validation, and activation boundaries result in one.
+
+A later source-owned change remains owned by that source and preserves source semantics, authority, authority verification, lifecycle, and Source Currentness ownership. A later source-owned or Source Currentness change does not reopen or mutate a stable incorporated-reference set or an Active or historical revision; automatically create a successor; or automatically incorporate changed evidence. A later Contextual Currentness change has the same non-retroactive boundary. Changed evidence may become relevant only to later Context-owned preparation, where any incorporation is a new Context-owned decision for the applicable candidate revision. Historical revisions retain the evidence boundary under which they were prepared.
+
+A configuration or configurable retrieval-policy change operates prospectively. It MUST NOT mutate historical Context or an Active Context Revision, reopen a stable incorporated-reference set, alter prior incorporation, or replace historical evidence. It does not automatically constitute refresh, recollection, or repeated Context preparation; create a Context Revision; perform incorporation; or initiate Brain cognitive execution. A later policy state may constrain or parameterize only a later decision already owned by the applicable accepted capability. Present policy MUST NOT substitute for historical policy or evidence required for Logical Reconstruction or Exact Replay.
+
+Refresh, recollection, repeated Context preparation, later source change, currentness change, and configuration change remain distinct from persistence, Logical Reconstruction, Exact Replay, and historical reproduction. None of them alone establishes sufficient historical evidence for reconstruction or replay, and none bypasses incorporated-reference-set closure, validation, activation, identity, lineage, or immutability boundaries.
+
+---
+
 ## Conceptual State Machine
 
 Section 10 defines the single authoritative Context Revision lifecycle:
@@ -1665,7 +1728,7 @@ This section does not define an additional state machine.
 The following conceptual transitions are considered invalid.
 
 | Invalid Transition | Reason |
-|--------------------|--------|
+| ------------------- | --------------------------------------------------------------------------------------------- |
 | Active → Collecting | An Active Context Revision cannot become mutable again; a new revision must begin Collecting. |
 | Archived → Active | An Archived Context Revision is retained historical evidence only. |
 | Expired → Active | An Expired Context Revision is no longer operationally valid. |
@@ -1794,7 +1857,7 @@ Providers never become part of Context themselves.
 
 ## Relationship with Events
 
-Platform Events MAY trigger creation of a new Context Revision.
+Platform Events MAY make changed information available for possible later Context-owned preparation. Event occurrence does not itself create or mutate a Context Revision.
 
 Events represent changes.
 
@@ -1802,10 +1865,22 @@ Context represents the operational state resulting from those changes.
 
 ---
 
+## Execution-Model Independence
+
+Synchronous, asynchronous, event-driven, and distributed participation do not alter architectural ownership. Temporal separation and runtime, process, service, host, or deployment separation MUST NOT transfer semantics or ownership. Distribution MUST NOT create shared, composite, emergent, ownerless, or implementation-defined ownership, shared or composite authority, or shared Context-preparation ownership.
+
+Communication, publication, delivery, receipt, redelivery, and late arrival MUST NOT transfer ownership. Delivery or receipt does not itself establish retrieval initiation, retrieval-request semantics, source-result semantics, aggregate returned-set semantics, authority, authority verification, authorization, Source Currentness, Contextual Currentness, incorporation, validation, or activation. Candidate availability through delivery remains distinct from incorporation.
+
+Late evidence MUST NOT mutate a closed incorporated-reference set, a stable candidate Context Revision, an Active Context Revision, or a historical Context Revision. Event-driven participation does not imply incremental Context mutation. Distributed participation does not create a shared mutable Context Revision.
+
+Asynchronous continuation does not by itself constitute refresh, recollection, repeated Context preparation, Logical Reconstruction, Exact Replay, historical reproduction, or Brain cognitive execution. Communication form MUST NOT establish Event-domain semantics. This Concept MUST NOT define messaging behavior.
+
+---
+
 ## Relationship Summary
 
 | Architectural Component | Relationship |
-|--------------------------|--------------|
+| ----------------------- | ------------------------------------------------------------------------------------ |
 | Memory | Provides references to intentionally retained experience and user continuity. |
 | Knowledge | Provides references to accepted claims. |
 | Identity Engine | Provides identity information. |
@@ -1813,7 +1888,7 @@ Context represents the operational state resulting from those changes.
 | Reasoning Engine | Consumes one immutable Active Context Revision per reasoning cycle. |
 | Skill Engine | Uses Context to execute capabilities. |
 | Providers | Supply contextual information. |
-| Events | Trigger Context evolution. |
+| Events                  | May make changed information available for possible later Context-owned preparation. |
 
 ---
 
@@ -1828,6 +1903,16 @@ Context represents the operational state resulting from those changes.
 The Context Model defines the conceptual responsibilities associated with the management and consumption of Context throughout the O.R.I.O.N. platform.
 
 This section establishes the architectural responsibilities of the engines interacting with Context while preserving clear ownership boundaries.
+
+---
+
+## Failure Ownership and Candidate Consequences
+
+Failure ownership follows the accepted architectural responsibility whose semantic boundary failed. Source failures remain source-owned. Failures of Context-owned preparation, Contextual Currentness, incorporation, validation, activation, or other Context semantics remain Context-owned where applicable. Security authorization failures remain Security-owned, protected-boundary enforcement failures remain owned by the applicable enforcement responsibility, Brain failures remain Brain-owned when Brain responsibility failed, and Bootstrap composition failures remain Bootstrap-owned.
+
+Failure propagation preserves originating ownership and semantic identity. Publication, communication, delivery, receipt, redelivery, delay, observation, logging, persistence, representation, aggregation, consumption, or propagation MUST NOT transfer that ownership. A propagated source, Security, enforcement, Brain, or Bootstrap failure MUST NOT be reclassified as a Context failure merely because it affects Context preparation.
+
+Context owns only the consequence for the affected candidate Context Revision. An originating failure may prevent candidate completion, validation, or activation where applicable without transferring failure ownership to Context. The candidate consequence remains distinct from the originating failure and MUST NOT mutate an Active Context Revision, a stable historical Context Revision, an unrelated revision, or a later revision. Brain may own a downstream final cognitive result consequence without acquiring the originating failure.
 
 ---
 
@@ -1894,7 +1979,17 @@ The Reasoning Engine is responsible for:
 
 The Reasoning Engine SHALL NOT modify Context, orchestrate the full cognitive pipeline, execute Skills, own Planning, or deliver results to Clients.
 
-The Brain Engine orchestrates cognitive execution and may assemble a final cognitive result from capability outputs, but it SHALL NOT perform domain reasoning or independently generate reasoning content that bypasses the Reasoning Engine. Final transport, presentation, and voice rendering belong outside both Engines.
+---
+
+## Brain Engine
+
+Brain owns outer cognitive orchestration. Through an approved architectural Contract, Brain may request and consume one authoritative Context output produced by Context. Brain consumes that output rather than raw source candidates as a substitute for it.
+
+Context retains exclusive ownership of its internal source collaboration, retrieval initiation, retrieval-request semantics, aggregate returned-set semantics, Contextual Currentness, incorporation, Context Revision preparation, validation, activation, and revision lifecycle. Brain MUST NOT perform Context-owned retrieval as a substitute for Context, coordinate sources on Context's behalf, maintain a parallel candidate-reference set or evidence boundary, independently decide Contextual Currentness, incorporate references into Context, validate or activate Context Revisions, or reopen, mutate, or replace a stable or Active Context Revision.
+
+Brain owns final cognitive result assembly, the architectural meaning of the final cognitive result, and final cognitive result ownership. That ownership does not transfer ownership of contributing authoritative inputs. Context retains Context semantics and Context Revision identity and lifecycle; sources retain their semantics, authority, authority verification, lifecycle, and Source Currentness; Security retains authorization semantics and decisions; and applicable protected boundaries retain enforcement responsibility.
+
+Brain may own a downstream final-result consequence without acquiring the originating failure. Transport or presentation of the final result does not acquire its semantic ownership. Brain MUST NOT perform domain reasoning or independently generate reasoning content that bypasses the Reasoning Engine.
 
 ---
 
@@ -1954,10 +2049,22 @@ Instead, their observations enter through domain-owned Contracts and, where appl
 
 ---
 
+## Bootstrap Composition and Core Custody
+
+Bootstrap owns architectural composition of relationships already accepted by higher architectural authority. Composition is assembly, not ownership of semantic behavior. Bootstrap does not become Context, Brain, Security, Core, a source, an issuer, or an authority verifier by selecting or connecting participants.
+
+Composition MUST NOT create, transfer, merge, delegate, redistribute, reconstruct, replace, or reinterpret Context or source semantic ownership; source authority or authority-verification ownership; Security authorization or protected-boundary enforcement ownership; Source Currentness or Contextual Currentness; incorporation or Context Revision lifecycle ownership; failure ownership; Brain orchestration ownership; or final cognitive result ownership. Bootstrap composition failures remain Bootstrap-owned under the established failure boundary.
+
+Core retains custody of approved shared architectural language and Contracts. Core custody does not confer capability semantics, runtime authority, composition ownership, Context ownership, source authority, authorization ownership, or Brain ownership.
+
+Implementation selection or replacement does not redefine architecture. Providers, Adapters, transports, runtime participants, deployment locations, and implementation mechanisms do not acquire architectural ownership merely because Bootstrap selects or connects them.
+
+---
+
 ## Responsibility Matrix
 
 | Component | Builds Context | Consumes Context | Owns Information |
-|-----------|:--------------:|:----------------:|:----------------:|
+| ---------------- | :------------: | :-----------------: | :--------------: |
 | Context Engine | ✅ | ✅ | Context |
 | Reasoning Engine | ❌ | ✅ | ❌ |
 | Planning Engine | ❌ | ✅ | Planning State |
@@ -2011,9 +2118,9 @@ Every Context Revision SHOULD remain traceable and explainable through its Conte
 
 ## DC-005 — Context Should Support Conditional Logical Reconstruction
 
-Given available authoritative, version-identifiable source revisions, the platform SHOULD be capable of constructing a logically equivalent Context Revision.
+Given the required authoritative, version-identifiable source revisions and other required authoritative evidence, the platform SHOULD be capable of constructing a distinct, logically equivalent Context Revision.
 
-Logical Reconstruction is not guaranteed when required source revisions are unavailable and MUST NOT be represented as Exact Replay.
+Logical Reconstruction MUST NOT be claimed when required authoritative evidence is unavailable and MUST NOT be represented as Exact Replay.
 
 ---
 
@@ -2060,7 +2167,7 @@ A user authenticates and begins a new interaction with O.R.I.O.N.
 The platform gathers contextual information from multiple sources.
 
 | Context Source | Context Fragment |
-|----------------|------------------|
+| ----------------------------------- | ---------------- |
 | Identity Engine | User identity |
 | Session Manager | Session Context |
 | Device/Identity capability Contract | Device Context |
@@ -2097,7 +2204,7 @@ The Device Context changes.
 
 The current Active Context Revision remains immutable throughout and after the reasoning cycle.
 
-A new Context Revision follows Collecting → Composing → Validating and may become Active for a subsequent reasoning cycle with the updated connectivity state.
+The change may become relevant to later Context-owned preparation. If that preparation occurs, a candidate Context Revision follows Collecting → Composing → Validating and may become Active for a subsequent reasoning cycle with the updated connectivity state.
 
 ---
 
@@ -2105,9 +2212,9 @@ A new Context Revision follows Collecting → Composing → Validating and may b
 
 A scheduled meeting begins.
 
-The Calendar Adapter supplies an external observation through a domain-owned Contract, and the qualified Context Source contributes a new Context Fragment.
+The Calendar Adapter supplies an external observation through a domain-owned Contract, and the qualified Context Source may make a new Context Fragment available for possible later Context-owned preparation.
 
-The Context Engine composes a new Context Revision containing:
+If later Context-owned preparation occurs and Context incorporates that information, the Context Engine may compose a candidate Context Revision containing:
 
 - current meeting,
 - participants,
@@ -2187,18 +2294,31 @@ Whenever a future capability requires changes that affect the conceptual foundat
 
 # 22. References
 
-## Related Specifications
+## Governing Architecture Decisions
 
 - ADR-0001 — Core Ownership and Dependency Direction
 - ADR-0002 — Capability-Oriented Architecture
 - ADR-0003 — Engine Communication Model
 - ADR-0004 — Separation of Skills, Providers and Adapters
 - ADR-0005 — Memory Architecture Principles
+- [ADR-0008 — Context Collaboration, Source Ownership, and Reference Authority](../../docs/adr/ADR-0008-Context-Collaboration-Source-Ownership-and-Reference-Authority.md)
+- [ADR-0009 — Context Revision Preparation, Reference Stability, and Source Change](../../docs/adr/ADR-0009-Context-Revision-Preparation-Reference-Stability-and-Source-Change.md)
+- [ADR-0010 — Context Retrieval Initiation, Request, and Result Semantics](../../docs/adr/ADR-0010-Context-Retrieval-Initiation-Request-and-Result-Semantics.md)
+- [ADR-0011 — Source Currentness, Contextual Currentness, and Currentness Change](../../docs/adr/ADR-0011-Source-Currentness-Contextual-Currentness-and-Currentness-Change.md)
+- [ADR-0012 — Authorization Semantics, Enforcement, and Authorized-Reference Applicability](../../docs/adr/ADR-0012-Authorization-Semantics-Enforcement-and-Authorized-Reference-Applicability.md)
+- [ADR-0013 — Failure Ownership, Propagation, and Candidate Context Revision Consequences](../../docs/adr/ADR-0013-Failure-Ownership-Propagation-and-Candidate-Context-Revision-Consequences.md)
+- [ADR-0014 — Bootstrap Composition Responsibility and Ownership and Authority Preservation](../../docs/adr/ADR-0014-Bootstrap-Composition-Responsibility-and-Ownership-and-Authority-Preservation.md)
+- [ADR-0015 — Brain Cognitive-Reference Orchestration and Final Cognitive Result Boundaries](../../docs/adr/ADR-0015-Brain-Cognitive-Reference-Orchestration-and-Final-Cognitive-Result-Boundaries.md)
+- [ADR-0016 — Persistence, Logical Reconstruction, Exact Replay, and Historical Reproduction Boundaries](../../docs/adr/ADR-0016-Persistence-Logical-Reconstruction-Exact-Replay-and-Historical-Reproduction-Boundaries.md)
+- [ADR-0017 — Execution-Model Independence for Asynchronous, Event-Driven, and Distributed Collaboration](../../docs/adr/ADR-0017-Execution-Model-Independence-for-Asynchronous-Event-Driven-and-Distributed-Collaboration.md)
+- [ADR-0018 — Refresh, Recollection, and Repeated Context Preparation Boundaries](../../docs/adr/ADR-0018-Refresh-Recollection-and-Repeated-Context-Preparation-Boundaries.md)
+- [ADR-0019 — Configurable Retrieval Policy Ownership Boundary](../../docs/adr/ADR-0019-Configurable-Retrieval-Policy-Ownership-Boundary.md)
 
 ---
 
-## Engineering Standards
+## Engineering and Documentation Standards
 
+- [Documentation Authority](../../docs/DOCUMENT-AUTHORITY.md)
 - OES-0000 — Engineering Philosophy
 - OES-0001 — Repository Structure
 - OES-0002 — Engine Design
@@ -2213,7 +2333,7 @@ Whenever a future capability requires changes that affect the conceptual foundat
 
 ---
 
-## Related Concept Specifications
+## Concept Specifications
 
 - CONCEPT-0001 — Memory Model
 - CONCEPT-0002 — Knowledge Model
@@ -2247,11 +2367,20 @@ The following publications inspired architectural concepts adopted by O.R.I.O.N.
 
 ## Document Status
 
-This specification defines the conceptual architecture of Context within the O.R.I.O.N. platform.
+This specification remains Active and authoritative within the conceptual scope of Context in the O.R.I.O.N. platform.
+
+ADR-0008 through ADR-0019 specialize and constrain this Concept where applicable. If this Concept conflicts with an applicable Active ADR, that ADR governs. This alignment does not supersede CONCEPT-0003.
 
 Implementation details are intentionally deferred to future Engine Specifications.
 
-Future revisions SHALL preserve compatibility with the architectural principles established herein unless explicitly superseded by an approved Architectural Decision Record (ADR).
+Future revisions SHALL preserve compatibility with applicable higher architectural authority.
+
+# Change History
+
+| Version | Date       | Status | Change                                                                                                                                                                                                                                                |
+| ------- | ---------- | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 3.1.0   | 2026-07-19 | Active | Existing Active Context Model baseline before ADR-0008 through ADR-0019 alignment.                                                                                                                                                                    |
+| 3.2.0   | 2026-08-10 | Active | Aligned Context Model with Active ADR-0008 through ADR-0019 ownership, lifecycle, retrieval, currentness, authorization, failure, reconstruction/replay, execution-model, later-activity, configurable-policy, Brain, Bootstrap, and Core boundaries. |
 
 ## Appendix A — Concept Mapping
 
