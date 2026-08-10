@@ -2,11 +2,11 @@
 
 | Field             | Value                 |
 | ----------------- | --------------------- |
-| **Status**        | Draft                 |
-| **Version**       | 0.1.0                 |
+| **Status**        | Active                |
+| **Version**       | 1.0.0                 |
 | **Owner**         | Orion Architecture    |
 | **Created**       | 2026-08-08            |
-| **Updated**       | 2026-08-08            |
+| **Updated**       | 2026-08-10            |
 | **Decision Type** | Architecture Decision |
 
 ---
@@ -19,7 +19,7 @@ The existing architecture separates the responsibilities involved. Context owns 
 
 Persistence, historical evidence, Logical Reconstruction, Exact Replay, and historical reproduction already have separate meanings. Asynchronous, event-driven, and distributed participation also preserve ownership independently of time and topology. Failure ownership follows the accepted responsibility that failed. This ADR formalizes how refresh, recollection, and repeated Context preparation fit within those boundaries.
 
-DECISION-0001 provides the non-normative source conclusion for this ADR. ADR-0008 through ADR-0017 remain Draft provisional predecessors while applicable; their completion tags do not change their repository status.
+DECISION-0001 provides the non-normative source conclusion for this ADR. ADR-0008 through ADR-0017 are Active normative predecessors; their completion tags do not establish architectural authority.
 
 ## Problem Statement
 
@@ -308,16 +308,16 @@ Rejected because schedulers, automation, storage, transports, and distributed pa
 - [ADR-0005 — Memory Architecture Principles](<ADR-0005 — Memory Architecture Principles>)
 - [ADR-0006 — Skill Selection, Binding, and Protected Invocation Ownership](ADR-0006-Skill-Selection-Binding-and-Protected-Invocation-Ownership.md)
 - [ADR-0007 — Brain Orchestration Ownership and Planning Binding](ADR-0007-Brain-Orchestration-Ownership-and-Planning-Binding.md)
-- [ADR-0008 — Context Collaboration, Source Ownership, and Reference Authority](ADR-0008-Context-Collaboration-Source-Ownership-and-Reference-Authority.md) — Draft provisional predecessor while applicable.
-- [ADR-0009 — Context Revision Preparation, Reference Stability, and Source Change](ADR-0009-Context-Revision-Preparation-Reference-Stability-and-Source-Change.md) — Draft provisional predecessor while applicable.
-- [ADR-0010 — Context Retrieval Initiation, Request, and Result Semantics](ADR-0010-Context-Retrieval-Initiation-Request-and-Result-Semantics.md) — Draft provisional predecessor while applicable.
-- [ADR-0011 — Source Currentness, Contextual Currentness, and Currentness Change](ADR-0011-Source-Currentness-Contextual-Currentness-and-Currentness-Change.md) — Draft provisional predecessor while applicable.
-- [ADR-0012 — Authorization Semantics, Enforcement, and Authorized-Reference Applicability](ADR-0012-Authorization-Semantics-Enforcement-and-Authorized-Reference-Applicability.md) — Draft provisional predecessor while applicable.
-- [ADR-0013 — Failure Ownership, Propagation, and Candidate Context Revision Consequences](ADR-0013-Failure-Ownership-Propagation-and-Candidate-Context-Revision-Consequences.md) — Draft provisional predecessor while applicable.
-- [ADR-0014 — Bootstrap Composition Responsibility and Ownership and Authority Preservation](ADR-0014-Bootstrap-Composition-Responsibility-and-Ownership-and-Authority-Preservation.md) — Draft provisional predecessor while applicable.
-- [ADR-0015 — Brain Cognitive-Reference Orchestration and Final Cognitive Result Boundaries](ADR-0015-Brain-Cognitive-Reference-Orchestration-and-Final-Cognitive-Result-Boundaries.md) — Draft provisional predecessor while applicable.
-- [ADR-0016 — Persistence, Logical Reconstruction, Exact Replay, and Historical Reproduction Boundaries](ADR-0016-Persistence-Logical-Reconstruction-Exact-Replay-and-Historical-Reproduction-Boundaries.md) — Draft provisional predecessor while applicable.
-- [ADR-0017 — Execution Model Independence for Asynchronous, Event-Driven, and Distributed Collaboration](ADR-0017-Execution-Model-Independence-for-Asynchronous-Event-Driven-and-Distributed-Collaboration.md) — Draft provisional predecessor while applicable.
+- [ADR-0008 — Context Collaboration, Source Ownership, and Reference Authority](ADR-0008-Context-Collaboration-Source-Ownership-and-Reference-Authority.md) — Active normative predecessor.
+- [ADR-0009 — Context Revision Preparation, Reference Stability, and Source Change](ADR-0009-Context-Revision-Preparation-Reference-Stability-and-Source-Change.md) — Active normative predecessor.
+- [ADR-0010 — Context Retrieval Initiation, Request, and Result Semantics](ADR-0010-Context-Retrieval-Initiation-Request-and-Result-Semantics.md) — Active normative predecessor.
+- [ADR-0011 — Source Currentness, Contextual Currentness, and Currentness Change](ADR-0011-Source-Currentness-Contextual-Currentness-and-Currentness-Change.md) — Active normative predecessor.
+- [ADR-0012 — Authorization Semantics, Enforcement, and Authorized-Reference Applicability](ADR-0012-Authorization-Semantics-Enforcement-and-Authorized-Reference-Applicability.md) — Active normative predecessor.
+- [ADR-0013 — Failure Ownership, Propagation, and Candidate Context Revision Consequences](ADR-0013-Failure-Ownership-Propagation-and-Candidate-Context-Revision-Consequences.md) — Active normative predecessor.
+- [ADR-0014 — Bootstrap Composition Responsibility and Ownership and Authority Preservation](ADR-0014-Bootstrap-Composition-Responsibility-and-Ownership-and-Authority-Preservation.md) — Active normative predecessor.
+- [ADR-0015 — Brain Cognitive-Reference Orchestration and Final Cognitive Result Boundaries](ADR-0015-Brain-Cognitive-Reference-Orchestration-and-Final-Cognitive-Result-Boundaries.md) — Active normative predecessor.
+- [ADR-0016 — Persistence, Logical Reconstruction, Exact Replay, and Historical Reproduction Boundaries](ADR-0016-Persistence-Logical-Reconstruction-Exact-Replay-and-Historical-Reproduction-Boundaries.md) — Active normative predecessor.
+- [ADR-0017 — Execution Model Independence for Asynchronous, Event-Driven, and Distributed Collaboration](ADR-0017-Execution-Model-Independence-for-Asynchronous-Event-Driven-and-Distributed-Collaboration.md) — Active normative predecessor.
 - [CONCEPT-0001 — Memory Model](../../specifications/concepts/CONCEPT-0001-Memory-Model.md)
 - [CONCEPT-0002 — Knowledge Model](../../specifications/concepts/CONCEPT-0002-Knowledge-Model.md)
 - [CONCEPT-0003 — Context Model](../../specifications/concepts/CONCEPT-0003-Context-Model.md)
@@ -343,6 +343,7 @@ The document grants no implementation authority for refresh, recollection, repea
 | Version | Date       | Description                                                          |
 | ------- | ---------- | -------------------------------------------------------------------- |
 | 0.1.0   | 2026-08-08 | Initial draft derived from the non-normative source decision record. |
+| 1.0.0   | 2026-08-10 | Approved architectural decision.                                     |
 
 ## Engineering Motto
 
