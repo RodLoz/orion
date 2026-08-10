@@ -2,11 +2,11 @@
 
 | Field             | Value                 |
 | ----------------- | --------------------- |
-| **Status**        | Draft                 |
-| **Version**       | 0.1.0                 |
+| **Status**        | Active                |
+| **Version**       | 1.0.0                 |
 | **Owner**         | Orion Architecture    |
 | **Created**       | 2026-08-04            |
-| **Updated**       | 2026-08-04            |
+| **Updated**       | 2026-08-09            |
 | **Decision Type** | Architecture Decision |
 
 ---
@@ -17,7 +17,7 @@ Cognitive references participate in Context preparation while retaining the sema
 
 Currentness therefore has two architectural dimensions. Source currentness concerns a reference's standing within the issuing source's domain. Contextual currentness concerns the suitability of a source-current reference for a specific Context Revision. A change in either dimension also raises a historical-integrity question after the revision's incorporated-reference set is stable or its lifecycle state is Active.
 
-ADR-0008 through ADR-0010 are Draft provisional predecessors for source ownership, reference authority, Context Revision preparation, stability, retrieval, and candidate availability. This ADR preserves their status and addresses only the currentness boundaries derived from D-013 through D-015.
+ADR-0008 through ADR-0010 are Active normative predecessors for source ownership, reference authority, Context Revision preparation, stability, retrieval, and candidate availability. This ADR preserves their accepted boundaries and addresses only the currentness boundaries formalized here.
 
 ---
 
@@ -31,7 +31,7 @@ Later currentness change creates a second ambiguity. Rewriting an existing Conte
 
 # Decision
 
-## Source Currentness
+## D-013 — Source Currentness
 
 1. Each issuing source MUST own the architectural determination of source currentness for every cognitive reference it issues.
 2. Source currentness MUST concern the reference's standing within the issuing source's semantic and lifecycle boundary.
@@ -41,7 +41,7 @@ Later currentness change creates a second ambiguity. Rewriting an existing Conte
 6. A returned or incorporated reference MUST NOT thereby be declared source-current.
 7. Source-currentness ownership MUST NOT introduce a new capability.
 
-## Contextual Currentness
+## D-014 — Contextual Currentness
 
 1. Context MUST own the architectural determination of contextual currentness for a source-current cognitive reference considered during Context Revision preparation.
 2. Contextual currentness MUST concern the reference's suitability for the particular Context Revision under preparation.
@@ -53,7 +53,7 @@ Later currentness change creates a second ambiguity. Rewriting an existing Conte
 8. Downstream consumption MUST NOT transfer contextual-currentness ownership away from Context.
 9. Contextual-currentness ownership MUST NOT introduce a new capability.
 
-## Currentness Change
+## D-015 — Currentness Change
 
 1. A later source-currentness or contextual-currentness change MUST NOT mutate, remove, replace, reorder, or rewrite references within a Context Revision whose incorporated-reference set is stable or whose lifecycle state is Active.
 2. The existing Context Revision MUST remain an immutable historical record of the evidence accepted for its reasoning cycle.
@@ -159,9 +159,9 @@ Rejected because retaining the earlier evidence boundary does not establish its 
 - [ADR-0003 — Engine Communication Model](ADR-0003-Engine-Communication-Model.md)
 - [ADR-0005 — Memory Architecture Principles](<ADR-0005 — Memory Architecture Principles>)
 - [ADR-0007 — Brain Orchestration Ownership and Planning Binding](ADR-0007-Brain-Orchestration-Ownership-and-Planning-Binding.md)
-- [ADR-0008 — Context Collaboration, Source Ownership, and Reference Authority](ADR-0008-Context-Collaboration-Source-Ownership-and-Reference-Authority.md) — Draft provisional predecessor while applicable.
-- [ADR-0009 — Context Revision Preparation, Reference Stability, and Source Change](ADR-0009-Context-Revision-Preparation-Reference-Stability-and-Source-Change.md) — Draft provisional predecessor while applicable.
-- [ADR-0010 — Context Retrieval Initiation, Request, and Result Semantics](ADR-0010-Context-Retrieval-Initiation-Request-and-Result-Semantics.md) — Draft provisional predecessor while applicable.
+- [ADR-0008 — Context Collaboration, Source Ownership, and Reference Authority](ADR-0008-Context-Collaboration-Source-Ownership-and-Reference-Authority.md) — Active normative predecessor.
+- [ADR-0009 — Context Revision Preparation, Reference Stability, and Source Change](ADR-0009-Context-Revision-Preparation-Reference-Stability-and-Source-Change.md) — Active normative predecessor.
+- [ADR-0010 — Context Retrieval Initiation, Request, and Result Semantics](ADR-0010-Context-Retrieval-Initiation-Request-and-Result-Semantics.md) — Active normative predecessor.
 - [CONCEPT-0001 — Memory Model](../../specifications/concepts/CONCEPT-0001-Memory-Model.md)
 - [CONCEPT-0002 — Knowledge Model](../../specifications/concepts/CONCEPT-0002-Knowledge-Model.md)
 - [CONCEPT-0003 — Context Model](../../specifications/concepts/CONCEPT-0003-Context-Model.md)
@@ -196,6 +196,7 @@ Later accepted decisions concerning authorization, revocation, expiration, failu
 | Version | Date       | Description                                                          |
 | ------- | ---------- | -------------------------------------------------------------------- |
 | 0.1.0   | 2026-08-04 | Initial draft derived from the non-normative source decision record. |
+| 1.0.0   | 2026-08-09 | Approved architectural decision.                                     |
 
 ---
 
