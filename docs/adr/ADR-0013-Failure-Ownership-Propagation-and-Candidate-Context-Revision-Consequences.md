@@ -2,11 +2,11 @@
 
 | Field             | Value                 |
 | ----------------- | --------------------- |
-| **Status**        | Draft                 |
-| **Version**       | 0.1.0                 |
+| **Status**        | Active                |
+| **Version**       | 1.0.0                 |
 | **Owner**         | Orion Architecture    |
 | **Created**       | 2026-08-06            |
-| **Updated**       | 2026-08-06            |
+| **Updated**       | 2026-08-09            |
 | **Decision Type** | Architecture Decision |
 
 ---
@@ -158,11 +158,11 @@ Rejected because Context's authority over candidate preparation concerns the aff
 - [ADR-0005 — Memory Architecture Principles](<ADR-0005 — Memory Architecture Principles>)
 - [ADR-0006 — Skill Selection, Binding, and Protected Invocation Ownership](ADR-0006-Skill-Selection-Binding-and-Protected-Invocation-Ownership.md)
 - [ADR-0007 — Brain Orchestration Ownership and Planning Binding](ADR-0007-Brain-Orchestration-Ownership-and-Planning-Binding.md)
-- [ADR-0008 — Context Collaboration, Source Ownership, and Reference Authority](ADR-0008-Context-Collaboration-Source-Ownership-and-Reference-Authority.md) — Draft provisional predecessor while applicable.
-- [ADR-0009 — Context Revision Preparation, Reference Stability, and Source Change](ADR-0009-Context-Revision-Preparation-Reference-Stability-and-Source-Change.md) — Draft provisional predecessor while applicable.
-- [ADR-0010 — Context Retrieval Initiation, Request, and Result Semantics](ADR-0010-Context-Retrieval-Initiation-Request-and-Result-Semantics.md) — Draft provisional predecessor while applicable.
-- [ADR-0011 — Source Currentness, Contextual Currentness, and Currentness Change](ADR-0011-Source-Currentness-Contextual-Currentness-and-Currentness-Change.md) — Draft provisional predecessor while applicable.
-- [ADR-0012 — Authorization Semantics, Enforcement, and Authorized-Reference Applicability](ADR-0012-Authorization-Semantics-Enforcement-and-Authorized-Reference-Applicability.md) — Draft provisional predecessor while applicable.
+- [ADR-0008 — Context Collaboration, Source Ownership, and Reference Authority](ADR-0008-Context-Collaboration-Source-Ownership-and-Reference-Authority.md) — Active normative predecessor.
+- [ADR-0009 — Context Revision Preparation, Reference Stability, and Source Change](ADR-0009-Context-Revision-Preparation-Reference-Stability-and-Source-Change.md) — Active normative predecessor.
+- [ADR-0010 — Context Retrieval Initiation, Request, and Result Semantics](ADR-0010-Context-Retrieval-Initiation-Request-and-Result-Semantics.md) — Active normative predecessor.
+- [ADR-0011 — Source Currentness, Contextual Currentness, and Currentness Change](ADR-0011-Source-Currentness-Contextual-Currentness-and-Currentness-Change.md) — Active normative predecessor.
+- [ADR-0012 — Authorization Semantics, Enforcement, and Authorized-Reference Applicability](ADR-0012-Authorization-Semantics-Enforcement-and-Authorized-Reference-Applicability.md) — Active normative predecessor.
 - [CONCEPT-0001 — Memory Model](../../specifications/concepts/CONCEPT-0001-Memory-Model.md)
 - [CONCEPT-0002 — Knowledge Model](../../specifications/concepts/CONCEPT-0002-Knowledge-Model.md)
 - [CONCEPT-0003 — Context Model](../../specifications/concepts/CONCEPT-0003-Context-Model.md)
@@ -182,6 +182,7 @@ Later accepted decisions concerning handling, recovery, retry, compensation, rol
 | Version | Date       | Description                                                          |
 | ------- | ---------- | -------------------------------------------------------------------- |
 | 0.1.0   | 2026-08-06 | Initial draft derived from the non-normative source decision record. |
+| 1.0.0   | 2026-08-09 | Approved architectural decision.                                     |
 
 # Engineering Motto
 
