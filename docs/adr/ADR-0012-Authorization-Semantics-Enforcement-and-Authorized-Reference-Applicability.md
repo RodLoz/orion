@@ -2,11 +2,11 @@
 
 | Field             | Value                 |
 | ----------------- | --------------------- |
-| **Status**        | Draft                 |
-| **Version**       | 0.1.0                 |
+| **Status**        | Active                |
+| **Version**       | 1.0.0                 |
 | **Owner**         | Orion Architecture    |
 | **Created**       | 2026-08-04            |
-| **Updated**       | 2026-08-04            |
+| **Updated**       | 2026-08-09            |
 | **Decision Type** | Architecture Decision |
 
 ---
@@ -17,7 +17,7 @@ Context Revision preparation can request cognitive references from independent s
 
 Participation across these capability boundaries may be protected. Permission for participation introduces three related architectural questions: which capability owns authorization meaning, which boundary applies an authorization decision, and what remains true about that decision after a reference passes through the protected boundary.
 
-Existing architecture already separates Security-owned decisions from enforcement in other protected interactions. ADR-0008 through ADR-0011 provide Draft provisional predecessors for cognitive-reference authority, Context Revision stability, retrieval semantics, and currentness. This ADR specializes the authorization boundary for retrieval participation without redefining those responsibilities or treating a Draft predecessor as approved authority. It formalizes only the authorization distinctions derived from D-016 through D-018 in the non-normative source decision record.
+Existing architecture already separates Security-owned decisions from enforcement in other protected interactions. ADR-0008 through ADR-0011 are Active normative predecessors for cognitive-reference authority, Context Revision stability, retrieval semantics, and currentness. This ADR preserves their accepted boundaries and specializes the authorization boundary for retrieval participation without redefining those responsibilities. It formalizes only the authorization distinctions derived from the non-normative source decision record.
 
 # Problem Statement
 
@@ -29,7 +29,7 @@ The architecture therefore needs one coherent boundary covering authorization se
 
 # Decision
 
-## Authorization Semantics
+## D-016 — Authorization Semantics
 
 1. Security MUST own authorization semantics and authorization decisions governing participation in retrieval of cognitive references during Context Revision preparation.
 2. Authorization MUST determine whether retrieval participation is permitted under Security-owned semantics; it MUST NOT define what retrieval means.
@@ -41,7 +41,7 @@ The architecture therefore needs one coherent boundary covering authorization se
 8. Source authority MUST NOT by itself establish authorization, and authorization MUST NOT create, originate, or verify source authority.
 9. Authorization-semantic ownership MUST NOT introduce a new capability.
 
-## Authorization Enforcement
+## D-017 — Authorization Enforcement
 
 1. Applicable protected, Security-governed architectural boundaries MUST own enforcement of Security-owned authorization decisions for retrieval participation.
 2. Authorization enforcement MUST apply an applicable Security-owned decision without originating, owning, reinterpreting, replacing, or independently recreating that decision.
@@ -52,7 +52,7 @@ The architecture therefore needs one coherent boundary covering authorization se
 7. Brain MUST NOT acquire enforcement ownership by orchestrating a cognitive cycle; Bootstrap MUST NOT acquire it through composition; Core MUST NOT acquire it through custody; and transport or delivery MUST NOT acquire it by conveying requests, results, or references.
 8. Authorization enforcement MUST NOT introduce a new capability.
 
-## Authorized-Reference Applicability
+## D-018 — Authorized-Reference Applicability
 
 1. The applicability of a Security-owned authorization decision MUST remain architecturally associated with the protected retrieval participation it governed and with references permitted through that boundary.
 2. Authorization applicability MUST remain distinct from authorization semantics, authorization ownership, and authorization enforcement.
@@ -135,10 +135,10 @@ Rejected because preserving historical applicability is not authorization renewa
 - [ADR-0005 — Memory Architecture Principles](<ADR-0005 — Memory Architecture Principles>)
 - [ADR-0006 — Skill Selection, Binding, and Protected Invocation Ownership](ADR-0006-Skill-Selection-Binding-and-Protected-Invocation-Ownership.md)
 - [ADR-0007 — Brain Orchestration Ownership and Planning Binding](ADR-0007-Brain-Orchestration-Ownership-and-Planning-Binding.md)
-- [ADR-0008 — Context Collaboration, Source Ownership, and Reference Authority](ADR-0008-Context-Collaboration-Source-Ownership-and-Reference-Authority.md) — Draft provisional predecessor while applicable.
-- [ADR-0009 — Context Revision Preparation, Reference Stability, and Source Change](ADR-0009-Context-Revision-Preparation-Reference-Stability-and-Source-Change.md) — Draft provisional predecessor while applicable.
-- [ADR-0010 — Context Retrieval Initiation, Request, and Result Semantics](ADR-0010-Context-Retrieval-Initiation-Request-and-Result-Semantics.md) — Draft provisional predecessor while applicable.
-- [ADR-0011 — Source Currentness, Contextual Currentness, and Currentness Change](ADR-0011-Source-Currentness-Contextual-Currentness-and-Currentness-Change.md) — Draft provisional predecessor while applicable.
+- [ADR-0008 — Context Collaboration, Source Ownership, and Reference Authority](ADR-0008-Context-Collaboration-Source-Ownership-and-Reference-Authority.md) — Active normative predecessor.
+- [ADR-0009 — Context Revision Preparation, Reference Stability, and Source Change](ADR-0009-Context-Revision-Preparation-Reference-Stability-and-Source-Change.md) — Active normative predecessor.
+- [ADR-0010 — Context Retrieval Initiation, Request, and Result Semantics](ADR-0010-Context-Retrieval-Initiation-Request-and-Result-Semantics.md) — Active normative predecessor.
+- [ADR-0011 — Source Currentness, Contextual Currentness, and Currentness Change](ADR-0011-Source-Currentness-Contextual-Currentness-and-Currentness-Change.md) — Active normative predecessor.
 - [CONCEPT-0001 — Memory Model](../../specifications/concepts/CONCEPT-0001-Memory-Model.md)
 - [CONCEPT-0002 — Knowledge Model](../../specifications/concepts/CONCEPT-0002-Knowledge-Model.md)
 - [CONCEPT-0003 — Context Model](../../specifications/concepts/CONCEPT-0003-Context-Model.md)
@@ -158,6 +158,7 @@ Later accepted decisions concerning authorization representation, duration, expi
 | Version | Date       | Description                                                          |
 | ------- | ---------- | -------------------------------------------------------------------- |
 | 0.1.0   | 2026-08-04 | Initial draft derived from the non-normative source decision record. |
+| 1.0.0   | 2026-08-09 | Approved architectural decision.                                     |
 
 # Engineering Motto
 
