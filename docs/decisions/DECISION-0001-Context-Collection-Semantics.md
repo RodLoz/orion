@@ -1,13 +1,15 @@
 | Field                        | Value                                            |
 | ---------------------------- | ------------------------------------------------ |
-| **Status**                   | Proposed                                         |
-| **Authority Level**          | Pre-ADR Decision                                 |
+| **Status**                   | Archived                                         |
+| **Authority Level**          | Historical Pre-ADR Decision                      |
 | **Normative Status**         | Non-normative                                    |
 | **Implementation Authority** | Not granted                                      |
 | **Depends on**               | Authorized Cognitive Reference Integration Study |
-| **Consumed by**              | ADR-0008; Future Specifications                  |
+| **Consumed by**              | ADR-0008 through ADR-0019                        |
 
 ---
+
+> **Historical provenance:** This non-normative Decision record is retained as the source provenance for D-001 through D-029, which were formalized by ADR-0008 through ADR-0019. Those Active ADRs are authoritative. Any conflict MUST be resolved in favor of the applicable Active ADR, and this record MUST NOT be used as implementation authority.
 
 ## Table of Contents
 
@@ -40,11 +42,11 @@ DECISION-0001 records the architectural decisions required to resolve how cognit
 
 The accepted Authorized Cognitive Reference Integration Study identifies the relevant architectural tension and evaluates the permissible boundaries. The study is analytical: it establishes the accepted design basis, constraints, and alternatives, but it does not provide a single decision record from which an ADR and its dependent specifications can derive an unambiguous architecture.
 
-An ADR is premature because the remaining choices require explicit resolution before normative architecture can be stated. Writing ADR-0008 directly from the study would combine analysis, selection, and formal authority in one step. That would obscure which conclusions were accepted as decisions and make later specifications dependent on interpretation rather than a stable architectural record.
+At the time this record was created, an ADR was premature because the remaining choices required explicit resolution before normative architecture could be stated. Writing ADR-0008 directly from the study would have combined analysis, selection, and formal authority in one step. That would have obscured which conclusions were accepted as decisions and made later formalization dependent on interpretation rather than a stable architectural record.
 
-This document closes that gap. It captures the architectural decisions accepted for ADR preparation, preserves the rationale for those decisions, and exposes any consequences that ADR-0008 must formalize. Its purpose is to resolve architectural decisions rather than define implementation behavior. It does not replace the architectural authority of an approved ADR.
+This document closed that gap. It captured the architectural decisions accepted for ADR preparation, preserved the rationale for those decisions, and exposed the consequences later formalized by ADR-0008 through ADR-0019. Its purpose was to resolve architectural decisions rather than define implementation behavior. It does not replace the architectural authority of the Active ADRs.
 
-By separating decision resolution from normative adoption, DECISION-0001 reduces uncertainty before ADR-0008. It provides one reviewable account of the selected ownership boundaries, semantic relationships, and authority constraints while leaving normative runtime behavior to the future ADR and corresponding specifications.
+By separating decision resolution from normative adoption, DECISION-0001 reduced uncertainty before the ADR activation sequence. It preserves one reviewable historical account of the selected ownership boundaries, semantic relationships, and authority constraints, while ADR-0008 through ADR-0019 provide the normative architectural authority.
 
 # 2. Scope
 
@@ -55,7 +57,7 @@ DECISION-0001 may decide only the architectural questions identified by the acce
 - the distinction between semantic ownership, Contract custody, authority, and composition;
 - the permitted relationships among existing architectural participants;
 - the rationale for selecting or rejecting alternatives evaluated by the study; and
-- the matters that ADR-0008 and its dependent specifications need to formalize.
+- the matters later formalized by ADR-0008 through ADR-0019.
 
 DECISION-0001 may not define runtime sequences, Contract shapes, methods, data structures, lifecycle transitions, failure taxonomies, algorithms, storage models, transport behavior, deployment topology, provider behavior, or implementation milestones. It may not create a capability, assign behavior outside the accepted study, or convert an unresolved implementation concern into architecture.
 
@@ -72,7 +74,7 @@ This document:
 
 Where an accepted higher-authority document already governs a topic, this document records only a compatible decision within the remaining undecided space. Any inconsistency is resolved in favor of the accepted higher-authority document.
 
-Implementation authority begins only after the future ADR and corresponding specifications are approved. DECISION-0001 alone provides no basis for changing Core Contracts, Engine behavior, Bootstrap composition, or executable code.
+Implementation authority derives only from the applicable Active ADRs and aligned authoritative specifications. DECISION-0001 provides no basis for changing Core Contracts, Engine behavior, Bootstrap composition, or executable code.
 
 # 3. Authority
 
@@ -97,7 +99,7 @@ Bootstrap composition
 Each layer has a distinct responsibility:
 
 - **Architectural Study** examines the problem, accepted constraints, relevant existing authority, alternatives, and architectural consequences. It supplies the exclusive design basis for this Decision.
-- **Decision** records the accepted architectural conclusions and their rationale for future normative formalization. It removes ambiguity between analysis and normative adoption without defining executable behavior or acquiring ADR authority.
+- **Decision** records the accepted architectural conclusions and their rationale for later normative formalization. It removes ambiguity between analysis and normative adoption without defining executable behavior or acquiring ADR authority.
 - **ADR** is the first normative architectural authority in this chain. It formally adopts the architectural decisions, states their normative boundaries, and establishes their architectural authority subject to the repository authority hierarchy.
 - **Specification** translates the approved ADR into precise conceptual, Engine, flow, protocol, API, or schema requirements within the authority of each specification type.
 - **Core Contracts** express the shared technology-neutral boundaries authorized by the ADR and specifications. Core custody of a Contract does not transfer capability semantics to Core.
@@ -108,7 +110,7 @@ The arrows describe the progression from architectural analysis to authorized co
 
 This document cannot override approved ADRs, Active Architecture Specifications, Active Concept Specifications, Active O.R.I.O.N. Engineering Standards, or any other higher-authority source applicable to its subject. It also cannot amend accepted Engine Specifications or Core Contracts indirectly. If a recorded decision conflicts with an accepted higher-authority document, the higher-authority document prevails and the conflict remains unresolved until handled through the repository's established architectural process.
 
-ADR-0008 is expected to consume DECISION-0001 as its decision basis. Corresponding Concept, ENGINE, Flow, Contract, protocol, API, or schema specifications consume ADR-0008 only where their respective scopes require formalization. Core Contract changes, Engine implementation work, and Bootstrap composition consume the approved specification set rather than this document directly.
+ADR-0008 through ADR-0019 consumed DECISION-0001 as their non-normative decision source for D-001 through D-029. Corresponding Concept, ENGINE, Flow, Contract, protocol, API, or schema specifications consume the applicable Active ADRs only where their respective scopes require formalization. Core Contract changes, Engine implementation work, and Bootstrap composition consume the applicable authoritative ADR and specification set rather than this document directly.
 
 # 4. Existing Accepted Architecture
 
