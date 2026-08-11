@@ -4,6 +4,7 @@ import type {
   ContextRevisionIdentity,
   ContextRevisionNumber,
 } from "./context.js";
+import type { IdentityResolutionRequest } from "./identity-contracts.js";
 import type { CurrentIdentity } from "./identity.js";
 
 export type ComposeContextTarget =
@@ -22,6 +23,17 @@ export interface ComposeContextRevisionRequest {
 export interface ComposeContextRevision {
   composeContextRevision(
     request: ComposeContextRevisionRequest,
+  ): ActiveContextRevision;
+}
+
+export interface PrepareContextRevisionRequest {
+  readonly target: ComposeContextTarget;
+  readonly identityResolutionRequest: IdentityResolutionRequest;
+}
+
+export interface PrepareContextRevision {
+  prepareContextRevision(
+    request: PrepareContextRevisionRequest,
   ): ActiveContextRevision;
 }
 

@@ -7,35 +7,61 @@ const executable = fileURLToPath(
     import.meta.url,
   ),
 );
-const verification = spawnSync(
-  process.execPath,
-  [
-    executable,
-    "services/context/architecture-fixtures",
-    "--config",
-    ".dependency-cruiser.cjs",
-    "--output-type",
-    "err-long",
-  ],
-  { encoding: "utf8" },
-);
-
-const output = `${verification.stdout ?? ""}${verification.stderr ?? ""}`;
-const expectedRules = [
-  "context-engine-must-not-depend-on-bootstrap-or-infrastructure",
-  "context-engine-must-not-depend-on-identity-implementation",
-  "context-engine-must-not-depend-on-external-packages",
+const fixtures = [
+  {
+    path: "services/context/architecture-fixtures/bootstrap-dependency.ts",
+    rule: "context-engine-must-not-depend-on-bootstrap-or-infrastructure",
+  },
+  {
+    path: "services/context/architecture-fixtures/external-package.ts",
+    rule: "context-engine-must-not-depend-on-external-packages",
+  },
+  {
+    path: "services/context/architecture-fixtures/identity-implementation-dependency.ts",
+    rule: "context-engine-must-not-depend-on-qualified-source-engines",
+  },
+  {
+    path: "services/context/architecture-fixtures/memory-implementation-dependency.ts",
+    rule: "context-engine-must-not-depend-on-qualified-source-engines",
+  },
+  {
+    path: "services/context/architecture-fixtures/knowledge-implementation-dependency.ts",
+    rule: "context-engine-must-not-depend-on-qualified-source-engines",
+  },
 ];
 
-if (
-  verification.status === 0 ||
-  expectedRules.some((rule) => !output.includes(rule))
-) {
-  console.error("Context Engine architecture rules were not enforced.");
-  if (output.length > 0) {
-    console.error(output);
+for (const fixture of fixtures) {
+  const verification = spawnSync(
+    process.execPath,
+    [
+      executable,
+      fixture.path,
+      "--config",
+      ".dependency-cruiser.cjs",
+      "--output-type",
+      "json",
+    ],
+    { encoding: "utf8" },
+  );
+  let violations = [];
+  try {
+    violations = (
+      JSON.parse(verification.stdout ?? "{}").summary?.violations ?? []
+    ).map((violation) => violation.rule.name);
+  } catch {
+    violations = [];
   }
-  process.exitCode = 1;
-} else {
+  if (violations.length !== 1 || violations[0] !== fixture.rule) {
+    console.error(
+      `Context architecture fixture was not isolated: ${fixture.path}`,
+    );
+    if ((verification.stdout ?? "").length > 0) {
+      console.error(verification.stdout);
+    }
+    process.exitCode = 1;
+  }
+}
+
+if (process.exitCode !== 1) {
   console.log("Context Engine dependency prohibitions verified.");
 }

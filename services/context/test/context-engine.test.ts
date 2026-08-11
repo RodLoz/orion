@@ -10,8 +10,9 @@ import {
   type ComposeContextRevision,
   type ContextConstructionValues,
   type GetActiveContextRevision,
+  type ResolveCurrentIdentity,
 } from "@orion/core";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import {
   ContextEngine,
@@ -42,8 +43,11 @@ class TestConstructionValues implements ContextConstructionValues {
 
 function runningEngine(
   construction: ContextConstructionValues = new TestConstructionValues(),
+  resolver: ResolveCurrentIdentity = {
+    resolveCurrentIdentity: () => anonymousCurrentIdentity(),
+  },
 ): ContextEngine {
-  const engine = new ContextEngine(construction);
+  const engine = new ContextEngine(construction, resolver);
   engine.initialize();
   engine.start();
   return engine;
@@ -68,6 +72,105 @@ describe("ContextEngine", () => {
   it("implements the Core-custodied M2 Contracts", () => {
     const engine = runningEngine();
     verifyContracts(engine, engine);
+  });
+
+  it("initiates Identity retrieval before candidate incorporation", () => {
+    const holder: { engine?: ContextEngine } = {};
+    const resolveCurrentIdentity = vi.fn(() => {
+      expect(() =>
+        holder.engine?.getActiveContextRevision({
+          lineageIdentity: "orion.context.lineage.1",
+        }),
+      ).toThrow(ContextLineageNotFoundError);
+      return anonymousCurrentIdentity();
+    });
+    const engine = runningEngine(new TestConstructionValues(), {
+      resolveCurrentIdentity,
+    });
+    holder.engine = engine;
+
+    const revision = engine.prepareContextRevision({
+      target: { kind: "new-lineage" },
+      identityResolutionRequest: {},
+    });
+
+    expect(resolveCurrentIdentity).toHaveBeenCalledOnce();
+    expect(revision.lifecycleState).toBe("active");
+    expect(
+      engine.getActiveContextRevision({
+        lineageIdentity: revision.lineageIdentity,
+      }),
+    ).toBe(revision);
+  });
+
+  it("prepares Authenticated Identity and preserves target association and reuse", () => {
+    const resolveCurrentIdentity = vi
+      .fn()
+      .mockReturnValueOnce(anonymousCurrentIdentity())
+      .mockReturnValueOnce(anonymousCurrentIdentity())
+      .mockReturnValueOnce(
+        authenticatedCurrentIdentity(
+          identityIdentifier("orion.identity.known"),
+        ),
+      );
+    const engine = runningEngine(new TestConstructionValues(), {
+      resolveCurrentIdentity,
+    });
+    const first = engine.prepareContextRevision({
+      target: { kind: "new-lineage" },
+      identityResolutionRequest: {},
+    });
+    const unchanged = engine.prepareContextRevision({
+      target: {
+        kind: "existing-lineage",
+        lineageIdentity: first.lineageIdentity,
+        expectedActiveRevisionIdentity: first.revisionIdentity,
+      },
+      identityResolutionRequest: {},
+    });
+    const successor = engine.prepareContextRevision({
+      target: {
+        kind: "existing-lineage",
+        lineageIdentity: first.lineageIdentity,
+        expectedActiveRevisionIdentity: first.revisionIdentity,
+      },
+      identityResolutionRequest: { resolutionReference: "known" },
+    });
+
+    expect(unchanged).toBe(first);
+    expect(successor.lineageIdentity).toBe(first.lineageIdentity);
+    expect(successor.parentRevisionIdentity).toBe(first.revisionIdentity);
+    expect(successor.fragments[0].projection.state).toBe("authenticated");
+  });
+
+  it("keeps malformed candidate rejection at the incorporation boundary", () => {
+    const engine = runningEngine(new TestConstructionValues(), {
+      resolveCurrentIdentity: () => ({ state: "malformed" }) as never,
+    });
+
+    expect(() =>
+      engine.prepareContextRevision({
+        target: { kind: "new-lineage" },
+        identityResolutionRequest: {},
+      }),
+    ).toThrow(InvalidIdentityContextProjectionError);
+  });
+
+  it("does not store the resolver or its state in an Active revision", () => {
+    const resolverState = { privateMarker: "resolver-private-state" };
+    const engine = runningEngine(new TestConstructionValues(), {
+      resolveCurrentIdentity: () => {
+        expect(resolverState.privateMarker).toBe("resolver-private-state");
+        return anonymousCurrentIdentity();
+      },
+    });
+    const revision = engine.prepareContextRevision({
+      target: { kind: "new-lineage" },
+      identityResolutionRequest: {},
+    });
+
+    expect(JSON.stringify(revision)).not.toContain(resolverState.privateMarker);
+    expect(Reflect.ownKeys(revision)).not.toContain("currentIdentityResolver");
   });
 
   it("creates and activates the first immutable Anonymous revision", () => {
@@ -342,7 +445,9 @@ describe("ContextEngine", () => {
   });
 
   it("enforces the minimal Engine lifecycle", () => {
-    const engine = new ContextEngine(new TestConstructionValues());
+    const engine = new ContextEngine(new TestConstructionValues(), {
+      resolveCurrentIdentity: () => anonymousCurrentIdentity(),
+    });
     expect(engine.engineState).toBe("initialize");
     expect(() => engine.start()).toThrow(ContextEngineLifecycleError);
     engine.initialize();
@@ -357,8 +462,17 @@ describe("ContextEngine", () => {
   });
 
   it("rejects an invalid construction abstraction", () => {
-    expect(() => new ContextEngine(null as never)).toThrow(
-      ContextEngineInitializationError,
-    );
+    expect(
+      () =>
+        new ContextEngine(null as never, {
+          resolveCurrentIdentity: () => anonymousCurrentIdentity(),
+        }),
+    ).toThrow(ContextEngineInitializationError);
+  });
+
+  it("requires the Current Identity resolver dependency", () => {
+    expect(
+      () => new ContextEngine(new TestConstructionValues(), null as never),
+    ).toThrow(ContextEngineInitializationError);
   });
 });

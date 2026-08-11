@@ -1,2 +1,2 @@
 // This non-production fixture must violate the Context-to-qualified-source-Engine rule.
-import "../../identity/src/index.js";
+import "../../knowledge/src/index.js";

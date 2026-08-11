@@ -13,11 +13,14 @@ import {
 import { ContextEngine } from "../src/context-engine.js";
 
 function issued(suffix: string) {
-  const engine = new ContextEngine({
-    nextLineageIdentity: () => `orion.context.state.lineage.${suffix}`,
-    nextRevisionIdentity: () => `orion.context.state.revision.${suffix}`,
-    nextCreatedAt: () => "2026-07-30T00:00:00.000Z",
-  });
+  const engine = new ContextEngine(
+    {
+      nextLineageIdentity: () => `orion.context.state.lineage.${suffix}`,
+      nextRevisionIdentity: () => `orion.context.state.revision.${suffix}`,
+      nextCreatedAt: () => "2026-07-30T00:00:00.000Z",
+    },
+    { resolveCurrentIdentity: () => ({ state: "anonymous" }) },
+  );
   engine.initialize();
   engine.start();
   const composed = engine.composeContextRevision({

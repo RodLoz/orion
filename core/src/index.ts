@@ -154,6 +154,8 @@ export {
   type ContextConstructionValues,
   type GetActiveContextRevision,
   type GetActiveContextRevisionRequest,
+  type PrepareContextRevision,
+  type PrepareContextRevisionRequest,
   type VerifyActiveContextRevisionAuthority,
   type VerifyActiveContextRevisionAuthorityRequest,
 } from "./context-contracts.js";

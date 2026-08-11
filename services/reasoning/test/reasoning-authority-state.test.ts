@@ -15,11 +15,14 @@ import {
 import { ReasoningEngine } from "../src/reasoning-engine.js";
 
 function issueContext(suffix: string): ActiveContextRevision {
-  const engine = new ContextEngine({
-    nextLineageIdentity: () => `context.lineage.reasoning-state.${suffix}`,
-    nextRevisionIdentity: () => `context.revision.reasoning-state.${suffix}`,
-    nextCreatedAt: () => "2026-07-30T00:00:00.000Z",
-  });
+  const engine = new ContextEngine(
+    {
+      nextLineageIdentity: () => `context.lineage.reasoning-state.${suffix}`,
+      nextRevisionIdentity: () => `context.revision.reasoning-state.${suffix}`,
+      nextCreatedAt: () => "2026-07-30T00:00:00.000Z",
+    },
+    { resolveCurrentIdentity: () => ({ state: "anonymous" }) },
+  );
   engine.initialize();
   engine.start();
   const composed = engine.composeContextRevision({

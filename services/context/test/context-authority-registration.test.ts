@@ -34,11 +34,14 @@ vi.mock("../src/context-authority.js", () => ({
 const { ContextEngine } = await import("../src/context-engine.js");
 
 function running() {
-  const engine = new ContextEngine({
-    nextLineageIdentity: () => "orion.context.registration.lineage",
-    nextRevisionIdentity: () => "orion.context.registration.revision",
-    nextCreatedAt: () => "2026-07-30T00:00:00.000Z",
-  });
+  const engine = new ContextEngine(
+    {
+      nextLineageIdentity: () => "orion.context.registration.lineage",
+      nextRevisionIdentity: () => "orion.context.registration.revision",
+      nextCreatedAt: () => "2026-07-30T00:00:00.000Z",
+    },
+    { resolveCurrentIdentity: () => anonymousCurrentIdentity() },
+  );
   engine.initialize();
   engine.start();
   return engine;

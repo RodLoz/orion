@@ -17,11 +17,14 @@ import {
 import { PlanningEngine } from "../src/planning-engine.js";
 
 function issueContext(suffix: string): ActiveContextRevision {
-  const engine = new ContextEngine({
-    nextLineageIdentity: () => `context.lineage.planning-state.${suffix}`,
-    nextRevisionIdentity: () => `context.revision.planning-state.${suffix}`,
-    nextCreatedAt: () => "2026-07-30T00:00:00.000Z",
-  });
+  const engine = new ContextEngine(
+    {
+      nextLineageIdentity: () => `context.lineage.planning-state.${suffix}`,
+      nextRevisionIdentity: () => `context.revision.planning-state.${suffix}`,
+      nextCreatedAt: () => "2026-07-30T00:00:00.000Z",
+    },
+    { resolveCurrentIdentity: () => ({ state: "anonymous" }) },
+  );
   engine.initialize();
   engine.start();
   const composed = engine.composeContextRevision({

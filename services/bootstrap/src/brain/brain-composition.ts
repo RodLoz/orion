@@ -1,7 +1,7 @@
 import {
   contextLineageIdentity,
   type BrainConfiguration,
-  type CurrentIdentity,
+  type IdentityResolutionRequest,
   type ObserveBrainOrchestrationLifecycle,
   type OrchestrateCognitiveRequest,
 } from "@orion/core";
@@ -9,6 +9,7 @@ import { BrainEngine } from "@orion/brain";
 
 import { BootstrapConfigurationError } from "../configuration.js";
 import { composeContextCapability } from "../context/context-composition.js";
+import { composeIdentityCapability } from "../identity/identity-composition.js";
 import { composePlanningCapability } from "../planning/planning-composition.js";
 import { composeReasoningCapability } from "../reasoning/reasoning-composition.js";
 import { composeSecurityCapability } from "../security/security-composition.js";
@@ -21,18 +22,19 @@ export interface BrainCapabilityComposition {
 
 export function composeBrainCapability(preparation: {
   readonly contextLineageId: string;
-  readonly currentIdentity: CurrentIdentity;
+  readonly identityResolutionRequest: IdentityResolutionRequest;
   readonly lifecycleObserver?: ObserveBrainOrchestrationLifecycle;
 }): BrainCapabilityComposition {
   const captured = capturePreparation(preparation);
   const expectedLineageIdentity = contextLineageIdentity(
     captured.contextLineageId,
   );
-  const context = composeContextCapability();
+  const identity = composeIdentityCapability();
+  const context = composeContextCapability(identity.resolveCurrentIdentity);
   const activeContextRevision =
-    context.composeContextRevision.composeContextRevision({
+    context.prepareContextRevision.prepareContextRevision({
       target: { kind: "new-lineage" },
-      currentIdentity: captured.currentIdentity,
+      identityResolutionRequest: captured.identityResolutionRequest,
     });
   if (activeContextRevision.lineageIdentity !== expectedLineageIdentity)
     throw new BootstrapConfigurationError(
@@ -108,15 +110,18 @@ export function composeBrainCapability(preparation: {
 
 function capturePreparation(preparation: {
   readonly contextLineageId: string;
-  readonly currentIdentity: CurrentIdentity;
+  readonly identityResolutionRequest: IdentityResolutionRequest;
   readonly lifecycleObserver?: ObserveBrainOrchestrationLifecycle;
 }): {
   readonly contextLineageId: string;
-  readonly currentIdentity: CurrentIdentity;
+  readonly identityResolutionRequest: IdentityResolutionRequest;
   readonly lifecycleObserver?: ObserveBrainOrchestrationLifecycle;
 } {
   const contextLineageId = ownDataValue(preparation, "contextLineageId");
-  const currentIdentity = ownDataValue(preparation, "currentIdentity");
+  const identityResolutionRequest = ownDataValue(
+    preparation,
+    "identityResolutionRequest",
+  );
   const observerDescriptor = Reflect.getOwnPropertyDescriptor(
     preparation,
     "lifecycleObserver",
@@ -133,7 +138,8 @@ function capturePreparation(preparation: {
     );
   return Object.freeze({
     contextLineageId: contextLineageId as string,
-    currentIdentity: currentIdentity as CurrentIdentity,
+    identityResolutionRequest:
+      identityResolutionRequest as IdentityResolutionRequest,
     ...(observerDescriptor?.value === undefined
       ? {}
       : {

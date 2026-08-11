@@ -238,11 +238,11 @@ export function composeDiagnosticRuntime(): DiagnosticResult {
     throw new Error("Knowledge capability diagnostic failed.");
   }
 
-  const context = composeContextCapability();
-  const initialRevision = context.composeContextRevision.composeContextRevision(
+  const context = composeContextCapability(identity.resolveCurrentIdentity);
+  const initialRevision = context.prepareContextRevision.prepareContextRevision(
     {
       target: { kind: "new-lineage" },
-      currentIdentity: anonymousIdentity,
+      identityResolutionRequest: {},
     },
   );
   const retrievedInitial =
@@ -256,13 +256,15 @@ export function composeDiagnosticRuntime(): DiagnosticResult {
     query: "Evaluate anonymous diagnostic grounding.",
   });
   const successorRevision =
-    context.composeContextRevision.composeContextRevision({
+    context.prepareContextRevision.prepareContextRevision({
       target: {
         kind: "existing-lineage",
         lineageIdentity: initialRevision.lineageIdentity,
         expectedActiveRevisionIdentity: initialRevision.revisionIdentity,
       },
-      currentIdentity: authenticatedIdentity,
+      identityResolutionRequest: {
+        resolutionReference: identity.demonstrationResolutionReference,
+      },
     });
   const retrievedSuccessor =
     context.getActiveContextRevision.getActiveContextRevision({

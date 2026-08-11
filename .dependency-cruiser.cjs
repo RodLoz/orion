@@ -94,12 +94,12 @@ module.exports = {
       },
     },
     {
-      name: "context-engine-must-not-depend-on-identity-implementation",
+      name: "context-engine-must-not-depend-on-qualified-source-engines",
       comment:
-        "Context consumes Identity through Core-custodied Contracts, never the Identity Engine implementation.",
+        "Context collaborates with qualified sources through Core-custodied Contracts, never concrete source Engine implementations.",
       severity: "error",
       from: { path: "^services/context/(src|architecture-fixtures)" },
-      to: { path: "^services/identity/" },
+      to: { path: "^services/(identity|memory|knowledge)/" },
     },
     {
       name: "context-engine-must-not-depend-on-external-packages",

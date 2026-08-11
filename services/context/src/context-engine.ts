@@ -21,6 +21,9 @@ import {
   type GetActiveContextRevisionRequest,
   type IdentityContextFragment,
   type IdentityContextProjection,
+  type PrepareContextRevision,
+  type PrepareContextRevisionRequest,
+  type ResolveCurrentIdentity,
   type VerifyActiveContextRevisionAuthority,
   type VerifyActiveContextRevisionAuthorityRequest,
 } from "@orion/core";
@@ -54,6 +57,11 @@ type ValidatedComposeTarget = NewLineageTarget | ExistingLineageTarget;
 interface ValidatedComposeRequest {
   readonly target: ValidatedComposeTarget;
   readonly identityProjection: IdentityContextProjection;
+}
+
+interface ValidatedPrepareRequest {
+  readonly target: ValidatedComposeTarget;
+  readonly identityResolutionRequest: unknown;
 }
 
 const CONTEXT_FAILURES = [
@@ -107,14 +115,23 @@ export class ContextEngine
   implements
     ComposeContextRevision,
     GetActiveContextRevision,
+    PrepareContextRevision,
     VerifyActiveContextRevisionAuthority
 {
   readonly #lineages = new Map<ContextLineageIdentity, ContextLineageState>();
   readonly #authority = new ContextAuthority();
   #engineState: ContextEngineLifecycleState = "initialize";
 
-  public constructor(private readonly construction: ContextConstructionValues) {
-    if (construction === undefined || construction === null) {
+  public constructor(
+    private readonly construction: ContextConstructionValues,
+    private readonly currentIdentityResolver: ResolveCurrentIdentity,
+  ) {
+    if (
+      construction === undefined ||
+      construction === null ||
+      currentIdentityResolver === undefined ||
+      currentIdentityResolver === null
+    ) {
       throw new ContextEngineInitializationError();
     }
   }
@@ -129,7 +146,9 @@ export class ContextEngine
       if (
         typeof this.construction.nextLineageIdentity !== "function" ||
         typeof this.construction.nextRevisionIdentity !== "function" ||
-        typeof this.construction.nextCreatedAt !== "function"
+        typeof this.construction.nextCreatedAt !== "function" ||
+        typeof this.currentIdentityResolver.resolveCurrentIdentity !==
+          "function"
       ) {
         throw new ContextEngineInitializationError();
       }
@@ -164,6 +183,22 @@ export class ContextEngine
       }
       throw new ContextValidationFailureError();
     }
+  }
+
+  public prepareContextRevision(
+    request: PrepareContextRevisionRequest,
+  ): ActiveContextRevision;
+  public prepareContextRevision(request: unknown): ActiveContextRevision;
+  public prepareContextRevision(request: unknown): ActiveContextRevision {
+    this.requireEngineState("running");
+    const validatedRequest = this.validatePrepareRequest(request);
+    const currentIdentity = this.currentIdentityResolver.resolveCurrentIdentity(
+      validatedRequest.identityResolutionRequest as never,
+    );
+    return this.composeContextRevision({
+      target: validatedRequest.target,
+      currentIdentity,
+    });
   }
 
   public getActiveContextRevision(
@@ -366,6 +401,29 @@ export class ContextEngine
     }
   }
 
+  private validatePrepareRequest(request: unknown): ValidatedPrepareRequest {
+    try {
+      if (
+        !isPlainRecord(request) ||
+        !hasExactFields(request, ["target", "identityResolutionRequest"])
+      ) {
+        throw new InvalidContextInputError();
+      }
+      return Object.freeze({
+        target: this.validateTarget(Reflect.get(request, "target")),
+        identityResolutionRequest: Reflect.get(
+          request,
+          "identityResolutionRequest",
+        ),
+      });
+    } catch (error: unknown) {
+      if (isContextFailure(error)) {
+        throw error;
+      }
+      throw new InvalidContextInputError();
+    }
+  }
+
   private validateTarget(target: unknown): ValidatedComposeTarget {
     if (!isPlainRecord(target)) {
       throw new InvalidContextInputError();
@@ -447,7 +505,9 @@ export type ContextEngineLifecycleState =
 
 export class ContextEngineInitializationError extends Error {
   public constructor() {
-    super("Context Engine requires Context construction values.");
+    super(
+      "Context Engine requires Context construction values and a Current Identity resolver.",
+    );
     this.name = "ContextEngineInitializationError";
   }
 }

@@ -1,6 +1,5 @@
 import {
   BrainContextResolutionError,
-  anonymousCurrentIdentity,
   createFinalCognitiveResult,
   createNormalizedCognitiveRequest,
   type BrainOrchestrationLifecycleEvent,
@@ -20,7 +19,7 @@ function compose(
 ): BrainCapabilityComposition {
   return composeBrainCapability({
     contextLineageId: CONTEXT_LINEAGE_ID,
-    currentIdentity: anonymousCurrentIdentity(),
+    identityResolutionRequest: {},
     ...(lifecycleObserver === undefined ? {} : { lifecycleObserver }),
   });
 }
@@ -131,20 +130,20 @@ describe("Bootstrap Brain composition", () => {
     const originalObserver = (event: BrainOrchestrationLifecycleEvent) =>
       observed.push(event);
     const replacementObserver = vi.fn();
-    const currentIdentity = { state: "anonymous" as const };
+    const identityResolutionRequest = {};
     const preparation: {
       contextLineageId: string;
-      currentIdentity: { state: string };
+      identityResolutionRequest: Record<string, never>;
       lifecycleObserver: (event: BrainOrchestrationLifecycleEvent) => void;
     } = {
       contextLineageId: CONTEXT_LINEAGE_ID,
-      currentIdentity,
+      identityResolutionRequest,
       lifecycleObserver: originalObserver,
     };
     const brain = composeBrainCapability(preparation as never);
 
     preparation.contextLineageId = "orion.context.lineage.replaced";
-    preparation.currentIdentity.state = "replaced";
+    preparation.identityResolutionRequest = {};
     preparation.lifecycleObserver = replacementObserver;
     const result = brain.orchestrateCognitiveRequest(
       request("captured-preparation"),

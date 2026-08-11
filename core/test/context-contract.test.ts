@@ -15,10 +15,26 @@ import {
   contextRevisionIdentity,
   contextRevisionNumber,
   type ContextLifecycleState,
+  type PrepareContextRevisionRequest,
   type VerifyActiveContextRevisionAuthorityRequest,
 } from "../src/index.js";
 
 describe("Context domain Contracts", () => {
+  it("defines Context-owned preparation without changing incorporation input", () => {
+    const request = {
+      target: { kind: "new-lineage" },
+      identityResolutionRequest: {},
+    } satisfies PrepareContextRevisionRequest;
+
+    expect(Object.keys(request)).toEqual([
+      "target",
+      "identityResolutionRequest",
+    ]);
+    expectTypeOf<keyof PrepareContextRevisionRequest>().toEqualTypeOf<
+      "target" | "identityResolutionRequest"
+    >();
+  });
+
   it("validates opaque Context identities without coercion", () => {
     expect(contextLineageIdentity("orion.context.lineage.1")).toBe(
       "orion.context.lineage.1",

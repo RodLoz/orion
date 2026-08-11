@@ -23,7 +23,9 @@ class Values implements ContextConstructionValues {
 }
 
 function running() {
-  const engine = new ContextEngine(new Values());
+  const engine = new ContextEngine(new Values(), {
+    resolveCurrentIdentity: () => anonymousCurrentIdentity(),
+  });
   engine.initialize();
   engine.start();
   return engine;

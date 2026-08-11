@@ -24,7 +24,7 @@ Core defines opaque Lineage and Revision Identities, positive consecutive Revisi
 
 ## Contracts
 
-Core custodies `ComposeContextRevision` and `GetActiveContextRevision`. The Compose Contract uses an explicit new-lineage or existing-lineage target. The Get Contract returns only the current Active revision. A narrow construction-values port supplies deterministic candidate identifiers and creation timestamps without transferring Context semantics.
+Core custodies `PrepareContextRevision`, `ComposeContextRevision`, and `GetActiveContextRevision`. The Prepare Contract associates an Identity resolution request with an explicit new-lineage or existing-lineage target. The Compose Contract remains the incorporation-only boundary for completed Current Identity candidate material. The Get Contract returns only the current Active revision. A narrow construction-values port supplies deterministic candidate identifiers and creation timestamps without transferring Context semantics.
 
 ## Context Engine
 
@@ -32,7 +32,7 @@ Core custodies `ComposeContextRevision` and `GetActiveContextRevision`. The Comp
 
 ## Identity Integration
 
-Bootstrap resolves Identity through `ResolveCurrentIdentity` before calling Context. Context receives only an immutable Current Identity Contract value, creates a defensive projection, and never accesses the Identity Engine implementation or in-memory Identity Source.
+Bootstrap injects `ResolveCurrentIdentity` into Context through the Core-custodied Contract. Context owns preparation and initiates Identity retrieval, receives the immutable Current Identity candidate material, and delegates its incorporation to `ComposeContextRevision`. Context creates a defensive projection and never accesses the Identity Engine implementation or in-memory Identity Source.
 
 ## Lifecycle
 
@@ -48,7 +48,7 @@ Revision objects, creation metadata, fragment collections, fragments, and Identi
 
 ## Bootstrap Composition
 
-Bootstrap explicitly creates the Identity source and Engine, resolves Current Identity, creates deterministic Context construction values, and composes Context Engine. The capability registry stores metadata only.
+Bootstrap explicitly creates the Identity source and Engine, creates deterministic Context construction values, injects the Identity resolver Contract into Context Engine, and invokes Context preparation. The capability registry stores metadata only.
 
 ## Diagnostic Demonstration
 
@@ -56,7 +56,7 @@ The mandatory diagnostic activates Anonymous Revision 1, retrieves it, activates
 
 ## Failure Semantics
 
-M2 distinguishes invalid input, unknown lineage, invalid lifecycle transition, missing or malformed Identity projection, Context validation failure, and absence of Active Context. Upstream Identity failures remain Identity failures and prevent Context invocation or activation.
+M2 distinguishes invalid input, unknown lineage, invalid lifecycle transition, missing or malformed Identity projection, Context validation failure, and absence of Active Context. Identity failures propagate through Context preparation unchanged and prevent candidate incorporation or activation.
 
 ## Privacy and Observability
 
