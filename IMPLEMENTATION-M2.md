@@ -6,13 +6,13 @@ Implement the first operational Context capability slice while preserving `found
 
 ## Governing Specification
 
-M2 is governed by `specifications/engines/context/ENGINE-0003-Context-Engine.md`, version 1.0.0, Active.
+The current Active authorities are `specifications/engines/context/ENGINE-0003-Context-Engine-Revision-3.0.0.md` and `specifications/engines/knowledge/ENGINE-0005-Knowledge-Engine-Revision-1.1.0.md`.
 
 ## Implemented Scope
 
 - Core-custodied Context domain types, Contracts, construction-value port, and failures;
 - framework-free Context Engine with process-local lineage state;
-- one Identity Context Fragment per revision;
+- an unchanged Identity-only profile and an additive fixed Identity + Knowledge profile;
 - first-revision activation and successor evolution;
 - deterministic bootstrap construction values;
 - privacy-safe executable diagnostics;
@@ -20,11 +20,11 @@ M2 is governed by `specifications/engines/context/ENGINE-0003-Context-Engine.md`
 
 ## Context Domain Model
 
-Core defines opaque Lineage and Revision Identities, positive consecutive Revision Numbers, the canonical lifecycle state vocabulary, Context Revisions, Context Fragments, immutable Identity projections, and creation metadata. Context behavior remains in Context Engine.
+Core defines opaque Lineage and Revision Identities, positive consecutive Revision Numbers, the canonical lifecycle state vocabulary, Context Revisions, Context Fragments, immutable Identity and Knowledge projections, and creation metadata. Context behavior remains in Context Engine.
 
 ## Contracts
 
-Core custodies `PrepareContextRevision`, `ComposeContextRevision`, and `GetActiveContextRevision`. The Prepare Contract associates an Identity resolution request with an explicit new-lineage or existing-lineage target. The Compose Contract remains the incorporation-only boundary for completed Current Identity candidate material. The Get Contract returns only the current Active revision. A narrow construction-values port supplies deterministic candidate identifiers and creation timestamps without transferring Context semantics.
+Core custodies the unchanged Identity-only preparation and incorporation Contracts, additive fixed Knowledge-aware preparation and incorporation Contracts, and `GetActiveContextRevision`. The Knowledge-aware Prepare Contract associates existing Identity and Knowledge requests with an explicit target, while its Compose Contract remains the incorporation-only boundary for completed Current Identity and Knowledge Reference candidate material. The Get Contract returns only the current Active revision.
 
 ## Context Engine
 
@@ -34,21 +34,25 @@ Core custodies `PrepareContextRevision`, `ComposeContextRevision`, and `GetActiv
 
 Bootstrap injects `ResolveCurrentIdentity` into Context through the Core-custodied Contract. Context owns preparation and initiates Identity retrieval, receives the immutable Current Identity candidate material, and delegates its incorporation to `ComposeContextRevision`. Context creates a defensive projection and never accesses the Identity Engine implementation or in-memory Identity Source.
 
+## Knowledge Integration
+
+The additive Knowledge-aware profile injects the existing Core-custodied `GetKnowledge` operation into Context. Context forwards the opaque request, receives `RetrievedKnowledge` as candidate material, and incorporates only a defensive immutable projection of its `KnowledgeReference`. Knowledge remains required for this profile, and failures do not fall back to Identity-only preparation.
+
 ## Lifecycle
 
 Candidate revisions progress through Collecting → Composing → Validating → Active. Successful successor activation advances the prior Active revision to Expired. Archived remains deferred, and invalid transitions fail explicitly.
 
 ## Lineage and Revision Evolution
 
-Revision 1 starts one stable lineage. A meaningful Identity change creates Revision 2 with the same Lineage Identity, a new Revision Identity, consecutive ordering, and Revision 1 as parent. Unchanged Identity returns the existing Active revision.
+Revision 1 starts one stable lineage. A meaningful incorporated Identity or Knowledge projection change creates a consecutive successor with the same Lineage Identity and the prior revision as parent. Unchanged semantic projections return the existing Active revision.
 
 ## Immutability
 
-Revision objects, creation metadata, fragment collections, fragments, and Identity projections are frozen. Engine-private lifecycle state is the only controlled mutable element and permits only the approved transition from Active to Expired after activation.
+Revision objects, creation metadata, fragment collections, fragments, and Identity and Knowledge projections are frozen. Engine-private lifecycle state is the only controlled mutable element and permits only the approved transition from Active to Expired after activation.
 
 ## Bootstrap Composition
 
-Bootstrap explicitly creates the Identity source and Engine, creates deterministic Context construction values, injects the Identity resolver Contract into Context Engine, and invokes Context preparation. The capability registry stores metadata only.
+Bootstrap retains the Identity-only composition and adds a Knowledge-aware composition profile that injects `ResolveCurrentIdentity` and lifecycle-ready `GetKnowledge` collaborators. Bootstrap performs wiring only and does not inspect or incorporate Knowledge.
 
 ## Diagnostic Demonstration
 
@@ -56,7 +60,7 @@ The mandatory diagnostic activates Anonymous Revision 1, retrieves it, activates
 
 ## Failure Semantics
 
-M2 distinguishes invalid input, unknown lineage, invalid lifecycle transition, missing or malformed Identity projection, Context validation failure, and absence of Active Context. Identity failures propagate through Context preparation unchanged and prevent candidate incorporation or activation.
+M2 distinguishes invalid input, unknown lineage, invalid lifecycle transition, missing or malformed source projections, Context validation failure, and absence of Active Context. Identity and Knowledge retrieval failures propagate through their preparation profiles unchanged and prevent candidate incorporation or activation.
 
 ## Privacy and Observability
 
@@ -68,7 +72,7 @@ dependency-cruiser prevents Context Engine from depending on Bootstrap, Identity
 
 ## Tests
 
-Tests cover Context value validation, lifecycle vocabulary, Contracts, first and successor revisions, Identity projections and failures, ordering, parentage, expiration, immutability, runtime adversarial input, diagnostics, and dependency rules.
+Tests cover Context value validation, lifecycle vocabulary, Contracts, first and successor revisions, Identity and Knowledge projections and failures, canonical fragment ordering, parentage, expiration, immutability, runtime adversarial input, diagnostics, and dependency rules.
 
 ## Validation Commands
 
@@ -95,12 +99,12 @@ pnpm validate
 
 ## Explicitly Deferred
 
-Memory, Knowledge, Reasoning, Planning, Skills, Security implementation, Context persistence, Snapshots, Exact Replay, archival storage, Events, brokers, databases, ORM, HTTP/API, Gateway, external integrations, distributed Context, and generic source/plugin frameworks remain deferred.
+Memory specialization, generic multi-source preparation, Context persistence, Snapshots, Exact Replay, archival storage, Events, brokers, databases, ORM, HTTP/API, Gateway, external integrations, distributed Context, and generic source/plugin frameworks remain deferred.
 
 ## Known Limitations
 
 - lineage state is process-local and intentionally non-persistent;
-- Identity is the only Context source;
+- the implemented profiles are fixed as Identity-only and Identity + Knowledge;
 - M2 exposes no manual expiration operation, archival behavior, Snapshot, reconstruction, or replay;
 - identifier and creation-time values are deterministic demonstration mechanisms, not a distributed allocation design.
 

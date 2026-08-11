@@ -1,19 +1,24 @@
 # ENGINE-0005 — Knowledge Engine
 
-| Field          | Value                                                  |
-| -------------- | ------------------------------------------------------ |
-| **Status**     | Active                                                 |
-| **Version**    | 1.0.0                                                  |
-| **Owner**      | Project Maintainers                                    |
-| **Created**    | 2026-07-20                                             |
-| **Updated**    | 2026-07-20                                             |
-| **Applies To** | Knowledge Engine, M4 — Knowledge Engine Vertical Slice |
+| Field             | Value                                                               |
+| ----------------- | ------------------------------------------------------------------- |
+| **Status**        | Superseded                                                          |
+| **Superseded By** | [ENGINE-0005 1.1.0](ENGINE-0005-Knowledge-Engine-Revision-1.1.0.md) |
+| **Version**       | 1.0.0                                                               |
+| **Owner**         | Project Maintainers                                                 |
+| **Created**       | 2026-07-20                                                          |
+| **Updated**       | 2026-08-11                                                          |
+| **Applies To**    | Knowledge Engine, M4 — Knowledge Engine Vertical Slice              |
 
 ---
 
 ## Status
 
-This specification is Active and governs M4 implementation according to the documentation authority and status rules.
+This revision is Superseded by
+[ENGINE-0005 1.1.0](ENGINE-0005-Knowledge-Engine-Revision-1.1.0.md) and is
+retained only as historical version 1.0.0. It is non-authoritative. Its
+original Knowledge vertical-slice semantics remain historical and are not
+rewritten by its successor.
 
 The key words **MUST**, **MUST NOT**, **SHOULD**, **SHOULD NOT**, and **MAY** describe normative requirements proposed by this specification.
 

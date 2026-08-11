@@ -8,6 +8,8 @@ import {
   contextRevisionIdentity,
   contextRevisionNumber,
   identityIdentifier,
+  knowledgeIdentity,
+  knowledgeVersion,
   type ActiveContextRevision,
   type VerifyActiveContextRevisionAuthority,
 } from "@orion/core";
@@ -166,13 +168,14 @@ function assertContextStructure(value: unknown): void {
     "sourceCount",
     "fragmentCount",
   ]);
-  if (
-    contextCreatedAt(metadata.createdAt) !== metadata.createdAt ||
-    metadata.sourceCount !== 1 ||
-    metadata.fragmentCount !== 1
-  )
+  if (contextCreatedAt(metadata.createdAt) !== metadata.createdAt)
     throw new Error();
-  const fragments = exactArray(revision.fragments, 1);
+  const isIdentityOnly =
+    metadata.sourceCount === 1 && metadata.fragmentCount === 1;
+  const isKnowledgeAware =
+    metadata.sourceCount === 2 && metadata.fragmentCount === 2;
+  if (!isIdentityOnly && !isKnowledgeAware) throw new Error();
+  const fragments = exactArray(revision.fragments, isIdentityOnly ? 1 : 2);
   const fragment = exactRecord(fragments[0], [
     "kind",
     "authoritativeOwner",
@@ -199,6 +202,36 @@ function assertContextStructure(value: unknown): void {
         projection.identityIdentifier)
   )
     throw new Error();
+  if (isKnowledgeAware) {
+    const knowledgeFragment = exactRecord(fragments[1], [
+      "kind",
+      "authoritativeOwner",
+      "projection",
+    ]);
+    if (
+      knowledgeFragment.kind !== "knowledge" ||
+      knowledgeFragment.authoritativeOwner !== "knowledge"
+    )
+      throw new Error();
+    const knowledgeProjection = exactRecord(knowledgeFragment.projection, [
+      "knowledgeIdentity",
+      "validationState",
+      "version",
+      "currency",
+      "authoritativeOwner",
+    ]);
+    if (
+      knowledgeIdentity(knowledgeProjection.knowledgeIdentity) !==
+        knowledgeProjection.knowledgeIdentity ||
+      knowledgeProjection.validationState !== "accepted" ||
+      knowledgeVersion(knowledgeProjection.version) !==
+        knowledgeProjection.version ||
+      (knowledgeProjection.currency !== "current" &&
+        knowledgeProjection.currency !== "superseded") ||
+      knowledgeProjection.authoritativeOwner !== "knowledge"
+    )
+      throw new Error();
+  }
 }
 
 function exactRecord(

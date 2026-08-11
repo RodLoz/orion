@@ -5,7 +5,9 @@ export {
 } from "./brain/brain-composition.js";
 export {
   composeContextCapability,
+  composeKnowledgeAwareContextCapability,
   type ContextCapabilityComposition,
+  type KnowledgeAwareContextCapabilityComposition,
 } from "./context/context-composition.js";
 export { DeterministicContextConstructionValues } from "./context/deterministic-context-construction-values.js";
 export { DeterministicMemoryConstructionValues } from "./memory/deterministic-memory-construction-values.js";

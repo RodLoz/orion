@@ -5,20 +5,30 @@ import type {
   ContextRevisionIdentity,
   ContextRevisionNumber,
   IdentityContextFragment,
+  IdentityContextRevision,
+  KnowledgeAwareContextRevision,
+  KnowledgeContextFragment,
 } from "@orion/core";
 
 import { ContextRevisionLifecycle } from "./context-revision-lifecycle.js";
 
 const LIFECYCLES = new WeakMap<ContextRevision, ContextRevisionLifecycle>();
 
-export interface RuntimeContextRevisionInput {
+interface RuntimeContextRevisionInputBase {
   readonly lineageIdentity: ContextLineageIdentity;
   readonly revisionIdentity: ContextRevisionIdentity;
   readonly revisionNumber: ContextRevisionNumber;
   readonly parentRevisionIdentity?: ContextRevisionIdentity;
   readonly createdAt: ContextCreatedAt;
-  readonly fragment: IdentityContextFragment;
 }
+
+export type RuntimeContextRevisionInput = RuntimeContextRevisionInputBase &
+  (
+    | Readonly<{ fragments: readonly [IdentityContextFragment] }>
+    | Readonly<{
+        fragments: readonly [IdentityContextFragment, KnowledgeContextFragment];
+      }>
+  );
 
 export function createActiveRuntimeContextRevision(
   input: RuntimeContextRevisionInput,
@@ -28,26 +38,44 @@ export function createActiveRuntimeContextRevision(
   lifecycle.transition("validating");
   lifecycle.transition("active");
 
-  const creationMetadata = Object.freeze({
-    createdAt: input.createdAt,
-    sourceCount: 1 as const,
-    fragmentCount: 1 as const,
-  });
-  const fragments = Object.freeze([input.fragment]) as readonly [
-    IdentityContextFragment,
-  ];
-
-  const revision: ContextRevision = Object.freeze({
+  const base = {
     lineageIdentity: input.lineageIdentity,
     revisionIdentity: input.revisionIdentity,
     revisionNumber: input.revisionNumber,
     ...(input.parentRevisionIdentity === undefined
       ? {}
       : { parentRevisionIdentity: input.parentRevisionIdentity }),
-    creationMetadata,
-    lifecycleState: "active",
-    fragments,
-  });
+    lifecycleState: "active" as const,
+  };
+  let revision: ContextRevision;
+  if (input.fragments.length === 1) {
+    const fragments = Object.freeze([input.fragments[0]]) as readonly [
+      IdentityContextFragment,
+    ];
+    revision = Object.freeze({
+      ...base,
+      creationMetadata: Object.freeze({
+        createdAt: input.createdAt,
+        sourceCount: 1 as const,
+        fragmentCount: 1 as const,
+      }),
+      fragments,
+    }) as IdentityContextRevision;
+  } else {
+    const fragments = Object.freeze([
+      input.fragments[0],
+      input.fragments[1],
+    ]) as readonly [IdentityContextFragment, KnowledgeContextFragment];
+    revision = Object.freeze({
+      ...base,
+      creationMetadata: Object.freeze({
+        createdAt: input.createdAt,
+        sourceCount: 2 as const,
+        fragmentCount: 2 as const,
+      }),
+      fragments,
+    }) as KnowledgeAwareContextRevision;
+  }
 
   LIFECYCLES.set(revision, lifecycle);
   return revision;

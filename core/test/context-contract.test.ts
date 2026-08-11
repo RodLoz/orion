@@ -14,8 +14,10 @@ import {
   contextLineageIdentity,
   contextRevisionIdentity,
   contextRevisionNumber,
+  type ComposeContextRevisionWithKnowledgeRequest,
   type ContextLifecycleState,
   type PrepareContextRevisionRequest,
+  type PrepareContextRevisionWithKnowledgeRequest,
   type VerifyActiveContextRevisionAuthorityRequest,
 } from "../src/index.js";
 
@@ -33,6 +35,38 @@ describe("Context domain Contracts", () => {
     expectTypeOf<keyof PrepareContextRevisionRequest>().toEqualTypeOf<
       "target" | "identityResolutionRequest"
     >();
+  });
+
+  it("defines the fixed Knowledge-aware preparation and incorporation inputs", () => {
+    const preparation = {
+      target: { kind: "new-lineage" },
+      identityResolutionRequest: {},
+      knowledgeRetrievalRequest: { knowledgeIdentity: "knowledge-1" },
+    } satisfies PrepareContextRevisionWithKnowledgeRequest;
+    const incorporation = {
+      target: { kind: "new-lineage" },
+      currentIdentity: {} as never,
+      knowledgeReference: {} as never,
+    } satisfies ComposeContextRevisionWithKnowledgeRequest;
+
+    expect(Object.keys(preparation)).toEqual([
+      "target",
+      "identityResolutionRequest",
+      "knowledgeRetrievalRequest",
+    ]);
+    expect(Object.keys(incorporation)).toEqual([
+      "target",
+      "currentIdentity",
+      "knowledgeReference",
+    ]);
+    expectTypeOf<
+      keyof PrepareContextRevisionWithKnowledgeRequest
+    >().toEqualTypeOf<
+      "target" | "identityResolutionRequest" | "knowledgeRetrievalRequest"
+    >();
+    expectTypeOf<
+      keyof ComposeContextRevisionWithKnowledgeRequest
+    >().toEqualTypeOf<"target" | "currentIdentity" | "knowledgeReference">();
   });
 
   it("validates opaque Context identities without coercion", () => {

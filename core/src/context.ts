@@ -1,4 +1,9 @@
 import type { IdentityIdentifier } from "./identity.js";
+import type {
+  KnowledgeCurrency,
+  KnowledgeIdentity,
+  KnowledgeVersion,
+} from "./knowledge.js";
 
 export type ContextLineageIdentity = string & {
   readonly __contextLineageIdentity: unique symbol;
@@ -36,23 +41,62 @@ export interface IdentityContextFragment {
   readonly projection: IdentityContextProjection;
 }
 
-export type ContextFragment = IdentityContextFragment;
+export interface KnowledgeContextProjection {
+  readonly knowledgeIdentity: KnowledgeIdentity;
+  readonly validationState: "accepted";
+  readonly version: KnowledgeVersion;
+  readonly currency: KnowledgeCurrency;
+  readonly authoritativeOwner: "knowledge";
+}
 
-export interface ContextRevisionCreationMetadata {
+export interface KnowledgeContextFragment {
+  readonly kind: "knowledge";
+  readonly authoritativeOwner: "knowledge";
+  readonly projection: KnowledgeContextProjection;
+}
+
+export type ContextFragment =
+  IdentityContextFragment | KnowledgeContextFragment;
+
+export interface IdentityContextRevisionCreationMetadata {
   readonly createdAt: ContextCreatedAt;
   readonly sourceCount: 1;
   readonly fragmentCount: 1;
 }
 
-export interface ContextRevision {
+export interface KnowledgeAwareContextRevisionCreationMetadata {
+  readonly createdAt: ContextCreatedAt;
+  readonly sourceCount: 2;
+  readonly fragmentCount: 2;
+}
+
+export type ContextRevisionCreationMetadata =
+  | IdentityContextRevisionCreationMetadata
+  | KnowledgeAwareContextRevisionCreationMetadata;
+
+interface ContextRevisionBase {
   readonly lineageIdentity: ContextLineageIdentity;
   readonly revisionIdentity: ContextRevisionIdentity;
   readonly revisionNumber: ContextRevisionNumber;
   readonly parentRevisionIdentity?: ContextRevisionIdentity;
-  readonly creationMetadata: ContextRevisionCreationMetadata;
   readonly lifecycleState: ContextLifecycleState;
+}
+
+export interface IdentityContextRevision extends ContextRevisionBase {
+  readonly creationMetadata: IdentityContextRevisionCreationMetadata;
   readonly fragments: readonly [IdentityContextFragment];
 }
+
+export interface KnowledgeAwareContextRevision extends ContextRevisionBase {
+  readonly creationMetadata: KnowledgeAwareContextRevisionCreationMetadata;
+  readonly fragments: readonly [
+    IdentityContextFragment,
+    KnowledgeContextFragment,
+  ];
+}
+
+export type ContextRevision =
+  IdentityContextRevision | KnowledgeAwareContextRevision;
 
 export type ActiveContextRevision = ContextRevision;
 

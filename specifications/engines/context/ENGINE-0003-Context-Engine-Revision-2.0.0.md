@@ -1,24 +1,25 @@
 # ENGINE-0003 — Context Engine Revision
 
-| Field          | Value                                                                            |
-| -------------- | -------------------------------------------------------------------------------- |
-| **Status**     | Active                                                                           |
-| **Supersedes** | 1.1.0                                                                            |
-| **Version**    | 2.0.0                                                                            |
-| **Owner**      | Context Engine                                                                   |
-| **Created**    | 2026-07-29                                                                       |
-| **Updated**    | 2026-08-11                                                                       |
-| **Applies To** | Context preparation, revision composition, lifecycle, and authority verification |
+| Field             | Value                                                                            |
+| ----------------- | -------------------------------------------------------------------------------- |
+| **Status**        | Superseded                                                                       |
+| **Supersedes**    | 1.1.0                                                                            |
+| **Superseded By** | [ENGINE-0003 3.0.0](ENGINE-0003-Context-Engine-Revision-3.0.0.md)                |
+| **Version**       | 2.0.0                                                                            |
+| **Owner**         | Context Engine                                                                   |
+| **Created**       | 2026-07-29                                                                       |
+| **Updated**       | 2026-08-11                                                                       |
+| **Applies To**    | Context preparation, revision composition, lifecycle, and authority verification |
 
 ---
 
 ## Status and Authority
 
-This specification is Active and is the sole current canonical ENGINE-0003
-revision. It supersedes versions 1.0.0 and 1.1.0. Those versions remain
-historical and non-authoritative; this specification does not incorporate
-their incompatible caller-first Identity retrieval or Context preparation
-semantics.
+This revision is Superseded by
+[ENGINE-0003 3.0.0](ENGINE-0003-Context-Engine-Revision-3.0.0.md) and is
+retained only as historical version 2.0.0. It is non-authoritative. Its
+Identity-only semantics remain historical and are not rewritten by its
+successor.
 
 Context is the semantic owner of Context preparation, retrieval initiation,
 retrieval-request purpose, incorporation, Context validation, activation,
