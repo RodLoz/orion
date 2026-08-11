@@ -3,10 +3,10 @@
 | Field | Value |
 |--------|--------|
 | **Status** | Active |
-| **Version** | 1.1.0 |
+| **Version** | 1.2.0 |
 | **Owner** | Project Maintainers |
 | **Created** | 2026-07-10 |
-| **Updated** | 2026-07-19 |
+| **Updated** | 2026-08-10 |
 | **Applies To** | All Documentation |
 
 ---
@@ -32,6 +32,7 @@ This standard applies to:
 - Architecture Decision Records (ADR)
 - Architecture Specifications (ARCH)
 - Concept Specifications (CONCEPT)
+- Contract Specifications (CONTRACT)
 - Engine Specifications (ENGINE)
 - Flow Specifications (FLOW)
 - API Specifications
@@ -100,6 +101,8 @@ Every technical document must begin with the following header.
 
 README.md and MANIFESTO.md are exempt from this requirement.
 
+Contract Specifications specialize the generic technical-document header according to [OES-0004 — Contracts](OES-0004-Contracts.md). They use `Semantic Owner` and `Core Custodian` instead of an ambiguous generic `Owner` field, while retaining Status, Version, Created, Updated, and Applies To. This specialization preserves the distinction between document maintenance, capability semantics, shared-language custody, implementation responsibility, and runtime authority.
+
 ---
 
 # Document Status
@@ -127,6 +130,18 @@ Ownership indicates maintenance responsibility.
 
 Ownership does not imply exclusive authorship.
 
+For Contract Specifications, Contract-specific metadata is a document-family specialization of these generic documentation requirements. OES-0004 requires:
+
+- Status;
+- Version;
+- Semantic Owner;
+- Core Custodian;
+- Created;
+- Updated;
+- Applies To.
+
+`Semantic Owner` identifies the capability or domain that owns the Contract's meaning. `Core Custodian` identifies custody of shared Contract language where applicable. These fields remain distinct and MUST NOT be collapsed into the generic `Owner` field.
+
 ---
 
 # Versioning
@@ -148,6 +163,31 @@ Examples:
 ```
 
 Major versions indicate incompatible changes.
+
+For Contract Specifications, the Contract identifier and Semantic Version describe different properties:
+
+- the Contract identifier identifies the semantic Contract boundary;
+- the Version identifies an evolution state of that Contract.
+
+For example, `CONTRACT-0001` version `1.0.0` and `CONTRACT-0001` version `1.1.0` retain the same Contract identity unless higher architectural authority establishes a different semantic boundary. Contract versioning follows OES-0010 and OES-0004. Versions are recorded in metadata rather than canonical filenames.
+
+---
+
+# Contract Specification Lifecycle
+
+Contract Specifications use existing repository lifecycle statuses; no Contract-specific status is introduced:
+
+- Draft;
+- Review;
+- Active;
+- Superseded;
+- Archived.
+
+Only an Active Contract Specification governs within its accepted scope. Draft and Review Contract Specifications are non-authoritative. Superseded and Archived Contract Specifications are historical and non-current.
+
+Lifecycle transitions do not change the Semantic Owner or transfer Core Custody. Superseded and Archived history retains the Contract identifier and version lineage, and lifecycle status never makes an identifier available for reuse.
+
+This standard does not define historical file-storage or revision-file layout.
 
 ---
 
@@ -196,6 +236,30 @@ Reviews
 ```
 REVIEW-0001-Foundation.md
 ```
+
+Contract Specifications
+
+```
+CONTRACT-####-Descriptive-Contract-Name.md
+```
+
+The canonical top-level title form is:
+
+```markdown
+# CONTRACT-#### — Descriptive Contract Name
+```
+
+`CONTRACT-####` is the canonical identifier family for architectural Contract Specifications. The numeric component uses four zero-padded digits, consistent with other canonical document families. Illustrative identifiers such as `CONTRACT-0001` and `CONTRACT-0002` demonstrate the format only; they do not allocate a Contract identifier.
+
+Each `CONTRACT-####` identifier MUST be unique within the Contract document family and MUST map to one canonical semantic Contract boundary. Duplicate Active identifiers are prohibited. An identifier MUST NOT be reused for an unrelated boundary after supersession, archival, or any other lifecycle transition.
+
+A Contract identifier persists across compatible evolution. A version change does not create a new Contract identifier unless higher architectural authority establishes a distinct semantic Contract boundary requiring separate document identity. Numbering does not encode runtime order, dependency order, authority level, priority, or capability ownership.
+
+The descriptive filename component names the semantic Contract boundary. The filename begins with its stable identifier and uses the Markdown extension. A descriptive name MAY evolve when repository naming rules permit, provided link updates preserve canonical identity. Semantic versions remain in document metadata and MUST NOT be encoded in the canonical filename.
+
+This standard establishes Contract-document identity and naming only. Canonical directory placement is governed by repository-structure standards and is not established in this version of OES-0008. It does not define revision filenames, allocation automation, an alias system, or a Contract index.
+
+The abbreviation `RC` remains reserved for Release Candidate terminology under OES-0010 and applicable release governance. Review-local labels such as `RC-001` or `RC-002` are not canonical Contract identifiers and do not establish an `RC-*` Contract document family. Canonical architectural Contract Specifications use `CONTRACT-####`.
 
 ---
 
@@ -284,6 +348,10 @@ Related Standards
 ```
 
 Avoid duplicating information across documents.
+
+References to a canonical Contract Specification SHOULD use its `CONTRACT-####` identifier. The first relevant mention SHOULD also include its descriptive name. When referring to the canonical document, normative and related documents SHOULD use a relative Markdown link.
+
+The link path follows the canonical directory established by repository-structure governance. This standard does not establish that directory or define Contract aliases.
 
 ---
 
@@ -399,7 +467,17 @@ Documentation is complete when:
 
 - OES-0000 — Engineering Philosophy
 - OES-0001 — Repository Structure
-- OES-0010 — Versioning Standards
+- [OES-0004 — Contracts](OES-0004-Contracts.md)
+- [OES-0010 — Versioning Standards](OES-0010-Versioning-Standards.md)
+- [DOCUMENT-AUTHORITY — Documentation Authority](../DOCUMENT-AUTHORITY.md)
+
+---
+
+# Change History
+
+| Version | Date       | Description |
+| ------- | ---------- | ----------- |
+| 1.2.0   | 2026-08-10 | Added canonical Contract Specification identifiers, filenames, titles, uniqueness, metadata specialization, lifecycle integration, and cross-reference conventions. |
 
 ---
 

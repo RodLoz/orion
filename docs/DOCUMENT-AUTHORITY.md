@@ -3,10 +3,10 @@
 | Field | Value |
 |--------|--------|
 | **Status** | Active |
-| **Version** | 2.0.0 |
+| **Version** | 2.1.0 |
 | **Owner** | Project Maintainers |
 | **Created** | 2026-07-10 |
-| **Updated** | 2026-07-19 |
+| **Updated** | 2026-08-10 |
 | **Applies To** | All Project Documentation |
 
 ---
@@ -25,6 +25,7 @@ This policy applies to:
 
 - Architecture Decision Records
 - Architecture Specifications
+- Contract Specifications
 - Engineering Standards
 - Engine Specifications
 - Flow Specifications
@@ -56,13 +57,14 @@ The official precedence order is:
 2. Active Architecture Specifications
 3. Active Concept Specifications
 4. Active O.R.I.O.N. Engineering Standards
-5. Active Protocol, API, and Schema Specifications
-6. Active Engine Specifications
-7. Active Flow Specifications
-8. AGENTS.md
-9. General architecture and project documentation
-10. README.md and MANIFESTO.md
-11. Examples, comments, drafts, and placeholders
+5. Active Contract Specifications
+6. Active Protocol, API, and Schema Specifications
+7. Active Engine Specifications
+8. Active Flow Specifications
+9. AGENTS.md
+10. General architecture and project documentation
+11. README.md and MANIFESTO.md
+12. Examples, comments, drafts, and placeholders
 
 ---
 
@@ -135,7 +137,29 @@ Engineering Standards must not contradict approved ADRs, Active Architecture Spe
 
 ---
 
-# 5. Protocol, API, and Schema Specifications
+# 5. Contract Specifications
+
+A canonical architectural Contract Specification is a normative specification of an already accepted shared semantic boundary.
+
+Contract Specifications:
+
+- formalize shared semantics, guarantees, invariants, obligations, failures, and compatibility within their accepted scope;
+- are governed in authorship and evolution by [OES-0004 — Contracts](engineering/OES-0004-Contracts.md);
+- retain the applicable capability or domain as Semantic Owner;
+- retain Core custody of shared Contract language where that custody applies;
+- remain distinct from executable TypeScript or runtime Contract surfaces.
+
+An Active Contract Specification governs implementations, executable Contract surfaces, and lower-authority documentation within the boundary it formalizes. It MUST comply with applicable approved ADRs, Active Architecture Specifications, authoritative Concept Specifications where their scopes overlap, and Active Engineering Standards.
+
+A Contract Specification does not originate architectural ownership or authority independently. It MUST NOT invent capability ownership, source authority, authority-verification ownership, Security authorization ownership, protected-boundary enforcement ownership, Context incorporation or currentness ownership, Brain orchestration or final-result ownership, Bootstrap composition ownership, or persistence ownership.
+
+Executable implementation does not give a Contract Specification additional authority, and implementation reality cannot override higher architectural authority.
+
+This policy defines Contract-Specification authority and precedence only. It does not define Contract filenames, numbering, directory placement, identifier uniqueness, or lifecycle mechanics beyond the general status rules in this document.
+
+---
+
+# 6. Protocol, API, and Schema Specifications
 
 These specifications define machine-consumable or integration-facing behavior.
 
@@ -147,19 +171,21 @@ They govern:
 - Schema validation
 - Compatibility rules
 
-They must comply with ADRs, Architecture Specifications, Concept Specifications, and Engineering Standards.
+They must comply with applicable ADRs, Architecture Specifications, authoritative Concept Specifications within overlapping scope, Engineering Standards, and Active Contract Specifications whose formalized boundaries they represent or expose.
 
 ---
 
-# 6. Engine Specifications
+# 7. Engine Specifications
 
 Engine Specifications define one Engine’s responsibilities, contracts, lifecycle, state, events, failures, security boundaries, and observability requirements.
 
-An Engine Specification may specialize a general Engineering Standard but must not contradict higher-authority ADRs, Architecture Specifications, Concept Specifications, or Engineering Standards.
+An Engine Specification may describe how its capability participates in or implements applicable Contract semantics and may specialize implementation-facing behavior within already accepted architecture. It must not contradict higher-authority ADRs, Architecture Specifications, authoritative Concept Specifications within overlapping scope, Engineering Standards, or an applicable Active Contract Specification within the Contract boundary.
+
+An Active Contract Specification governs when an Engine Specification conflicts with the formalized Contract boundary, unless a higher architectural authority governs the conflict. A Contract Specification does not absorb unrelated Engine-internal behavior, lifecycle, state, or implementation detail.
 
 ---
 
-# 7. Flow Specifications
+# 8. Flow Specifications
 
 Flow Specifications describe runtime collaboration between components.
 
@@ -179,7 +205,7 @@ When a Flow conflicts with an Engine Specification, the Engine Specification tak
 
 ---
 
-# 8. AGENTS.md
+# 9. AGENTS.md
 
 AGENTS.md provides operational guidance for contributors and AI agents.
 
@@ -191,7 +217,7 @@ It must not override ADRs, Specifications, or Engineering Standards.
 
 ---
 
-# 9. General Documentation
+# 10. General Documentation
 
 General documentation includes:
 
@@ -208,7 +234,7 @@ They must remain consistent with authoritative ADRs, Specifications, and Enginee
 
 ---
 
-# 10. README and MANIFESTO
+# 11. README and MANIFESTO
 
 README.md introduces the project.
 
@@ -220,7 +246,7 @@ They must not be used to resolve technical conflicts.
 
 ---
 
-# 11. Drafts, Examples, and Placeholders
+# 12. Drafts, Examples, and Placeholders
 
 Draft documents, code examples, comments, diagrams, and empty placeholders are non-authoritative.
 
@@ -251,6 +277,32 @@ A Deprecated document remains historically useful but should not govern new impl
 
 A Superseded document has no normative authority.
 
+For Contract Specifications:
+
+- an Active Contract Specification governs within its accepted and formalized scope;
+- a Draft or Review Contract Specification does not establish architectural authority;
+- a Superseded Contract Specification is historical and non-current;
+- an Archived Contract Specification is historical and non-current unless repository governance explicitly establishes another meaning.
+
+Lifecycle status does not permit a Contract Specification to exceed the architectural scope accepted by higher authority.
+
+---
+
+# Contract Specifications and Executable Surfaces
+
+An architectural Contract Specification is distinct from an executable Contract surface.
+
+Executable Contract surfaces include, where applicable:
+
+- TypeScript interfaces and types;
+- exported request, result, reference, and failure definitions;
+- runtime validators;
+- conformance tests.
+
+Executable surfaces implement, represent, enforce, or test shared Contract language. They do not become architectural authority merely because they execute, are exported, or are used by implementations.
+
+Executable surfaces MUST conform to applicable Active Contract Specifications and all higher architectural authority. Tests and diagnostics provide conformance evidence; they do not override the Contract Specification or create architectural semantics.
+
 ---
 
 # Conflict Resolution Process
@@ -267,6 +319,15 @@ When conflicting documentation is discovered:
 8. Increment document versions where required.
 
 Contributors must not silently choose one interpretation.
+
+The following Contract-specific applications make this process deterministic:
+
+1. When an applicable approved ADR or higher architectural boundary conflicts with an Active Contract Specification, the higher architectural authority governs and the Contract Specification must be corrected.
+2. When an Active Contract Specification conflicts with an Engine Specification within the same formalized Contract boundary, the Contract Specification governs unless an applicable higher authority says otherwise.
+3. When an Active Contract Specification conflicts with an executable Contract surface, implementation, test, diagnostic, or lower-authority implementation documentation, the Contract Specification governs.
+4. When two Contract Specifications appear to conflict, contributors must evaluate lifecycle status, formalized scope, Semantic Ownership, and governing architectural authority. They MUST NOT resolve the conflict through implementation preference. Any unresolved architectural ambiguity must be escalated through the existing higher-authority process rather than decided inside the Contract layer.
+
+Concept precedence is scope-sensitive. An Active Concept Specification governs a Contract only where the Concept remains authoritative and its conceptual scope overlaps the Contract boundary; a Concept does not override an unrelated Contract merely because it has a higher document-family position.
 
 ---
 
@@ -292,12 +353,19 @@ For Contracts and Events, the following concepts are distinct:
 - **Domain owner:** the Engine or domain responsible for meaning and behavior.
 - **Schema custodian:** the package or repository location containing the definition.
 - **Runtime authority:** the component allowed to publish, execute, or enforce it.
+- **Implementation owner:** the component or layer responsible for a conforming executable realization.
 
 These responsibilities must be documented explicitly.
 
 Storing a Contract or Event schema in the Core does not make the Core its domain owner.
 
+Core custody of a Contract Specification or shared Contract language MUST NOT confer semantic ownership, runtime ownership, implementation ownership, Bootstrap composition ownership, source authority, authority-verification ownership, Security authorization ownership, or protected-boundary enforcement ownership.
+
+A Consumer, Implementer, Provider, Adapter, transport, store, test, or diagnostic does not acquire Contract semantic ownership or architectural authority through participation, representation, execution, conformance, or observation.
+
 For Knowledge, the Knowledge Engine owns domain behavior and governance. The Core may define or custody shared Knowledge Contracts, schemas, identifiers, and domain types, but this custody does not transfer Knowledge behavior or acceptance authority to the Core.
+
+OES-0004 governs how Contract Specifications are authored and evolved. This document governs their authority and precedence. Engineering Standards do not become Semantic Owners of the capability Contracts whose governance they define.
 
 ---
 
@@ -327,6 +395,14 @@ Examples:
 | Knowledge capability ownership | ADR-0002 |
 | Memory / Knowledge / Context semantic partition | ADR-0005 |
 | Architectural decisions | Relevant approved ADR |
+
+---
+
+# Change History
+
+| Version | Date       | Description |
+| ------- | ---------- | ----------- |
+| 2.1.0   | 2026-08-10 | Added canonical architectural Contract Specifications to the document taxonomy, authority hierarchy, status rules, ownership distinctions, and deterministic conflict-resolution process. |
 
 ---
 
