@@ -1,12 +1,9 @@
 import {
   InactiveContextError,
   InvalidActiveContextError,
-  InvalidKnowledgeReferenceError,
-  InvalidMemoryReferenceError,
   InvalidReasoningInputError,
   InvalidReasoningQueryError,
   InvalidReasoningStateError,
-  REASONING_REFERENCE_MAX_COUNT,
   ReasoningRuleFailureError,
   contextCreatedAt,
   contextLifecycleState,
@@ -14,8 +11,6 @@ import {
   contextRevisionIdentity,
   contextRevisionNumber,
   createContextConsumptionReference,
-  createKnowledgeReference,
-  createMemoryReference,
   createReasoningExplainabilitySummary,
   createReasoningOutcome,
   identityIdentifier,
@@ -23,8 +18,6 @@ import {
   type ActiveContextRevision,
   type EvaluateReasoning,
   type IdentityContextProjection,
-  type KnowledgeReference,
-  type MemoryReference,
   type ReasoningOutcome,
   type VerifyReasoningOutcomeAuthority,
   type VerifyReasoningOutcomeAuthorityRequest,
@@ -34,14 +27,10 @@ import { ReasoningAuthority } from "./reasoning-authority.js";
 interface NormalizedRequest {
   readonly context: ActiveContextRevision;
   readonly query: ReturnType<typeof reasoningQuery>;
-  readonly memoryReferences: readonly MemoryReference[];
-  readonly knowledgeReferences: readonly KnowledgeReference[];
 }
 
 interface ValidatedRequestShape {
   readonly source: Record<string, unknown>;
-  readonly hasMemoryReferences: boolean;
-  readonly hasKnowledgeReferences: boolean;
 }
 
 export class ReasoningEngine
@@ -72,17 +61,7 @@ export class ReasoningEngine
     const context = this.validateContextField(suppliedContext);
     if (context.lifecycleState !== "active") throw new InactiveContextError();
     const query = this.validateQueryField(top.source);
-    const memoryReferences = this.validateMemoryReferences(
-      top.source,
-      top.hasMemoryReferences,
-    );
-    const knowledgeReferences = this.validateKnowledgeReferences(
-      top.source,
-      top.hasKnowledgeReferences,
-    );
-    const outcome = this.evaluateRules(
-      Object.freeze({ context, query, memoryReferences, knowledgeReferences }),
-    );
+    const outcome = this.evaluateRules(Object.freeze({ context, query }));
     this.#authority.register(outcome, suppliedContext);
     return outcome;
   }
@@ -99,19 +78,11 @@ export class ReasoningEngine
     try {
       if (!isPlainRecord(value)) throw new Error();
       const keys = Object.keys(value);
-      if (
-        !hasExactKeySet(
-          keys,
-          ["intent", "activeContextRevision", "query"],
-          ["memoryReferences", "knowledgeReferences"],
-        )
-      )
+      if (!hasExactKeySet(keys, ["intent", "activeContextRevision", "query"]))
         throw new Error();
       if (Reflect.get(value, "intent") !== "evaluate") throw new Error();
       return Object.freeze({
         source: value,
-        hasMemoryReferences: keys.includes("memoryReferences"),
-        hasKnowledgeReferences: keys.includes("knowledgeReferences"),
       });
     } catch {
       throw new InvalidReasoningInputError();
@@ -271,80 +242,9 @@ export class ReasoningEngine
     }
   }
 
-  private validateMemoryReferences(
-    top: Record<string, unknown>,
-    supplied: boolean,
-  ): readonly MemoryReference[] {
-    if (!supplied) return Object.freeze([]);
-    try {
-      const values = validateArray(Reflect.get(top, "memoryReferences"));
-      const identities = new Set<string>();
-      const result = values.map((value) => {
-        const item = exactRecord(value, [
-          "memoryIdentity",
-          "kind",
-          "authoritativeCapability",
-          "lifecycleState",
-        ]);
-        if (
-          item.kind !== "episodic" ||
-          item.authoritativeCapability !== "memory" ||
-          item.lifecycleState !== "stored"
-        )
-          throw new Error();
-        const reference = createMemoryReference(item.memoryIdentity);
-        if (identities.has(reference.memoryIdentity)) throw new Error();
-        identities.add(reference.memoryIdentity);
-        return reference;
-      });
-      return Object.freeze(result);
-    } catch {
-      throw new InvalidMemoryReferenceError();
-    }
-  }
-
-  private validateKnowledgeReferences(
-    top: Record<string, unknown>,
-    supplied: boolean,
-  ): readonly KnowledgeReference[] {
-    if (!supplied) return Object.freeze([]);
-    try {
-      const values = validateArray(Reflect.get(top, "knowledgeReferences"));
-      const identities = new Set<string>();
-      const result = values.map((value) => {
-        const item = exactRecord(value, [
-          "knowledgeIdentity",
-          "validationState",
-          "version",
-          "currency",
-          "authoritativeCapability",
-        ]);
-        if (
-          item.validationState !== "accepted" ||
-          item.currency !== "current" ||
-          item.authoritativeCapability !== "knowledge"
-        )
-          throw new Error();
-        const reference = createKnowledgeReference({
-          knowledgeIdentity: item.knowledgeIdentity,
-          version: item.version,
-          currency: item.currency,
-        });
-        if (identities.has(reference.knowledgeIdentity)) throw new Error();
-        identities.add(reference.knowledgeIdentity);
-        return reference;
-      });
-      return Object.freeze(result);
-    } catch {
-      throw new InvalidKnowledgeReferenceError();
-    }
-  }
-
   private evaluateRules(request: NormalizedRequest): ReasoningOutcome {
     try {
       const identityState = request.context.fragments[0].projection.state;
-      const memoryReferenceCount = request.memoryReferences.length;
-      const knowledgeReferenceCount = request.knowledgeReferences.length;
       const basis =
         identityState === "anonymous"
           ? ([
@@ -354,29 +254,13 @@ export class ReasoningEngine
               "request-more-context",
               "anonymous-identity",
             ] as const)
-          : knowledgeReferenceCount > 0
-            ? ([
-                "knowledge-grounded-context",
-                "The authenticated context includes accepted Knowledge references.",
-                "Accepted Knowledge context is available for further orchestration.",
-                "none",
-                "authenticated-with-knowledge",
-              ] as const)
-            : memoryReferenceCount > 0
-              ? ([
-                  "experience-informed-context",
-                  "The authenticated context includes Memory references but no Knowledge references.",
-                  "Only retained experience references are available for further orchestration.",
-                  "none",
-                  "authenticated-with-memory-only",
-                ] as const)
-              : ([
-                  "context-only",
-                  "The authenticated context contains no supplied Memory or Knowledge references.",
-                  "No Memory or Knowledge references were supplied for further orchestration.",
-                  "request-more-context",
-                  "authenticated-context-only",
-                ] as const);
+          : ([
+              "context-only",
+              "The authenticated actor is represented by the active context.",
+              "Additional authoritative context may be required before further orchestration.",
+              "request-more-context",
+              "authenticated-context-only",
+            ] as const);
       const contextConsumptionReference = createContextConsumptionReference({
         lineageIdentity: request.context.lineageIdentity,
         revisionIdentity: request.context.revisionIdentity,
@@ -387,8 +271,6 @@ export class ReasoningEngine
       const explainability = createReasoningExplainabilitySummary({
         contextConsumptionReference,
         identityState,
-        memoryReferenceCount,
-        knowledgeReferenceCount,
         ruleCategory: basis[4],
       });
       return createReasoningOutcome({
@@ -434,35 +316,11 @@ function hasExactFields(
 function hasExactKeySet(
   keys: readonly string[],
   required: readonly string[],
-  optional: readonly string[],
 ): boolean {
   return (
     required.every((key) => keys.includes(key)) &&
-    keys.every((key) => required.includes(key) || optional.includes(key))
+    keys.every((key) => required.includes(key))
   );
-}
-function validateArray(value: unknown): unknown[] {
-  if (!Array.isArray(value)) throw new Error();
-  const length = value.length;
-  if (length > REASONING_REFERENCE_MAX_COUNT) throw new Error();
-  for (const key of Reflect.ownKeys(value)) {
-    if (key === "length") continue;
-    const descriptor = Reflect.getOwnPropertyDescriptor(value, key);
-    if (descriptor?.enumerable !== true) continue;
-    if (typeof key !== "string" || !/^(0|[1-9]\d*)$/.test(key))
-      throw new Error();
-    const index = Number(key);
-    if (!Number.isSafeInteger(index) || index < 0 || index >= length)
-      throw new Error();
-  }
-  if (
-    Array.from({ length }, (_, index) => Object.hasOwn(value, index)).some(
-      (present) => !present,
-    )
-  ) {
-    throw new Error();
-  }
-  return value;
 }
 
 export type ReasoningEngineLifecycleState =

@@ -30,7 +30,7 @@ function runWithGc(failContext: boolean): string {
             contextConsumptionReference:{lineageIdentity:context.lineageIdentity,
               revisionIdentity:context.revisionIdentity,revisionNumber:1,
               lifecycleState:'active',authoritativeCapability:'context'},
-            identityState:'anonymous',memoryReferenceCount:0,knowledgeReferenceCount:0,
+            identityState:'anonymous',
             ruleCategory:'anonymous-identity'
           }
         });
@@ -39,7 +39,6 @@ function runWithGc(failContext: boolean): string {
           steps:[{ordinal:1,kind:'request-more-context'}],
           source:{reasoningStatus:reasoning.status,reasoningCategory:reasoning.category,
             candidateNextAction:reasoning.nextAction,identityState:'anonymous',
-            memoryReferenceCount:0,knowledgeReferenceCount:0,
             reasoningRuleCategory:'anonymous-identity',authoritativeCapability:'reasoning'},
           explainability:{consumedReasoningCategory:reasoning.category,
             consumedCandidateNextAction:reasoning.nextAction,

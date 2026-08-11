@@ -33,8 +33,6 @@ export interface VerifyCandidatePlanAuthorityRequest {
   readonly expectedReasoningCategory: ReasoningOutcomeCategory;
   readonly expectedCandidateNextAction: CandidateNextAction;
   readonly expectedIdentityState: "anonymous" | "authenticated";
-  readonly expectedMemoryReferenceCount: number;
-  readonly expectedKnowledgeReferenceCount: number;
   readonly expectedReasoningRuleCategory: ReasoningRuleCategory;
 }
 

@@ -3,20 +3,19 @@
 | Field          | Value                                                     |
 | -------------- | --------------------------------------------------------- |
 | **Status**     | Active                                                    |
-| **Version**    | 1.0.0                                                     |
+| **Version**    | 2.0.0                                                     |
 | **Owner**      | Project Maintainers                                       |
 | **Milestone**  | M10 — Brain Orchestration Foundation                      |
 | **Created**    | 2026-07-29                                                |
-| **Updated**    | 2026-07-29                                                |
+| **Updated**    | 2026-08-10                                                |
 | **Applies To** | Brain Engine, Core Brain Contracts, and M10 orchestration |
 
 ---
 
 ## Status
 
-This specification is Active and authoritative. ADR-0007 and CONCEPT-0006 are
-also Active. M10 is ready for implementation planning but remains not
-implemented.
+This specification is Active and authoritative. Applicable Active ADRs,
+including ADR-0015, specialize and constrain its orchestration boundaries.
 
 The key words **MUST**, **MUST NOT**, **SHOULD**, **SHOULD NOT**, and **MAY**
 describe normative requirements.
@@ -59,8 +58,9 @@ M10 includes:
 - closed failures and lifecycle observation; and
 - Bootstrap composition through Core-custodied Contracts.
 
-M10 supplies empty Memory and Knowledge Reference collections to Reasoning. It
-does not call Memory or Knowledge.
+M10 supplies Reasoning only the authoritative Active Context Revision and the
+bounded query. It does not call Memory or Knowledge or construct a parallel
+same-cycle evidence boundary.
 
 ## Engine Lifecycle
 
@@ -168,9 +168,7 @@ Bootstrap may compose only the issuer-owned pair and MUST NOT mint authority.
 evaluate({
   intent: "evaluate",
   activeContextRevision,
-  query,
-  memoryReferences: [],
-  knowledgeReferences: []
+  query
 }) → unknown
 
 verify(candidate, {
@@ -405,28 +403,27 @@ validation, with no retry, minting, mutation, or diagnostic value exposure.
 This Contract is authoritative under Active ENGINE-0003 revision 1.1.0.
 Bootstrap may compose only the Context-owned callable.
 
-### Evaluate Reasoning 1.0.0
+### Evaluate Reasoning 2.0.0
 
-M10 reuses the existing Contract with the exact five-field request:
+M10 uses the exact three-field request:
 
 ```text
 {
   intent: "evaluate",
   activeContextRevision,
-  query,
-  memoryReferences: [],
-  knowledgeReferences: []
+  query
 }
 ```
 
 Reasoning Engine is semantic/runtime owner and Brain is caller. No field is
-optional in M10; every unnamed field is prohibited. Output is the exact
+optional; every unnamed field is prohibited. Brain supplies no independent
+Memory, Knowledge, or source evidence. Output is the exact
 Reasoning-issued Reasoning Outcome, registered by that runtime under the
 prerequisite revision. Every Reasoning failure, throw, malformed return, or trap
 maps to `BrainReasoningResolutionError`. Invocation is exactly once, no retry,
 no mutation, and no query/Context/Outcome diagnostics.
 
-### Verify Reasoning Outcome Authority 1.0.0
+### Verify Reasoning Outcome Authority 2.0.0
 
 ```text
 {
@@ -445,9 +442,9 @@ Reasoning Outcome. Issuer-owned closed Reasoning authority failures are
 normalized by Brain to `BrainReasoningResolutionError`. It is invoked once,
 never retried, read-only, non-minting, non-mutating, and diagnostically private.
 
-This Contract is authoritative under Active ENGINE-0006 revision 1.1.0.
+This Contract is authoritative under Active ENGINE-0006 revision 2.0.0.
 
-### Create Candidate Plan 1.0.0
+### Create Candidate Plan 2.0.0
 
 M10 reuses the exact existing request:
 
@@ -465,7 +462,7 @@ revision. Every Planning failure, throw, malformed return, or trap maps to
 `BrainPlanningResolutionError`. Invocation is exactly once, no retry, no
 mutation, and no Reasoning/Planning diagnostic exposure.
 
-### Verify Candidate Plan Authority 1.0.0
+### Verify Candidate Plan Authority 2.0.0
 
 ```text
 {
@@ -476,8 +473,6 @@ mutation, and no Reasoning/Planning diagnostic exposure.
   expectedReasoningCategory: ReasoningOutcomeCategory,
   expectedCandidateNextAction: CandidateNextAction,
   expectedIdentityState: "anonymous" | "authenticated",
-  expectedMemoryReferenceCount: integer 0..20,
-  expectedKnowledgeReferenceCount: integer 0..20,
   expectedReasoningRuleCategory: ReasoningRuleCategory
 }
 ```
@@ -488,7 +483,7 @@ Candidate Plan. Issuer-owned closed Planning authority failures are normalized
 by Brain to `BrainPlanningResolutionError`. It is invoked once, never retried,
 read-only, non-minting, non-mutating, and diagnostically private.
 
-This Contract is authoritative under Active ENGINE-0007 revision 1.1.0.
+This Contract is authoritative under Active ENGINE-0007 revision 2.0.0.
 
 ### Allocate Authorization Operation Identifier 1.0.0
 
@@ -1090,9 +1085,19 @@ No implementation-critical question remains. The specification is Active.
 
 ## Compatibility
 
-This Active specification consumes existing M0–M9 public Contracts and preserves their
-semantic ownership, failure meaning, authority requirements, immutability, and
-dependency direction. It introduces no change to another Active authority.
+This Active specification consumes the current Context, Reasoning, Planning,
+Security, and Skill public Contracts and preserves their semantic ownership,
+failure meaning, authority requirements, immutability, and dependency
+direction. Version 2.0.0 removes the former parallel Reasoning evidence path
+and corresponding Planning evidence counts. It introduces no new capability
+ownership or authority.
+
+## Change History
+
+| Version | Date       | Description |
+| ------- | ---------- | ----------- |
+| 1.0.0   | 2026-07-29 | Established the Brain orchestration foundation and final cognitive result boundary. |
+| 2.0.0   | 2026-08-10 | Aligned Brain orchestration with the authoritative Context-to-Reasoning and exact Reasoning-to-Planning boundaries. |
 
 ## References
 
@@ -1100,10 +1105,11 @@ dependency direction. It introduces no change to another Active authority.
 - [Architecture](../../docs/architecture.md)
 - [ADR-0006 — Skill Selection, Binding, and Protected Invocation Ownership](../../docs/adr/ADR-0006-Skill-Selection-Binding-and-Protected-Invocation-Ownership.md)
 - [ADR-0007 — Brain Orchestration Ownership and Planning Binding](../../docs/adr/ADR-0007-Brain-Orchestration-Ownership-and-Planning-Binding.md)
+- [ADR-0015 — Brain Cognitive Reference Orchestration and Final Cognitive Result Boundaries](../../docs/adr/ADR-0015-Brain-Cognitive-Reference-Orchestration-and-Final-Cognitive-Result-Boundaries.md)
 - [CONCEPT-0006 — Brain Orchestration Model](../concepts/CONCEPT-0006-Brain-Orchestration-Model.md)
 - [ENGINE-0003 — Context Engine 1.1.0](context/ENGINE-0003-Context-Engine-Authority-Revision-1.1.0.md)
-- [ENGINE-0006 — Reasoning Engine 1.1.0](reasoning/ENGINE-0006-Reasoning-Engine-Authority-Revision-1.1.0.md)
-- [ENGINE-0007 — Planning Engine 1.1.0](planning/ENGINE-0007-Planning-Engine-Authority-Revision-1.1.0.md)
+- [ENGINE-0006 — Reasoning Engine 2.0.0](reasoning/ENGINE-0006-Reasoning-Engine-Revision-2.0.0.md)
+- [ENGINE-0007 — Planning Engine 2.0.0](planning/ENGINE-0007-Planning-Engine-Revision-2.0.0.md)
 - [ENGINE-0009 — Security Engine](security/ENGINE-0009-Security-Engine.md)
 - [ENGINE-0010 — Protected Skill Invocation](skill/ENGINE-0010-Skill-Engine-Protected-Invocation-and-Execution.md)
 - [IMPLEMENTATION-M9](../../IMPLEMENTATION-M9.md)

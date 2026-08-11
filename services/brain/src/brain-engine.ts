@@ -233,8 +233,6 @@ export class BrainEngine {
         intent: "evaluate",
         activeContextRevision: context,
         query: request.query,
-        memoryReferences: [],
-        knowledgeReferences: [],
       });
       strictGraph(candidate);
       requireDeepFrozen(candidate);
@@ -276,8 +274,6 @@ export class BrainEngine {
         expectedReasoningCategory: reasoning.category,
         expectedCandidateNextAction: reasoning.nextAction,
         expectedIdentityState: explainability.identityState,
-        expectedMemoryReferenceCount: explainability.memoryReferenceCount,
-        expectedKnowledgeReferenceCount: explainability.knowledgeReferenceCount,
         expectedReasoningRuleCategory: explainability.ruleCategory,
       });
       if (verified !== candidate) throw new Error();

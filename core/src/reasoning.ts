@@ -7,7 +7,6 @@ import type {
 export const REASONING_QUERY_MAX_CODE_POINTS = 2048;
 export const CANDIDATE_CONCLUSION_MAX_CODE_POINTS = 1024;
 export const CANDIDATE_RESPONSE_MAX_CODE_POINTS = 2048;
-export const REASONING_REFERENCE_MAX_COUNT = 20;
 
 export type ReasoningQuery = string & {
   readonly __reasoningQuery: unique symbol;
@@ -19,16 +18,9 @@ export type CandidateResponse = string & {
   readonly __candidateResponse: unique symbol;
 };
 export type CandidateNextAction = "none" | "request-more-context";
-export type ReasoningOutcomeCategory =
-  | "anonymous-context"
-  | "knowledge-grounded-context"
-  | "experience-informed-context"
-  | "context-only";
+export type ReasoningOutcomeCategory = "anonymous-context" | "context-only";
 export type ReasoningRuleCategory =
-  | "anonymous-identity"
-  | "authenticated-with-knowledge"
-  | "authenticated-with-memory-only"
-  | "authenticated-context-only";
+  "anonymous-identity" | "authenticated-context-only";
 
 export interface ContextConsumptionReference {
   readonly lineageIdentity: ContextLineageIdentity;
@@ -41,8 +33,6 @@ export interface ContextConsumptionReference {
 export interface ReasoningExplainabilitySummary {
   readonly contextConsumptionReference: ContextConsumptionReference;
   readonly identityState: "anonymous" | "authenticated";
-  readonly memoryReferenceCount: number;
-  readonly knowledgeReferenceCount: number;
   readonly ruleCategory: ReasoningRuleCategory;
 }
 
@@ -119,15 +109,11 @@ export function createReasoningExplainabilitySummary(
     const record = exactRecord(input, [
       "contextConsumptionReference",
       "identityState",
-      "memoryReferenceCount",
-      "knowledgeReferenceCount",
       "ruleCategory",
     ]);
     if (
       (record.identityState !== "anonymous" &&
         record.identityState !== "authenticated") ||
-      !validCount(record.memoryReferenceCount) ||
-      !validCount(record.knowledgeReferenceCount) ||
       !isRuleCategory(record.ruleCategory)
     )
       throw new Error();
@@ -136,8 +122,6 @@ export function createReasoningExplainabilitySummary(
         record.contextConsumptionReference,
       ),
       identityState: record.identityState,
-      memoryReferenceCount: record.memoryReferenceCount,
-      knowledgeReferenceCount: record.knowledgeReferenceCount,
       ruleCategory: record.ruleCategory,
     });
   } catch {
@@ -203,29 +187,13 @@ function exactRecord(
     throw new Error();
   return record;
 }
-function validCount(value: unknown): value is number {
-  return (
-    typeof value === "number" &&
-    Number.isInteger(value) &&
-    value >= 0 &&
-    value <= REASONING_REFERENCE_MAX_COUNT
-  );
-}
 function isRuleCategory(value: unknown): value is ReasoningRuleCategory {
   return (
-    value === "anonymous-identity" ||
-    value === "authenticated-with-knowledge" ||
-    value === "authenticated-with-memory-only" ||
-    value === "authenticated-context-only"
+    value === "anonymous-identity" || value === "authenticated-context-only"
   );
 }
 function isOutcomeCategory(value: unknown): value is ReasoningOutcomeCategory {
-  return (
-    value === "anonymous-context" ||
-    value === "knowledge-grounded-context" ||
-    value === "experience-informed-context" ||
-    value === "context-only"
-  );
+  return value === "anonymous-context" || value === "context-only";
 }
 
 // Keeps the public factory implementation independent while using the canonical Core validators.

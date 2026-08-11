@@ -82,8 +82,6 @@ export class PlanningAuthority implements VerifyCandidatePlanAuthority {
         "expectedReasoningCategory",
         "expectedCandidateNextAction",
         "expectedIdentityState",
-        "expectedMemoryReferenceCount",
-        "expectedKnowledgeReferenceCount",
         "expectedReasoningRuleCategory",
       ]);
       if (value.intent !== "verify-candidate-plan-authority") throw new Error();
@@ -93,26 +91,18 @@ export class PlanningAuthority implements VerifyCandidatePlanAuthority {
       );
       if (
         value.expectedReasoningStatus !== "completed" ||
-        ![
-          "anonymous-context",
-          "knowledge-grounded-context",
-          "experience-informed-context",
-          "context-only",
-        ].includes(value.expectedReasoningCategory as string) ||
+        !["anonymous-context", "context-only"].includes(
+          value.expectedReasoningCategory as string,
+        ) ||
         !["none", "request-more-context"].includes(
           value.expectedCandidateNextAction as string,
         ) ||
         !["anonymous", "authenticated"].includes(
           value.expectedIdentityState as string,
         ) ||
-        !validCount(value.expectedMemoryReferenceCount) ||
-        !validCount(value.expectedKnowledgeReferenceCount) ||
-        ![
-          "anonymous-identity",
-          "authenticated-with-knowledge",
-          "authenticated-with-memory-only",
-          "authenticated-context-only",
-        ].includes(value.expectedReasoningRuleCategory as string)
+        !["anonymous-identity", "authenticated-context-only"].includes(
+          value.expectedReasoningRuleCategory as string,
+        )
       )
         throw new Error();
     } catch {
@@ -130,9 +120,6 @@ export class PlanningAuthority implements VerifyCandidatePlanAuthority {
         source.reasoningCategory !== value.expectedReasoningCategory ||
         source.candidateNextAction !== value.expectedCandidateNextAction ||
         source.identityState !== value.expectedIdentityState ||
-        source.memoryReferenceCount !== value.expectedMemoryReferenceCount ||
-        source.knowledgeReferenceCount !==
-          value.expectedKnowledgeReferenceCount ||
         source.reasoningRuleCategory !== value.expectedReasoningRuleCategory ||
         explainability.consumedReasoningCategory !==
           value.expectedReasoningCategory ||
@@ -147,15 +134,6 @@ export class PlanningAuthority implements VerifyCandidatePlanAuthority {
       throw new InvalidPlanningAuthorityStateError();
     }
   }
-}
-
-function validCount(value: unknown): boolean {
-  return (
-    typeof value === "number" &&
-    Number.isInteger(value) &&
-    value >= 0 &&
-    value <= 20
-  );
 }
 
 function exactRecord(

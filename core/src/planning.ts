@@ -28,8 +28,6 @@ export interface ReasoningConsumptionReference {
   readonly reasoningCategory: ReasoningOutcomeCategory;
   readonly candidateNextAction: CandidateNextAction;
   readonly identityState: "anonymous" | "authenticated";
-  readonly memoryReferenceCount: number;
-  readonly knowledgeReferenceCount: number;
   readonly reasoningRuleCategory: ReasoningRuleCategory;
   readonly authoritativeCapability: "reasoning";
 }
@@ -83,8 +81,6 @@ export function createReasoningConsumptionReference(
       "reasoningCategory",
       "candidateNextAction",
       "identityState",
-      "memoryReferenceCount",
-      "knowledgeReferenceCount",
       "reasoningRuleCategory",
       "authoritativeCapability",
     ]);
@@ -93,16 +89,12 @@ export function createReasoningConsumptionReference(
       !outcomeCategory(value.reasoningCategory) ||
       !nextAction(value.candidateNextAction) ||
       !identityState(value.identityState) ||
-      !count(value.memoryReferenceCount) ||
-      !count(value.knowledgeReferenceCount) ||
       !reasoningRule(value.reasoningRuleCategory) ||
       value.authoritativeCapability !== "reasoning" ||
       !validReasoningCorrespondence({
         reasoningCategory: value.reasoningCategory,
         candidateNextAction: value.candidateNextAction,
         identityState: value.identityState,
-        memoryReferenceCount: value.memoryReferenceCount,
-        knowledgeReferenceCount: value.knowledgeReferenceCount,
         reasoningRuleCategory: value.reasoningRuleCategory,
       })
     )
@@ -112,8 +104,6 @@ export function createReasoningConsumptionReference(
       reasoningCategory: value.reasoningCategory,
       candidateNextAction: value.candidateNextAction,
       identityState: value.identityState,
-      memoryReferenceCount: value.memoryReferenceCount,
-      knowledgeReferenceCount: value.knowledgeReferenceCount,
       reasoningRuleCategory: value.reasoningRuleCategory,
       authoritativeCapability: "reasoning",
     });
@@ -264,12 +254,9 @@ function exactKeys(value: object, fields: readonly string[]): void {
   }
 }
 function outcomeCategory(value: unknown): value is ReasoningOutcomeCategory {
-  return [
-    "anonymous-context",
-    "knowledge-grounded-context",
-    "experience-informed-context",
-    "context-only",
-  ].includes(value as ReasoningOutcomeCategory);
+  return ["anonymous-context", "context-only"].includes(
+    value as ReasoningOutcomeCategory,
+  );
 }
 function nextAction(value: unknown): value is CandidateNextAction {
   return value === "none" || value === "request-more-context";
@@ -277,20 +264,10 @@ function nextAction(value: unknown): value is CandidateNextAction {
 function identityState(value: unknown): value is "anonymous" | "authenticated" {
   return value === "anonymous" || value === "authenticated";
 }
-function count(value: unknown): value is number {
-  return (
-    Number.isSafeInteger(value) &&
-    (value as number) >= 0 &&
-    (value as number) <= 20
-  );
-}
 function reasoningRule(value: unknown): value is ReasoningRuleCategory {
-  return [
-    "anonymous-identity",
-    "authenticated-with-knowledge",
-    "authenticated-with-memory-only",
-    "authenticated-context-only",
-  ].includes(value as ReasoningRuleCategory);
+  return ["anonymous-identity", "authenticated-context-only"].includes(
+    value as ReasoningRuleCategory,
+  );
 }
 function planCategory(value: unknown): value is CandidatePlanCategory {
   return value === "respond" || value === "request-more-context";
@@ -306,8 +283,6 @@ type ReasoningCorrespondence = Readonly<{
   reasoningCategory: unknown;
   candidateNextAction: unknown;
   identityState: unknown;
-  memoryReferenceCount: unknown;
-  knowledgeReferenceCount: unknown;
   reasoningRuleCategory: unknown;
 }>;
 
@@ -317,34 +292,13 @@ function validReasoningCorrespondence(value: ReasoningCorrespondence): boolean {
       return (
         value.candidateNextAction === "request-more-context" &&
         value.identityState === "anonymous" &&
-        count(value.memoryReferenceCount) &&
-        count(value.knowledgeReferenceCount) &&
         value.reasoningRuleCategory === "anonymous-identity"
-      );
-    case "knowledge-grounded-context":
-      return (
-        value.candidateNextAction === "none" &&
-        value.identityState === "authenticated" &&
-        count(value.memoryReferenceCount) &&
-        count(value.knowledgeReferenceCount) &&
-        value.knowledgeReferenceCount > 0 &&
-        value.reasoningRuleCategory === "authenticated-with-knowledge"
-      );
-    case "experience-informed-context":
-      return (
-        value.candidateNextAction === "none" &&
-        value.identityState === "authenticated" &&
-        count(value.memoryReferenceCount) &&
-        value.memoryReferenceCount > 0 &&
-        value.knowledgeReferenceCount === 0 &&
-        value.reasoningRuleCategory === "authenticated-with-memory-only"
       );
     case "context-only":
       return (
-        value.candidateNextAction === "request-more-context" &&
+        (value.candidateNextAction === "request-more-context" ||
+          value.candidateNextAction === "none") &&
         value.identityState === "authenticated" &&
-        value.memoryReferenceCount === 0 &&
-        value.knowledgeReferenceCount === 0 &&
         value.reasoningRuleCategory === "authenticated-context-only"
       );
     default:
@@ -360,12 +314,11 @@ function validPlanningCorrespondence(
 ): boolean {
   if (!outcomeCategory(reasoningCategory)) return false;
   const expectsResponse = action === "none";
-  const validReasoningAction = expectsResponse
-    ? reasoningCategory === "knowledge-grounded-context" ||
-      reasoningCategory === "experience-informed-context"
-    : action === "request-more-context" &&
+  const validReasoningAction =
+    (action === "request-more-context" &&
       (reasoningCategory === "anonymous-context" ||
-        reasoningCategory === "context-only");
+        reasoningCategory === "context-only")) ||
+    (action === "none" && reasoningCategory === "context-only");
   return (
     validReasoningAction &&
     category === (expectsResponse ? "respond" : "request-more-context") &&

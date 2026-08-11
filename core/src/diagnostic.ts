@@ -45,19 +45,16 @@ export interface ReasoningCapabilityDiagnostic {
   readonly operational: true;
   readonly evaluationSucceeded: true;
   readonly anonymousRuleSucceeded: true;
-  readonly authenticatedKnowledgeRuleSucceeded: true;
-  readonly authenticatedMemoryRuleSucceeded: true;
   readonly authenticatedContextOnlyRuleSucceeded: true;
-  readonly precedenceRuleSucceeded: true;
   readonly candidateResponseProduced: true;
 }
 
 export interface PlanningCapabilityDiagnostic {
   readonly planningCapabilityOperational: true;
   readonly planningSucceeded: true;
-  readonly planCategory: "respond";
+  readonly planCategory: "request-more-context";
   readonly stepCount: 1;
-  readonly planningRuleCategory: "reasoning-produced-response";
+  readonly planningRuleCategory: "reasoning-requested-more-context";
 }
 
 export interface SkillCapabilityDiagnostic {

@@ -30,8 +30,6 @@ function request(value: ReturnType<typeof issued>) {
     expectedReasoningCategory: source.reasoningCategory,
     expectedCandidateNextAction: source.candidateNextAction,
     expectedIdentityState: source.identityState,
-    expectedMemoryReferenceCount: source.memoryReferenceCount,
-    expectedKnowledgeReferenceCount: source.knowledgeReferenceCount,
     expectedReasoningRuleCategory: source.reasoningRuleCategory,
   };
 }

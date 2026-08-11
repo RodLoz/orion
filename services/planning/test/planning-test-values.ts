@@ -8,10 +8,9 @@ export function planningTestOutcome() {
   return createReasoningOutcome({
     status: "completed",
     category: "context-only",
-    conclusion:
-      "The authenticated context contains no supplied Memory or Knowledge references.",
+    conclusion: "The authenticated actor is represented by the active context.",
     response:
-      "No Memory or Knowledge references were supplied for further orchestration.",
+      "Additional authoritative context may be required before further orchestration.",
     nextAction: "request-more-context",
     explainability: createReasoningExplainabilitySummary({
       contextConsumptionReference: createContextConsumptionReference({
@@ -22,8 +21,6 @@ export function planningTestOutcome() {
         authoritativeCapability: "context",
       }),
       identityState: "authenticated",
-      memoryReferenceCount: 0,
-      knowledgeReferenceCount: 0,
       ruleCategory: "authenticated-context-only",
     }),
   });

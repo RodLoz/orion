@@ -1,24 +1,25 @@
 # ENGINE-0006 — Reasoning Engine Authority Revision
 
-| Field          | Value                                                              |
-| -------------- | ------------------------------------------------------------------ |
-| **Status**     | Active                                                             |
-| **Supersedes** | 1.0.0                                                              |
-| **Version**    | 1.1.0                                                              |
-| **Owner**      | Reasoning Engine                                                   |
-| **Created**    | 2026-07-29                                                         |
-| **Updated**    | 2026-07-29                                                         |
-| **Applies To** | Reasoning Outcome issuance and issuer-owned authority verification |
+| Field             | Value                                                              |
+| ----------------- | ------------------------------------------------------------------ |
+| **Status**        | Superseded                                                         |
+| **Supersedes**    | 1.0.0                                                              |
+| **Superseded By** | [ENGINE-0006 2.0.0](ENGINE-0006-Reasoning-Engine-Revision-2.0.0.md) |
+| **Version**       | 1.1.0                                                              |
+| **Owner**         | Reasoning Engine                                                   |
+| **Created**       | 2026-07-29                                                         |
+| **Updated**       | 2026-08-10                                                         |
+| **Applies To**    | Reasoning Outcome issuance and issuer-owned authority verification |
 
 ---
 
 ## Status, Purpose, and Compatibility Boundary
 
-This additive revision is Active and authoritative. It supersedes ENGINE-0006
-version 1.0.0 as the sole current Active Reasoning Engine authority. It
-incorporates the 1.0.0 specification in full and adds only the authority
-requirements defined here. The superseded 1.0.0 document remains historical
-and non-authoritative.
+This revision is Superseded by
+[ENGINE-0006 2.0.0](ENGINE-0006-Reasoning-Engine-Revision-2.0.0.md) and is
+retained only as historical version 1.1.0. It is non-authoritative. Version
+1.1.0 historically incorporated version 1.0.0 and added the authority
+requirements recorded here.
 
 This revision adds proof that an exact Reasoning Outcome came from an exact
 Reasoning runtime and was evaluated from one exact supplied Context Revision.

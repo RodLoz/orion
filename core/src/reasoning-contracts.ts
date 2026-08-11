@@ -10,8 +10,6 @@ export interface EvaluateReasoningRequest {
   readonly intent: "evaluate";
   readonly activeContextRevision: unknown;
   readonly query: unknown;
-  readonly memoryReferences?: unknown;
-  readonly knowledgeReferences?: unknown;
 }
 export interface EvaluateReasoning {
   evaluateReasoning(request: EvaluateReasoningRequest): ReasoningOutcome;
@@ -56,19 +54,6 @@ export class InactiveContextError extends ReasoningContractError {
 export class InvalidReasoningQueryError extends ReasoningContractError {
   public constructor() {
     super("Reasoning Query is invalid.", "InvalidReasoningQueryError");
-  }
-}
-export class InvalidMemoryReferenceError extends ReasoningContractError {
-  public constructor() {
-    super("Memory Reference input is invalid.", "InvalidMemoryReferenceError");
-  }
-}
-export class InvalidKnowledgeReferenceError extends ReasoningContractError {
-  public constructor() {
-    super(
-      "Knowledge Reference input is invalid.",
-      "InvalidKnowledgeReferenceError",
-    );
   }
 }
 export class ReasoningRuleFailureError extends ReasoningContractError {

@@ -268,34 +268,10 @@ export function composeDiagnosticRuntime(): DiagnosticResult {
     context.getActiveContextRevision.getActiveContextRevision({
       lineageIdentity: successorRevision.lineageIdentity,
     });
-  const memoryReference = retainedBefore[0];
-  const knowledgeReference = currentReferences[0];
-  if (memoryReference === undefined || knowledgeReference === undefined) {
-    throw new Error("Reasoning diagnostic input preparation failed.");
-  }
-  const knowledgeOutcome = reasoning.evaluateReasoning.evaluateReasoning({
-    intent: "evaluate",
-    activeContextRevision: successorRevision,
-    query: "Evaluate Knowledge diagnostic grounding.",
-    knowledgeReferences: [knowledgeReference],
-  });
-  const memoryOutcome = reasoning.evaluateReasoning.evaluateReasoning({
-    intent: "evaluate",
-    activeContextRevision: successorRevision,
-    query: "Evaluate Memory diagnostic grounding.",
-    memoryReferences: [memoryReference],
-  });
   const contextOnlyOutcome = reasoning.evaluateReasoning.evaluateReasoning({
     intent: "evaluate",
     activeContextRevision: successorRevision,
     query: "Evaluate Context-only diagnostic grounding.",
-  });
-  const precedenceOutcome = reasoning.evaluateReasoning.evaluateReasoning({
-    intent: "evaluate",
-    activeContextRevision: successorRevision,
-    query: "Evaluate combined diagnostic grounding.",
-    memoryReferences: [memoryReference],
-    knowledgeReferences: [knowledgeReference],
   });
 
   if (
@@ -313,11 +289,8 @@ export function composeDiagnosticRuntime(): DiagnosticResult {
   if (
     reasoning.engineState() !== "running" ||
     anonymousOutcome.category !== "anonymous-context" ||
-    knowledgeOutcome.category !== "knowledge-grounded-context" ||
-    memoryOutcome.category !== "experience-informed-context" ||
     contextOnlyOutcome.category !== "context-only" ||
-    precedenceOutcome.category !== "knowledge-grounded-context" ||
-    precedenceOutcome.response.length === 0
+    contextOnlyOutcome.response.length === 0
   ) {
     throw new Error("Reasoning capability diagnostic failed.");
   }
@@ -325,14 +298,14 @@ export function composeDiagnosticRuntime(): DiagnosticResult {
   const planning = composePlanningCapability();
   const candidatePlan = planning.createCandidatePlan.createCandidatePlan({
     intent: "create-candidate-plan",
-    reasoningOutcome: knowledgeOutcome,
+    reasoningOutcome: contextOnlyOutcome,
   });
   if (
     planning.engineState() !== "running" ||
-    candidatePlan.category !== "respond" ||
+    candidatePlan.category !== "request-more-context" ||
     candidatePlan.steps.length !== 1 ||
     candidatePlan.explainability.planningRuleCategory !==
-      "reasoning-produced-response"
+      "reasoning-requested-more-context"
   ) {
     throw new Error("Planning capability diagnostic failed.");
   }
@@ -494,18 +467,15 @@ export function composeDiagnosticRuntime(): DiagnosticResult {
       operational: true,
       evaluationSucceeded: true,
       anonymousRuleSucceeded: true,
-      authenticatedKnowledgeRuleSucceeded: true,
-      authenticatedMemoryRuleSucceeded: true,
       authenticatedContextOnlyRuleSucceeded: true,
-      precedenceRuleSucceeded: true,
       candidateResponseProduced: true,
     }),
     planningCapability: Object.freeze({
       planningCapabilityOperational: true,
       planningSucceeded: true,
-      planCategory: "respond",
+      planCategory: "request-more-context",
       stepCount: 1,
-      planningRuleCategory: "reasoning-produced-response",
+      planningRuleCategory: "reasoning-requested-more-context",
     }),
     skillCapability: Object.freeze({
       operational: true,

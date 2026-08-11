@@ -17,43 +17,19 @@ const outcomeCases = [
     "Additional identity context may be required before further orchestration.",
     "request-more-context",
     "anonymous",
-    0,
-    0,
     "anonymous-identity",
   ],
   [
-    "knowledge-grounded-context",
-    "The authenticated context includes accepted Knowledge references.",
-    "Accepted Knowledge context is available for further orchestration.",
-    "none",
-    "authenticated",
-    1,
-    1,
-    "authenticated-with-knowledge",
-  ],
-  [
-    "experience-informed-context",
-    "The authenticated context includes Memory references but no Knowledge references.",
-    "Only retained experience references are available for further orchestration.",
-    "none",
-    "authenticated",
-    1,
-    0,
-    "authenticated-with-memory-only",
-  ],
-  [
     "context-only",
-    "The authenticated context contains no supplied Memory or Knowledge references.",
-    "No Memory or Knowledge references were supplied for further orchestration.",
+    "The authenticated actor is represented by the active context.",
+    "Additional authoritative context may be required before further orchestration.",
     "request-more-context",
     "authenticated",
-    0,
-    0,
     "authenticated-context-only",
   ],
 ] as const;
 
-function outcome(index = 3) {
+function outcome(index = 1) {
   const item = outcomeCases[index]!;
   return createReasoningOutcome({
     status: "completed",
@@ -70,9 +46,7 @@ function outcome(index = 3) {
         authoritativeCapability: "context",
       }),
       identityState: item[4],
-      memoryReferenceCount: item[5],
-      knowledgeReferenceCount: item[6],
-      ruleCategory: item[7],
+      ruleCategory: item[5],
     }),
   });
 }
@@ -347,10 +321,6 @@ describe("PlanningEngine", () => {
           reasoningCategory: sourceOutcome.category,
           candidateNextAction: sourceOutcome.nextAction,
           identityState: sourceOutcome.explainability.identityState,
-          memoryReferenceCount:
-            sourceOutcome.explainability.memoryReferenceCount,
-          knowledgeReferenceCount:
-            sourceOutcome.explainability.knowledgeReferenceCount,
           reasoningRuleCategory: sourceOutcome.explainability.ruleCategory,
           authoritativeCapability: "reasoning",
         },

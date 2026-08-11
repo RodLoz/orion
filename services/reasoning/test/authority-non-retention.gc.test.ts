@@ -68,15 +68,15 @@ describe("authority weak upstream non-retention", () => {
       const engine = new PlanningEngine(); engine.initialize(); engine.start();
       let reasoning = createReasoningOutcome({
         status:'completed',category:'context-only',
-        conclusion:'The authenticated context contains no supplied Memory or Knowledge references.',
-        response:'No Memory or Knowledge references were supplied for further orchestration.',
+        conclusion:'The authenticated actor is represented by the active context.',
+        response:'Additional authoritative context may be required before further orchestration.',
         nextAction:'request-more-context',
         explainability:createReasoningExplainabilitySummary({
           contextConsumptionReference:createContextConsumptionReference({
             lineageIdentity:'context.lineage.gc',revisionIdentity:'context.revision.gc',
             revisionNumber:1,lifecycleState:'active',authoritativeCapability:'context'
           }),
-          identityState:'authenticated',memoryReferenceCount:0,knowledgeReferenceCount:0,
+          identityState:'authenticated',
           ruleCategory:'authenticated-context-only'
         })
       });
@@ -97,8 +97,6 @@ describe("authority weak upstream non-retention", () => {
           expectedReasoningCategory:source.reasoningCategory,
           expectedCandidateNextAction:source.candidateNextAction,
           expectedIdentityState:source.identityState,
-          expectedMemoryReferenceCount:source.memoryReferenceCount,
-          expectedKnowledgeReferenceCount:source.knowledgeReferenceCount,
           expectedReasoningRuleCategory:source.reasoningRuleCategory
         });
       } catch (error) { failure = error.name; }

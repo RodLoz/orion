@@ -121,8 +121,6 @@ describe("Planning Bootstrap composition", () => {
       expectedReasoningCategory: candidate.source.reasoningCategory,
       expectedCandidateNextAction: candidate.source.candidateNextAction,
       expectedIdentityState: candidate.source.identityState,
-      expectedMemoryReferenceCount: candidate.source.memoryReferenceCount,
-      expectedKnowledgeReferenceCount: candidate.source.knowledgeReferenceCount,
       expectedReasoningRuleCategory: candidate.source.reasoningRuleCategory,
     };
   }

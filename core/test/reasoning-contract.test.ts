@@ -152,8 +152,6 @@ describe("Reasoning Core domain", () => {
     {
       contextConsumptionReference: contextReference(),
       identityState: "anonymous",
-      memoryReferenceCount: 0,
-      knowledgeReferenceCount: 0,
       ruleCategory: "anonymous-identity",
       extra: true,
     },
@@ -185,8 +183,6 @@ describe("Reasoning Core domain", () => {
       explainability: {
         contextConsumptionReference: contextReference(),
         identityState: "authenticated",
-        memoryReferenceCount: 0,
-        knowledgeReferenceCount: 0,
         ruleCategory: "authenticated-context-only",
       },
       extra: true,
@@ -202,31 +198,27 @@ describe("Reasoning Core domain", () => {
     const callerExplainability = {
       contextConsumptionReference: callerReference,
       identityState: "authenticated",
-      memoryReferenceCount: 1,
-      knowledgeReferenceCount: 2,
-      ruleCategory: "authenticated-with-knowledge",
+      ruleCategory: "authenticated-context-only",
     };
     const outcome = createReasoningOutcome({
       status: "completed",
-      category: "knowledge-grounded-context",
+      category: "context-only",
       conclusion: "Candidate only.",
       response: "Proposed response.",
-      nextAction: "none",
+      nextAction: "request-more-context",
       explainability: callerExplainability,
     });
     callerReference.revisionNumber = 2;
-    callerExplainability.memoryReferenceCount = 9;
     expect(
       outcome.explainability.contextConsumptionReference.revisionNumber,
     ).toBe(1);
-    expect(outcome.explainability.memoryReferenceCount).toBe(1);
     expect(Object.isFrozen(outcome)).toBe(true);
     expect(Object.isFrozen(outcome.explainability)).toBe(true);
     expect(
       Object.isFrozen(outcome.explainability.contextConsumptionReference),
     ).toBe(true);
     expect(
-      Reflect.set(outcome.explainability, "memoryReferenceCount", 10),
+      Reflect.set(outcome.explainability, "identityState", "anonymous"),
     ).toBe(false);
   });
 
@@ -287,8 +279,6 @@ describe("Reasoning Core domain", () => {
       get identityState(): never {
         throw new TypeError("private explainability value");
       },
-      memoryReferenceCount: 0,
-      knowledgeReferenceCount: 0,
       ruleCategory: "anonymous-identity",
     };
     expect(() =>
@@ -317,8 +307,6 @@ describe("Reasoning Core domain", () => {
       explainability: {
         contextConsumptionReference: contextReference(),
         identityState: "authenticated",
-        memoryReferenceCount: 0,
-        knowledgeReferenceCount: 0,
         ruleCategory: "authenticated-context-only",
       },
     };
@@ -337,8 +325,6 @@ describe("Reasoning Core domain", () => {
       explainability: {
         contextConsumptionReference: contextReference(),
         identityState: "authenticated",
-        memoryReferenceCount: 0,
-        knowledgeReferenceCount: 0,
         ruleCategory: "authenticated-context-only",
       },
     };
@@ -363,8 +349,6 @@ describe("Reasoning Core domain", () => {
     const summary = createReasoningExplainabilitySummary({
       contextConsumptionReference: reference,
       identityState: "anonymous",
-      memoryReferenceCount: 0,
-      knowledgeReferenceCount: 0,
       ruleCategory: "anonymous-identity",
     });
     reference.lineageIdentity = "context.lineage.changed";

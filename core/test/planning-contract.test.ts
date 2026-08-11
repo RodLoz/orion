@@ -16,8 +16,6 @@ const source = () => ({
   reasoningCategory: "context-only",
   candidateNextAction: "request-more-context",
   identityState: "authenticated",
-  memoryReferenceCount: 0,
-  knowledgeReferenceCount: 0,
   reasoningRuleCategory: "authenticated-context-only",
   authoritativeCapability: "reasoning",
 });
@@ -44,29 +42,7 @@ const validSources = [
     reasoningCategory: "anonymous-context",
     candidateNextAction: "request-more-context",
     identityState: "anonymous",
-    memoryReferenceCount: 0,
-    knowledgeReferenceCount: 0,
     reasoningRuleCategory: "anonymous-identity",
-    authoritativeCapability: "reasoning",
-  },
-  {
-    reasoningStatus: "completed",
-    reasoningCategory: "knowledge-grounded-context",
-    candidateNextAction: "none",
-    identityState: "authenticated",
-    memoryReferenceCount: 1,
-    knowledgeReferenceCount: 1,
-    reasoningRuleCategory: "authenticated-with-knowledge",
-    authoritativeCapability: "reasoning",
-  },
-  {
-    reasoningStatus: "completed",
-    reasoningCategory: "experience-informed-context",
-    candidateNextAction: "none",
-    identityState: "authenticated",
-    memoryReferenceCount: 1,
-    knowledgeReferenceCount: 0,
-    reasoningRuleCategory: "authenticated-with-memory-only",
     authoritativeCapability: "reasoning",
   },
   source(),
@@ -82,11 +58,9 @@ describe("Planning Core factories", () => {
       expectedReasoningCategory: "context-only",
       expectedCandidateNextAction: "request-more-context",
       expectedIdentityState: "authenticated",
-      expectedMemoryReferenceCount: 0,
-      expectedKnowledgeReferenceCount: 0,
       expectedReasoningRuleCategory: "authenticated-context-only",
     } satisfies VerifyCandidatePlanAuthorityRequest;
-    expect(Object.keys(request)).toHaveLength(10);
+    expect(Object.keys(request)).toHaveLength(8);
     expectTypeOf<keyof VerifyCandidatePlanAuthorityRequest>().toEqualTypeOf<
       | "intent"
       | "candidate"
@@ -95,8 +69,6 @@ describe("Planning Core factories", () => {
       | "expectedReasoningCategory"
       | "expectedCandidateNextAction"
       | "expectedIdentityState"
-      | "expectedMemoryReferenceCount"
-      | "expectedKnowledgeReferenceCount"
       | "expectedReasoningRuleCategory"
     >();
     expect(new InvalidPlanningAuthorityRequestError().name).toBe(
@@ -215,83 +187,10 @@ describe("Planning Core factories", () => {
   it.each([
     { ...validSources[0], identityState: "authenticated" },
     { ...validSources[1], identityState: "anonymous" },
-    { ...validSources[1], knowledgeReferenceCount: 0 },
-    { ...validSources[1], candidateNextAction: "request-more-context" },
-    { ...validSources[2], memoryReferenceCount: 0 },
-    { ...validSources[2], knowledgeReferenceCount: 1 },
-    { ...validSources[2], reasoningRuleCategory: "authenticated-context-only" },
-    { ...validSources[3], memoryReferenceCount: 1 },
-    { ...validSources[3], knowledgeReferenceCount: 1 },
-    { ...validSources[3], candidateNextAction: "none" },
   ])("rejects contradictory M5 source correspondence", (value) => {
     expect(() => createReasoningConsumptionReference(value)).toThrow(
       InvalidPlanningStateError,
     );
-  });
-
-  it("preserves ENGINE-0007 anonymous reference-count semantics", () => {
-    for (const value of [
-      { ...validSources[0], memoryReferenceCount: 20 },
-      { ...validSources[0], knowledgeReferenceCount: 20 },
-      {
-        ...validSources[0],
-        memoryReferenceCount: 20,
-        knowledgeReferenceCount: 20,
-      },
-    ])
-      expect(createReasoningConsumptionReference(value)).toEqual(value);
-  });
-
-  it("accepts lower, representative, and upper counts for every ENGINE-0007 row", () => {
-    const cases = [
-      validSources[0],
-      {
-        ...validSources[0],
-        memoryReferenceCount: 7,
-        knowledgeReferenceCount: 11,
-      },
-      {
-        ...validSources[0],
-        memoryReferenceCount: 20,
-        knowledgeReferenceCount: 20,
-      },
-      {
-        ...validSources[1],
-        memoryReferenceCount: 0,
-        knowledgeReferenceCount: 1,
-      },
-      {
-        ...validSources[1],
-        memoryReferenceCount: 7,
-        knowledgeReferenceCount: 11,
-      },
-      {
-        ...validSources[1],
-        memoryReferenceCount: 20,
-        knowledgeReferenceCount: 20,
-      },
-      validSources[2],
-      { ...validSources[2], memoryReferenceCount: 10 },
-      { ...validSources[2], memoryReferenceCount: 20 },
-      validSources[3],
-    ];
-    for (const value of cases)
-      expect(createReasoningConsumptionReference(value)).toEqual(value);
-  });
-
-  it("rejects out-of-range source counts for every variable-count row", () => {
-    for (const value of [
-      { ...validSources[0], memoryReferenceCount: -1 },
-      { ...validSources[0], knowledgeReferenceCount: 21 },
-      { ...validSources[1], memoryReferenceCount: 21 },
-      { ...validSources[1], knowledgeReferenceCount: -1 },
-      { ...validSources[2], memoryReferenceCount: 21 },
-      { ...validSources[2], memoryReferenceCount: 1.5 },
-      { ...validSources[0], memoryReferenceCount: Number.MAX_SAFE_INTEGER + 1 },
-    ])
-      expect(() => createReasoningConsumptionReference(value)).toThrow(
-        InvalidPlanningStateError,
-      );
   });
 
   it.each([
@@ -301,20 +200,6 @@ describe("Planning Core factories", () => {
       resultingPlanCategory: "request-more-context",
       candidateStepCount: 1,
       planningRuleCategory: "reasoning-requested-more-context",
-    },
-    {
-      consumedReasoningCategory: "knowledge-grounded-context",
-      consumedCandidateNextAction: "none",
-      resultingPlanCategory: "respond",
-      candidateStepCount: 1,
-      planningRuleCategory: "reasoning-produced-response",
-    },
-    {
-      consumedReasoningCategory: "experience-informed-context",
-      consumedCandidateNextAction: "none",
-      resultingPlanCategory: "respond",
-      candidateStepCount: 1,
-      planningRuleCategory: "reasoning-produced-response",
     },
     explainability(),
   ])("accepts every valid Planning mapping tuple", (value) => {
@@ -329,7 +214,7 @@ describe("Planning Core factories", () => {
     },
     {
       ...explainability(),
-      consumedReasoningCategory: "knowledge-grounded-context",
+      consumedReasoningCategory: "unknown-context",
     },
     {
       ...explainability(),
@@ -349,12 +234,7 @@ describe("Planning Core factories", () => {
   });
 
   it("rejects every explainability action, plan, and rule cross-combination", () => {
-    const categories = [
-      "anonymous-context",
-      "knowledge-grounded-context",
-      "experience-informed-context",
-      "context-only",
-    ] as const;
+    const categories = ["anonymous-context", "context-only"] as const;
     const actions = ["none", "request-more-context"] as const;
     const plans = ["respond", "request-more-context"] as const;
     const rules = [
@@ -372,16 +252,14 @@ describe("Planning Core factories", () => {
               candidateStepCount: 1,
               planningRuleCategory,
             };
-            const responseCategory =
-              consumedReasoningCategory === "knowledge-grounded-context" ||
-              consumedReasoningCategory === "experience-informed-context";
-            const valid = responseCategory
-              ? consumedCandidateNextAction === "none" &&
+            const valid =
+              (consumedReasoningCategory === "context-only" &&
+                consumedCandidateNextAction === "none" &&
                 resultingPlanCategory === "respond" &&
-                planningRuleCategory === "reasoning-produced-response"
-              : consumedCandidateNextAction === "request-more-context" &&
+                planningRuleCategory === "reasoning-produced-response") ||
+              (consumedCandidateNextAction === "request-more-context" &&
                 resultingPlanCategory === "request-more-context" &&
-                planningRuleCategory === "reasoning-requested-more-context";
+                planningRuleCategory === "reasoning-requested-more-context");
             if (valid)
               expect(createPlanningExplainabilitySummary(value)).toEqual(value);
             else
@@ -441,23 +319,6 @@ describe("Planning Core factories", () => {
     expect(Object.isFrozen(plan.explainability)).toBe(true);
     expect(Object.isFrozen(input)).toBe(false);
     expect(Object.isFrozen(steps)).toBe(false);
-  });
-
-  it("accepts a direct plan with authoritative anonymous nonzero counts", () => {
-    const anonymousSource = {
-      ...validSources[0],
-      memoryReferenceCount: 20,
-      knowledgeReferenceCount: 20,
-    };
-    const plan = createCandidatePlan({
-      ...validPlan(),
-      source: anonymousSource,
-      explainability: {
-        ...explainability(),
-        consumedReasoningCategory: "anonymous-context",
-      },
-    });
-    expect(plan.source).toEqual(anonymousSource);
   });
 
   it("accepts only a dense exact one-element steps array", () => {
@@ -648,46 +509,5 @@ describe("Planning Core factories", () => {
       for (const value of [[], populated, symbolDecorated])
         expect(() => factory(value)).toThrow(InvalidPlanningStateError);
     }
-  });
-
-  it("rejects every Candidate Plan correspondence contradiction", () => {
-    const respondSource = validSources[1];
-    const respondExplainability = {
-      consumedReasoningCategory: "knowledge-grounded-context",
-      consumedCandidateNextAction: "none",
-      resultingPlanCategory: "respond",
-      candidateStepCount: 1,
-      planningRuleCategory: "reasoning-produced-response",
-    };
-    const respondPlan = {
-      status: "completed",
-      category: "respond",
-      steps: [
-        {
-          ordinal: 1,
-          kind: "respond",
-          candidateResponse: "Prepared response.",
-        },
-      ],
-      source: respondSource,
-      explainability: respondExplainability,
-    };
-    const contradictions = [
-      { ...respondPlan, category: "request-more-context" },
-      { ...respondPlan, steps: [{ ordinal: 1, kind: "request-more-context" }] },
-      { ...respondPlan, source: validSources[3] },
-      { ...respondPlan, explainability: explainability() },
-      {
-        ...respondPlan,
-        explainability: {
-          ...respondExplainability,
-          planningRuleCategory: "reasoning-requested-more-context",
-        },
-      },
-    ];
-    for (const value of contradictions)
-      expect(() => createCandidatePlan(value)).toThrow(
-        InvalidPlanningStateError,
-      );
   });
 });

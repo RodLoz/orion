@@ -113,11 +113,7 @@ export class PlanningEngine
         outcome.response !== expected.response ||
         outcome.nextAction !== expected.nextAction ||
         outcome.explainability.identityState !== expected.identityState ||
-        outcome.explainability.ruleCategory !== expected.ruleCategory ||
-        !expected.counts(
-          outcome.explainability.memoryReferenceCount,
-          outcome.explainability.knowledgeReferenceCount,
-        )
+        outcome.explainability.ruleCategory !== expected.ruleCategory
       )
         throw new Error();
     } catch {
@@ -145,8 +141,6 @@ export class PlanningEngine
         reasoningCategory: outcome.category,
         candidateNextAction: outcome.nextAction,
         identityState: outcome.explainability.identityState,
-        memoryReferenceCount: outcome.explainability.memoryReferenceCount,
-        knowledgeReferenceCount: outcome.explainability.knowledgeReferenceCount,
         reasoningRuleCategory: outcome.explainability.ruleCategory,
         authoritativeCapability: "reasoning",
       });
@@ -194,8 +188,6 @@ function normalizeOutcomeInput(value: unknown): Record<string, unknown> {
   const explainability = exactInputRecord(outcome.explainability, [
     "contextConsumptionReference",
     "identityState",
-    "memoryReferenceCount",
-    "knowledgeReferenceCount",
     "ruleCategory",
   ]);
   const contextReference = exactInputRecord(
@@ -217,8 +209,6 @@ function normalizeOutcomeInput(value: unknown): Record<string, unknown> {
     explainability: {
       contextConsumptionReference: { ...contextReference },
       identityState: explainability.identityState,
-      memoryReferenceCount: explainability.memoryReferenceCount,
-      knowledgeReferenceCount: explainability.knowledgeReferenceCount,
       ruleCategory: explainability.ruleCategory,
     },
   };
@@ -252,39 +242,13 @@ const correspondence = {
     nextAction: "request-more-context",
     identityState: "anonymous",
     ruleCategory: "anonymous-identity",
-    counts: (memory: number, knowledge: number) =>
-      memory >= 0 && knowledge >= 0,
-  },
-  "knowledge-grounded-context": {
-    conclusion:
-      "The authenticated context includes accepted Knowledge references.",
-    response:
-      "Accepted Knowledge context is available for further orchestration.",
-    nextAction: "none",
-    identityState: "authenticated",
-    ruleCategory: "authenticated-with-knowledge",
-    counts: (_memory: number, knowledge: number) => knowledge > 0,
-  },
-  "experience-informed-context": {
-    conclusion:
-      "The authenticated context includes Memory references but no Knowledge references.",
-    response:
-      "Only retained experience references are available for further orchestration.",
-    nextAction: "none",
-    identityState: "authenticated",
-    ruleCategory: "authenticated-with-memory-only",
-    counts: (memory: number, knowledge: number) =>
-      memory > 0 && knowledge === 0,
   },
   "context-only": {
-    conclusion:
-      "The authenticated context contains no supplied Memory or Knowledge references.",
+    conclusion: "The authenticated actor is represented by the active context.",
     response:
-      "No Memory or Knowledge references were supplied for further orchestration.",
+      "Additional authoritative context may be required before further orchestration.",
     nextAction: "request-more-context",
     identityState: "authenticated",
     ruleCategory: "authenticated-context-only",
-    counts: (memory: number, knowledge: number) =>
-      memory === 0 && knowledge === 0,
   },
 } as const;

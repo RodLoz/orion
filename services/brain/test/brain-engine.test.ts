@@ -57,10 +57,7 @@ export function fixture(category: CandidatePlan["category"] = "respond") {
   });
   const reasoning = createReasoningOutcome({
     status: "completed",
-    category:
-      category === "respond"
-        ? "knowledge-grounded-context"
-        : "anonymous-context",
+    category: category === "respond" ? "context-only" : "anonymous-context",
     conclusion: "A conclusion",
     response: "Exact planning response",
     nextAction: category === "respond" ? "none" : "request-more-context",
@@ -73,11 +70,9 @@ export function fixture(category: CandidatePlan["category"] = "respond") {
         authoritativeCapability: "context",
       },
       identityState: category === "respond" ? "authenticated" : "anonymous",
-      memoryReferenceCount: 0,
-      knowledgeReferenceCount: category === "respond" ? 1 : 0,
       ruleCategory:
         category === "respond"
-          ? "authenticated-with-knowledge"
+          ? "authenticated-context-only"
           : "anonymous-identity",
     },
   });
@@ -98,8 +93,6 @@ export function fixture(category: CandidatePlan["category"] = "respond") {
       reasoningCategory: reasoning.category,
       candidateNextAction: reasoning.nextAction,
       identityState: reasoning.explainability.identityState,
-      memoryReferenceCount: 0,
-      knowledgeReferenceCount: reasoning.explainability.knowledgeReferenceCount,
       reasoningRuleCategory: reasoning.explainability.ruleCategory,
       authoritativeCapability: "reasoning",
     },
@@ -407,6 +400,11 @@ describe("Brain Engine complete M10 runtime", () => {
       >
     )[0]![0];
     expect(reasoningCall).toMatchObject({ activeContextRevision: context });
+    expect(Object.keys(reasoningCall)).toEqual([
+      "intent",
+      "activeContextRevision",
+      "query",
+    ]);
     expect(reasoningCall.activeContextRevision).toBe(context);
     expect(planningCall.reasoningOutcome).toBe(reasoning);
     expect(ports.planning.verifyCandidatePlanAuthority).toHaveBeenCalledWith(
