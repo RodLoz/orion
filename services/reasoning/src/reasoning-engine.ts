@@ -18,6 +18,7 @@ import {
   type ActiveContextRevision,
   type EvaluateReasoning,
   type IdentityContextProjection,
+  type KnowledgeContextFragment,
   type ReasoningOutcome,
   type VerifyReasoningOutcomeAuthority,
   type VerifyReasoningOutcomeAuthorityRequest,
@@ -130,14 +131,22 @@ export class ReasoningEngine
         "sourceCount",
         "fragmentCount",
       ]);
-      if (metadata.sourceCount !== 1 || metadata.fragmentCount !== 1)
-        throw new Error();
+      const isIdentityOnly =
+        metadata.sourceCount === 1 && metadata.fragmentCount === 1;
+      const isKnowledgeAware =
+        metadata.sourceCount === 2 && metadata.fragmentCount === 2;
+      if (!isIdentityOnly && !isKnowledgeAware) throw new Error();
+      const fragmentCount = isKnowledgeAware ? 2 : 1;
       const fragments = revision.fragments;
       if (
         !Array.isArray(fragments) ||
-        fragments.length !== 1 ||
-        !Object.hasOwn(fragments, 0) ||
-        Object.keys(fragments).some((key) => key !== "0")
+        fragments.length !== fragmentCount ||
+        Array.from({ length: fragmentCount }, (_, index) => index).some(
+          (index) => !Object.hasOwn(fragments, index),
+        ) ||
+        Object.keys(fragments).some(
+          (key) => !/^\d+$/.test(key) || Number(key) >= fragmentCount,
+        )
       )
         throw new Error();
       const fragment = exactRecord(fragments[0], [
@@ -151,6 +160,9 @@ export class ReasoningEngine
       )
         throw new Error();
       const projection = this.validateProjection(fragment.projection);
+      const knowledgeFragment = isKnowledgeAware
+        ? this.captureKnowledgeFragment(fragments[1])
+        : undefined;
       const lifecycle = contextLifecycleState(revision.lifecycleState);
       const revisionNumber = contextRevisionNumber(revision.revisionNumber);
       const hasParent = Object.hasOwn(revision, "parentRevisionIdentity");
@@ -171,11 +183,19 @@ export class ReasoningEngine
               ),
             }
           : {}),
-        creationMetadata: Object.freeze({
-          createdAt: contextCreatedAt(metadata.createdAt),
-          sourceCount: 1 as const,
-          fragmentCount: 1 as const,
-        }),
+        creationMetadata: Object.freeze(
+          isKnowledgeAware
+            ? {
+                createdAt: contextCreatedAt(metadata.createdAt),
+                sourceCount: 2 as const,
+                fragmentCount: 2 as const,
+              }
+            : {
+                createdAt: contextCreatedAt(metadata.createdAt),
+                sourceCount: 1 as const,
+                fragmentCount: 1 as const,
+              },
+        ),
         lifecycleState: lifecycle,
         fragments: Object.freeze([
           Object.freeze({
@@ -183,18 +203,27 @@ export class ReasoningEngine
             authoritativeOwner: "identity" as const,
             projection,
           }),
-        ]) as readonly [
-          Readonly<{
-            kind: "identity";
-            authoritativeOwner: "identity";
-            projection: IdentityContextProjection;
-          }>,
-        ],
+          ...(knowledgeFragment === undefined ? [] : [knowledgeFragment]),
+        ]),
       };
-      return Object.freeze(reconstructed);
+      return Object.freeze(reconstructed) as ActiveContextRevision;
     } catch {
       throw new InvalidActiveContextError();
     }
+  }
+
+  private captureKnowledgeFragment(value: unknown): KnowledgeContextFragment {
+    const fragment = exactRecord(value, [
+      "kind",
+      "authoritativeOwner",
+      "projection",
+    ]);
+    if (
+      fragment.kind !== "knowledge" ||
+      fragment.authoritativeOwner !== "knowledge"
+    )
+      throw new Error();
+    return freezeClone(fragment) as unknown as KnowledgeContextFragment;
   }
 
   private validateProjection(value: unknown): IdentityContextProjection {
@@ -321,6 +350,16 @@ function hasExactKeySet(
     required.every((key) => keys.includes(key)) &&
     keys.every((key) => required.includes(key))
   );
+}
+function freezeClone<T>(value: T): T {
+  if (typeof value !== "object" || value === null) return value;
+  if (Array.isArray(value))
+    return Object.freeze(value.map((item) => freezeClone(item))) as T;
+  return Object.freeze(
+    Object.fromEntries(
+      Object.entries(value).map(([key, nested]) => [key, freezeClone(nested)]),
+    ),
+  ) as T;
 }
 
 export type ReasoningEngineLifecycleState =

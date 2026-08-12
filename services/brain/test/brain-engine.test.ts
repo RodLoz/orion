@@ -4,6 +4,7 @@ import {
   BrainSkillCoordinationError,
   authorizationActionIdentifier,
   authorizationOperationIdentifier,
+  contextCreatedAt,
   contextLineageIdentity,
   contextRevisionIdentity,
   contextRevisionNumber,
@@ -19,6 +20,7 @@ import {
   InvalidBrainRequestError,
   type BrainConfiguration,
   type CandidatePlan,
+  type ActiveContextRevision,
 } from "@orion/core";
 import { BrainEngine } from "../src/index.js";
 
@@ -259,6 +261,42 @@ export function fixture(category: CandidatePlan["category"] = "respond") {
   };
 }
 
+function knowledgeAwareContext(): ActiveContextRevision {
+  return frozen({
+    lineageIdentity: contextLineageIdentity("context.main"),
+    revisionIdentity: contextRevisionIdentity("context.knowledge.revision"),
+    revisionNumber: contextRevisionNumber(1),
+    creationMetadata: frozen({
+      createdAt: contextCreatedAt("2026-08-11T12:00:00Z"),
+      sourceCount: 2,
+      fragmentCount: 2,
+    }),
+    lifecycleState: "active" as const,
+    fragments: frozen([
+      frozen({
+        kind: "identity" as const,
+        authoritativeOwner: "identity" as const,
+        projection: frozen({
+          state: "authenticated" as const,
+          authoritativeOwner: "identity" as const,
+          identityIdentifier: "orion.identity.m10" as never,
+        }),
+      }),
+      frozen({
+        kind: "knowledge" as const,
+        authoritativeOwner: "knowledge" as const,
+        projection: frozen({
+          knowledgeIdentity: "orion.knowledge.m10" as never,
+          validationState: "accepted" as const,
+          version: 1 as never,
+          currency: "current" as const,
+          authoritativeOwner: "knowledge" as const,
+        }),
+      }),
+    ]),
+  });
+}
+
 export const noneRequest = () =>
   createNormalizedCognitiveRequest({
     intent: "orchestrate-cognitive-request" as const,
@@ -438,6 +476,28 @@ describe("Brain Engine complete M10 runtime", () => {
       ports.operationAllocator.allocateAuthorizationOperationIdentifier,
     ).not.toHaveBeenCalled();
     expect(ports.selectSkill.selectSkill).not.toHaveBeenCalled();
+  });
+
+  it("passes the current fixed Identity + Knowledge Context profile to Reasoning as the sole evidence input", () => {
+    const context = knowledgeAwareContext();
+    const { ports } = fixture("respond");
+    ports.context.getActiveContextRevision.mockReturnValue(context as never);
+    ports.context.verifyActiveContextRevisionAuthority.mockImplementation(
+      ({ candidate }) => candidate,
+    );
+    const engine = running(ports);
+
+    expect(engine.orchestrateCognitiveRequest(noneRequest()).kind).toBe(
+      "response",
+    );
+    expect(
+      ports.context.verifyActiveContextRevisionAuthority,
+    ).toHaveBeenCalledWith(expect.objectContaining({ candidate: context }));
+    expect(ports.reasoning.evaluateReasoning).toHaveBeenCalledWith({
+      intent: "evaluate",
+      activeContextRevision: context,
+      query: noneRequest().query,
+    });
   });
 
   it.each(["none", "skill-capability"] as const)(

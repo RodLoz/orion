@@ -5,6 +5,7 @@ import {
   InvalidReasoningInputError,
   InvalidReasoningQueryError,
   InvalidReasoningStateError,
+  type ActiveContextRevision,
 } from "@orion/core";
 import { describe, expect, it } from "vitest";
 import { ReasoningEngine } from "../src/index.js";
@@ -44,6 +45,42 @@ function request(overrides: Record<string, unknown> = {}) {
     query: "Evaluate authoritative Context.",
     ...overrides,
   };
+}
+
+function knowledgeAwareContext(): ActiveContextRevision {
+  return Object.freeze({
+    lineageIdentity: "context.lineage.knowledge",
+    revisionIdentity: "context.revision.knowledge",
+    revisionNumber: 1,
+    creationMetadata: Object.freeze({
+      createdAt: "2026-08-11T14:00:00.000Z",
+      sourceCount: 2,
+      fragmentCount: 2,
+    }),
+    lifecycleState: "active",
+    fragments: Object.freeze([
+      Object.freeze({
+        kind: "identity",
+        authoritativeOwner: "identity",
+        projection: Object.freeze({
+          state: "authenticated",
+          authoritativeOwner: "identity",
+          identityIdentifier: "orion.identity.m5",
+        }),
+      }),
+      Object.freeze({
+        kind: "knowledge",
+        authoritativeOwner: "knowledge",
+        projection: Object.freeze({
+          knowledgeIdentity: "orion.knowledge.m5",
+          validationState: "accepted",
+          version: 1,
+          currency: "current",
+          authoritativeOwner: "knowledge",
+        }),
+      }),
+    ]),
+  }) as unknown as ActiveContextRevision;
 }
 
 function requestWithGetter(
@@ -122,6 +159,32 @@ describe("ReasoningEngine", () => {
       ).toThrow(InvalidReasoningInputError);
     },
   );
+
+  it("consumes the current fixed Identity + Knowledge Context profile without parallel evidence", () => {
+    const activeContextRevision = knowledgeAwareContext();
+    const engine = running();
+    const outcome = engine.evaluateReasoning(
+      request({ activeContextRevision }),
+    );
+
+    expect(outcome.category).toBe("context-only");
+    expect(outcome.explainability.contextConsumptionReference).toMatchObject({
+      lineageIdentity: activeContextRevision.lineageIdentity,
+      revisionIdentity: activeContextRevision.revisionIdentity,
+      revisionNumber: activeContextRevision.revisionNumber,
+      authoritativeCapability: "context",
+    });
+    expect(
+      engine.verifyReasoningOutcomeAuthority({
+        intent: "verify-reasoning-outcome-authority",
+        candidate: outcome,
+        consumedContextRevision: activeContextRevision,
+        expectedLineageIdentity: activeContextRevision.lineageIdentity,
+        expectedRevisionIdentity: activeContextRevision.revisionIdentity,
+        expectedRevisionNumber: activeContextRevision.revisionNumber,
+      }),
+    ).toBe(outcome);
+  });
 
   it.each([
     null,

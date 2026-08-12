@@ -4,6 +4,7 @@ import {
   composeIdentityCapability,
   composeKnowledgeAwareContextCapability,
   composeKnowledgeCapability,
+  composeReasoningCapability,
 } from "../src/index.js";
 
 describe("Context and Knowledge composition", () => {
@@ -70,5 +71,19 @@ describe("Context and Knowledge composition", () => {
         },
       ),
     ).toBe(revision);
+
+    const reasoning = composeReasoningCapability();
+    const outcome = reasoning.evaluateReasoning.evaluateReasoning({
+      intent: "evaluate",
+      activeContextRevision: revision,
+      query: "Evaluate the authoritative Knowledge-aware Context.",
+    });
+    expect(outcome.category).toBe("anonymous-context");
+    expect(outcome.explainability.contextConsumptionReference).toMatchObject({
+      lineageIdentity: revision.lineageIdentity,
+      revisionIdentity: revision.revisionIdentity,
+      revisionNumber: revision.revisionNumber,
+      authoritativeCapability: "context",
+    });
   });
 });

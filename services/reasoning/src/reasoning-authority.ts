@@ -182,13 +182,14 @@ function validateConsumedContext(value: unknown): void {
     "sourceCount",
     "fragmentCount",
   ]);
-  if (
-    contextCreatedAt(metadata.createdAt) !== metadata.createdAt ||
-    metadata.sourceCount !== 1 ||
-    metadata.fragmentCount !== 1
-  )
+  if (contextCreatedAt(metadata.createdAt) !== metadata.createdAt)
     throw new Error();
-  const fragments = exactArray(revision.fragments, 1);
+  const isIdentityOnly =
+    metadata.sourceCount === 1 && metadata.fragmentCount === 1;
+  const isKnowledgeAware =
+    metadata.sourceCount === 2 && metadata.fragmentCount === 2;
+  if (!isIdentityOnly && !isKnowledgeAware) throw new Error();
+  const fragments = exactArray(revision.fragments, isKnowledgeAware ? 2 : 1);
   const fragment = exactRecord(fragments[0], [
     "kind",
     "authoritativeOwner",
@@ -215,6 +216,18 @@ function validateConsumedContext(value: unknown): void {
         projection.identityIdentifier)
   )
     throw new Error();
+  if (isKnowledgeAware) {
+    const knowledgeFragment = exactRecord(fragments[1], [
+      "kind",
+      "authoritativeOwner",
+      "projection",
+    ]);
+    if (
+      knowledgeFragment.kind !== "knowledge" ||
+      knowledgeFragment.authoritativeOwner !== "knowledge"
+    )
+      throw new Error();
+  }
 }
 
 function exactRecordWithOptional(
