@@ -6,7 +6,10 @@ import {
 } from "@orion/core";
 
 import { RuntimeCapabilityRegistry } from "./capability-registry.js";
-import { composeContextCapability } from "./context/context-composition.js";
+import {
+  composeContextCapability,
+  composeKnowledgeAwareContextCapability,
+} from "./context/context-composition.js";
 import { composeIdentityCapability } from "./identity/identity-composition.js";
 import { composeKnowledgeCapability } from "./knowledge/knowledge-composition.js";
 import { composeMemoryCapability } from "./memory/memory-composition.js";
@@ -297,6 +300,49 @@ export function composeDiagnosticRuntime(): DiagnosticResult {
     throw new Error("Reasoning capability diagnostic failed.");
   }
 
+  const knowledgeAwareContext = composeKnowledgeAwareContextCapability(
+    identity.resolveCurrentIdentity,
+    knowledge.getKnowledge,
+  );
+  const knowledgeAwareRevision =
+    knowledgeAwareContext.prepareContextRevisionWithKnowledge.prepareContextRevisionWithKnowledge(
+      {
+        target: { kind: "new-lineage" },
+        identityResolutionRequest: {
+          resolutionReference: identity.demonstrationResolutionReference,
+        },
+        knowledgeRetrievalRequest: {
+          knowledgeIdentity: successorDecision.record.knowledgeIdentity,
+        },
+      },
+    );
+  const retrievedKnowledgeAwareRevision =
+    knowledgeAwareContext.getActiveContextRevision.getActiveContextRevision({
+      lineageIdentity: knowledgeAwareRevision.lineageIdentity,
+    });
+  const authoritativeKnowledgeAwareRevision =
+    knowledgeAwareContext.verifyActiveContextRevisionAuthority.verifyActiveContextRevisionAuthority(
+      {
+        intent: "verify-active-context-revision-authority",
+        candidate: knowledgeAwareRevision,
+        expectedLineageIdentity: knowledgeAwareRevision.lineageIdentity,
+        expectedRevisionIdentity: knowledgeAwareRevision.revisionIdentity,
+        expectedRevisionNumber: knowledgeAwareRevision.revisionNumber,
+      },
+    );
+  if (
+    retrievedKnowledgeAwareRevision !== knowledgeAwareRevision ||
+    authoritativeKnowledgeAwareRevision !== knowledgeAwareRevision ||
+    knowledgeAwareRevision.creationMetadata.sourceCount !== 2 ||
+    knowledgeAwareRevision.creationMetadata.fragmentCount !== 2 ||
+    knowledgeAwareRevision.fragments.length !== 2 ||
+    knowledgeAwareRevision.fragments[0].kind !== "identity" ||
+    knowledgeAwareRevision.fragments[1].kind !== "knowledge" ||
+    knowledgeAwareRevision.lifecycleState !== "active"
+  ) {
+    throw new Error("Knowledge-aware Context diagnostic failed.");
+  }
+
   const planning = composePlanningCapability();
   const candidatePlan = planning.createCandidatePlan.createCandidatePlan({
     intent: "create-candidate-plan",
@@ -440,6 +486,10 @@ export function composeDiagnosticRuntime(): DiagnosticResult {
       lineageContinuity: true,
       revisionOrderingEvolution: true,
       previousRevisionExpired: true,
+      knowledgeAwarePreparationSucceeded: true,
+      activeSourceCount: 2,
+      activeFragmentCount: 2,
+      canonicalFragmentOrderingPreserved: true,
       activeLifecycleState: "active",
       initialIdentityState: "anonymous",
       activeIdentityState: "authenticated",

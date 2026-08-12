@@ -108,7 +108,9 @@ describe("Context Knowledge specialization", () => {
       fragmentCount: 1,
     });
     expect(identityOnly.fragments).toHaveLength(1);
-    expect(() => prepare(engine)).toThrow(ContextEngineInitializationError);
+    expect(() => prepare(engine)).toThrowError(
+      new ContextEngineInitializationError(),
+    );
   });
 
   it("forwards the exact opaque Knowledge request without reading its fields", () => {

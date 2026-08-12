@@ -13,6 +13,10 @@ export interface ContextCapabilityDiagnostic {
   readonly lineageContinuity: true;
   readonly revisionOrderingEvolution: true;
   readonly previousRevisionExpired: true;
+  readonly knowledgeAwarePreparationSucceeded: true;
+  readonly activeSourceCount: 2;
+  readonly activeFragmentCount: 2;
+  readonly canonicalFragmentOrderingPreserved: true;
   readonly activeLifecycleState: "active";
   readonly initialIdentityState: "anonymous";
   readonly activeIdentityState: "authenticated";

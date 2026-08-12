@@ -754,7 +754,7 @@ export type ContextEngineLifecycleState =
 export class ContextEngineInitializationError extends Error {
   public constructor() {
     super(
-      "Context Engine requires Context construction values and a Current Identity resolver.",
+      "Context Engine requires valid Context construction values, a Current Identity resolver, and any source collaborator required by the requested preparation profile.",
     );
     this.name = "ContextEngineInitializationError";
   }
