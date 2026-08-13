@@ -8,6 +8,8 @@ import type { IdentityResolutionRequest } from "./identity-contracts.js";
 import type { CurrentIdentity } from "./identity.js";
 import type { GetKnowledgeRequest } from "./knowledge-contracts.js";
 import type { KnowledgeReference } from "./knowledge.js";
+import type { GetMemoryRequest } from "./memory-contracts.js";
+import type { MemoryReference } from "./memory.js";
 
 export type ComposeContextTarget =
   | Readonly<{ kind: "new-lineage" }>
@@ -60,6 +62,30 @@ export interface PrepareContextRevisionWithKnowledgeRequest {
 export interface PrepareContextRevisionWithKnowledge {
   prepareContextRevisionWithKnowledge(
     request: PrepareContextRevisionWithKnowledgeRequest,
+  ): ActiveContextRevision;
+}
+
+export interface ComposeContextRevisionWithMemoryRequest {
+  readonly target: ComposeContextTarget;
+  readonly currentIdentity: CurrentIdentity;
+  readonly memoryReference: MemoryReference;
+}
+
+export interface ComposeContextRevisionWithMemory {
+  composeContextRevisionWithMemory(
+    request: ComposeContextRevisionWithMemoryRequest,
+  ): ActiveContextRevision;
+}
+
+export interface PrepareContextRevisionWithMemoryRequest {
+  readonly target: ComposeContextTarget;
+  readonly identityResolutionRequest: IdentityResolutionRequest;
+  readonly memoryRetrievalRequest: GetMemoryRequest;
+}
+
+export interface PrepareContextRevisionWithMemory {
+  prepareContextRevisionWithMemory(
+    request: PrepareContextRevisionWithMemoryRequest,
   ): ActiveContextRevision;
 }
 
@@ -125,6 +151,13 @@ export class InvalidKnowledgeContextProjectionError extends Error {
   public constructor() {
     super("Knowledge Context projection is missing or invalid.");
     this.name = "InvalidKnowledgeContextProjectionError";
+  }
+}
+
+export class InvalidMemoryContextProjectionError extends Error {
+  public constructor() {
+    super("Memory Context projection is missing or invalid.");
+    this.name = "InvalidMemoryContextProjectionError";
   }
 }
 

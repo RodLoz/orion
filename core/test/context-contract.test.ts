@@ -15,9 +15,11 @@ import {
   contextRevisionIdentity,
   contextRevisionNumber,
   type ComposeContextRevisionWithKnowledgeRequest,
+  type ComposeContextRevisionWithMemoryRequest,
   type ContextLifecycleState,
   type PrepareContextRevisionRequest,
   type PrepareContextRevisionWithKnowledgeRequest,
+  type PrepareContextRevisionWithMemoryRequest,
   type VerifyActiveContextRevisionAuthorityRequest,
 } from "../src/index.js";
 
@@ -67,6 +69,39 @@ describe("Context domain Contracts", () => {
     expectTypeOf<
       keyof ComposeContextRevisionWithKnowledgeRequest
     >().toEqualTypeOf<"target" | "currentIdentity" | "knowledgeReference">();
+  });
+
+  it("defines the fixed Memory-aware preparation and incorporation inputs", () => {
+    const preparation = {
+      target: { kind: "new-lineage" },
+      identityResolutionRequest: {},
+      memoryRetrievalRequest: {
+        memoryIdentity: "memory-1",
+        purpose: "continuity",
+      },
+    } satisfies PrepareContextRevisionWithMemoryRequest;
+    const incorporation = {
+      target: { kind: "new-lineage" },
+      currentIdentity: {} as never,
+      memoryReference: {} as never,
+    } satisfies ComposeContextRevisionWithMemoryRequest;
+
+    expect(Object.keys(preparation)).toEqual([
+      "target",
+      "identityResolutionRequest",
+      "memoryRetrievalRequest",
+    ]);
+    expect(Object.keys(incorporation)).toEqual([
+      "target",
+      "currentIdentity",
+      "memoryReference",
+    ]);
+    expectTypeOf<keyof PrepareContextRevisionWithMemoryRequest>().toEqualTypeOf<
+      "target" | "identityResolutionRequest" | "memoryRetrievalRequest"
+    >();
+    expectTypeOf<keyof ComposeContextRevisionWithMemoryRequest>().toEqualTypeOf<
+      "target" | "currentIdentity" | "memoryReference"
+    >();
   });
 
   it("validates opaque Context identities without coercion", () => {

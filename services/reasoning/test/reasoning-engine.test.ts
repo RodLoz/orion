@@ -83,6 +83,41 @@ function knowledgeAwareContext(): ActiveContextRevision {
   }) as unknown as ActiveContextRevision;
 }
 
+function memoryAwareContext(): ActiveContextRevision {
+  return Object.freeze({
+    lineageIdentity: "context.lineage.memory",
+    revisionIdentity: "context.revision.memory",
+    revisionNumber: 1,
+    creationMetadata: Object.freeze({
+      createdAt: "2026-08-11T14:01:00.000Z",
+      sourceCount: 2,
+      fragmentCount: 2,
+    }),
+    lifecycleState: "active",
+    fragments: Object.freeze([
+      Object.freeze({
+        kind: "identity",
+        authoritativeOwner: "identity",
+        projection: Object.freeze({
+          state: "authenticated",
+          authoritativeOwner: "identity",
+          identityIdentifier: "orion.identity.m5",
+        }),
+      }),
+      Object.freeze({
+        kind: "memory",
+        authoritativeOwner: "memory",
+        projection: Object.freeze({
+          memoryIdentity: "orion.memory.m1",
+          kind: "episodic",
+          lifecycleState: "stored",
+          authoritativeOwner: "memory",
+        }),
+      }),
+    ]),
+  }) as unknown as ActiveContextRevision;
+}
+
 function requestWithGetter(
   field: "intent" | "activeContextRevision" | "query",
   getter: () => unknown,
@@ -184,6 +219,95 @@ describe("ReasoningEngine", () => {
         expectedRevisionNumber: activeContextRevision.revisionNumber,
       }),
     ).toBe(outcome);
+  });
+
+  it("preserves opaque Memory Context while retaining Identity-only reasoning semantics and exact authority", () => {
+    const activeContextRevision = memoryAwareContext();
+    const engine = running();
+    const outcome = engine.evaluateReasoning(
+      request({ activeContextRevision }),
+    );
+
+    expect(outcome).toMatchObject({
+      category: "context-only",
+      explainability: {
+        identityState: "authenticated",
+        ruleCategory: "authenticated-context-only",
+        contextConsumptionReference: {
+          lineageIdentity: activeContextRevision.lineageIdentity,
+          revisionIdentity: activeContextRevision.revisionIdentity,
+          revisionNumber: activeContextRevision.revisionNumber,
+        },
+      },
+    });
+    expect(
+      engine.verifyReasoningOutcomeAuthority({
+        intent: "verify-reasoning-outcome-authority",
+        candidate: outcome,
+        consumedContextRevision: activeContextRevision,
+        expectedLineageIdentity: activeContextRevision.lineageIdentity,
+        expectedRevisionIdentity: activeContextRevision.revisionIdentity,
+        expectedRevisionNumber: activeContextRevision.revisionNumber,
+      }),
+    ).toBe(outcome);
+    expect(() =>
+      engine.verifyReasoningOutcomeAuthority({
+        intent: "verify-reasoning-outcome-authority",
+        candidate: outcome,
+        consumedContextRevision: memoryAwareContext(),
+        expectedLineageIdentity: activeContextRevision.lineageIdentity,
+        expectedRevisionIdentity: activeContextRevision.revisionIdentity,
+        expectedRevisionNumber: activeContextRevision.revisionNumber,
+      }),
+    ).toThrow();
+  });
+
+  it.each([
+    [
+      "unsupported second fragment",
+      { kind: "other", authoritativeOwner: "other" },
+    ],
+    ["Memory attribution", { kind: "memory", authoritativeOwner: "knowledge" }],
+    [
+      "Knowledge attribution",
+      { kind: "knowledge", authoritativeOwner: "memory" },
+    ],
+  ])("rejects invalid fixed-profile %s", (_case, replacement) => {
+    const valid = memoryAwareContext();
+    const invalid = {
+      ...valid,
+      fragments: [
+        valid.fragments[0],
+        { ...valid.fragments[1], ...replacement },
+      ],
+    };
+    expect(() =>
+      running().evaluateReasoning(request({ activeContextRevision: invalid })),
+    ).toThrow(InvalidActiveContextError);
+  });
+
+  it("rejects wrong-order, count-mismatched, duplicate, and three-fragment profiles", () => {
+    const valid = memoryAwareContext();
+    const malformed = [
+      { ...valid, fragments: [valid.fragments[1], valid.fragments[0]] },
+      {
+        ...valid,
+        creationMetadata: { ...valid.creationMetadata, fragmentCount: 1 },
+      },
+      {
+        ...valid,
+        creationMetadata: {
+          sourceCount: 3,
+          fragmentCount: 3,
+          createdAt: valid.creationMetadata.createdAt,
+        },
+        fragments: [valid.fragments[0], valid.fragments[1], valid.fragments[1]],
+      },
+    ];
+    for (const activeContextRevision of malformed)
+      expect(() =>
+        running().evaluateReasoning(request({ activeContextRevision })),
+      ).toThrow(InvalidActiveContextError);
   });
 
   it.each([

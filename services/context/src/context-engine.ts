@@ -6,6 +6,7 @@ import {
   InvalidContextLifecycleTransitionError,
   InvalidIdentityContextProjectionError,
   InvalidKnowledgeContextProjectionError,
+  InvalidMemoryContextProjectionError,
   NoActiveContextRevisionError,
   contextCreatedAt,
   contextLineageIdentity,
@@ -14,26 +15,35 @@ import {
   identityIdentifier,
   knowledgeIdentity,
   knowledgeVersion,
+  memoryIdentity,
   type ActiveContextRevision,
   type ComposeContextRevision,
   type ComposeContextRevisionRequest,
   type ComposeContextRevisionWithKnowledge,
   type ComposeContextRevisionWithKnowledgeRequest,
+  type ComposeContextRevisionWithMemory,
+  type ComposeContextRevisionWithMemoryRequest,
   type ContextConstructionValues,
   type ContextLineageIdentity,
   type ContextRevision,
   type GetActiveContextRevision,
   type GetActiveContextRevisionRequest,
   type GetKnowledge,
+  type GetMemory,
   type IdentityContextFragment,
   type IdentityContextProjection,
   type KnowledgeContextFragment,
   type KnowledgeContextProjection,
   type KnowledgeReference,
+  type MemoryContextFragment,
+  type MemoryContextProjection,
+  type MemoryReference,
   type PrepareContextRevision,
   type PrepareContextRevisionRequest,
   type PrepareContextRevisionWithKnowledge,
   type PrepareContextRevisionWithKnowledgeRequest,
+  type PrepareContextRevisionWithMemory,
+  type PrepareContextRevisionWithMemoryRequest,
   type ResolveCurrentIdentity,
   type VerifyActiveContextRevisionAuthority,
   type VerifyActiveContextRevisionAuthorityRequest,
@@ -74,6 +84,10 @@ interface ValidatedKnowledgeComposeRequest extends ValidatedComposeRequest {
   readonly knowledgeProjection: KnowledgeContextProjection;
 }
 
+interface ValidatedMemoryComposeRequest extends ValidatedComposeRequest {
+  readonly memoryProjection: MemoryContextProjection;
+}
+
 interface ValidatedPrepareRequest {
   readonly target: ValidatedComposeTarget;
   readonly identityResolutionRequest: unknown;
@@ -83,11 +97,24 @@ interface ValidatedKnowledgePrepareRequest extends ValidatedPrepareRequest {
   readonly knowledgeRetrievalRequest: unknown;
 }
 
+interface ValidatedMemoryPrepareRequest extends ValidatedPrepareRequest {
+  readonly memoryRetrievalRequest: unknown;
+}
+
+type ContextProfile =
+  | Readonly<{ kind: "identity" }>
+  | Readonly<{
+      kind: "knowledge";
+      projection: KnowledgeContextProjection;
+    }>
+  | Readonly<{ kind: "memory"; projection: MemoryContextProjection }>;
+
 const CONTEXT_FAILURES = [
   InvalidContextInputError,
   InvalidContextLifecycleTransitionError,
   InvalidIdentityContextProjectionError,
   InvalidKnowledgeContextProjectionError,
+  InvalidMemoryContextProjectionError,
   ContextLineageNotFoundError,
   ContextValidationFailureError,
   NoActiveContextRevisionError,
@@ -135,9 +162,11 @@ export class ContextEngine
   implements
     ComposeContextRevision,
     ComposeContextRevisionWithKnowledge,
+    ComposeContextRevisionWithMemory,
     GetActiveContextRevision,
     PrepareContextRevision,
     PrepareContextRevisionWithKnowledge,
+    PrepareContextRevisionWithMemory,
     VerifyActiveContextRevisionAuthority
 {
   readonly #lineages = new Map<ContextLineageIdentity, ContextLineageState>();
@@ -148,6 +177,7 @@ export class ContextEngine
     private readonly construction: ContextConstructionValues,
     private readonly currentIdentityResolver: ResolveCurrentIdentity,
     private readonly knowledgeResolver?: GetKnowledge,
+    private readonly memoryResolver?: GetMemory,
   ) {
     if (
       construction === undefined ||
@@ -173,7 +203,9 @@ export class ContextEngine
         typeof this.currentIdentityResolver.resolveCurrentIdentity !==
           "function" ||
         (this.knowledgeResolver !== undefined &&
-          typeof this.knowledgeResolver.getKnowledge !== "function")
+          typeof this.knowledgeResolver.getKnowledge !== "function") ||
+        (this.memoryResolver !== undefined &&
+          typeof this.memoryResolver.getMemory !== "function")
       ) {
         throw new ContextEngineInitializationError();
       }
@@ -275,6 +307,54 @@ export class ContextEngine
     });
   }
 
+  public composeContextRevisionWithMemory(
+    request: ComposeContextRevisionWithMemoryRequest,
+  ): ActiveContextRevision;
+  public composeContextRevisionWithMemory(
+    request: unknown,
+  ): ActiveContextRevision;
+  public composeContextRevisionWithMemory(
+    request: unknown,
+  ): ActiveContextRevision {
+    this.requireEngineState("running");
+    try {
+      return this.composeMemoryValidated(
+        this.validateMemoryComposeRequest(request),
+      );
+    } catch (error: unknown) {
+      if (isContextFailure(error)) throw error;
+      throw new ContextValidationFailureError();
+    }
+  }
+
+  public prepareContextRevisionWithMemory(
+    request: PrepareContextRevisionWithMemoryRequest,
+  ): ActiveContextRevision;
+  public prepareContextRevisionWithMemory(
+    request: unknown,
+  ): ActiveContextRevision;
+  public prepareContextRevisionWithMemory(
+    request: unknown,
+  ): ActiveContextRevision {
+    this.requireEngineState("running");
+    if (this.memoryResolver === undefined) {
+      throw new ContextEngineInitializationError();
+    }
+    const validatedRequest = this.validateMemoryPrepareRequest(request);
+    const currentIdentity = this.currentIdentityResolver.resolveCurrentIdentity(
+      validatedRequest.identityResolutionRequest as never,
+    );
+    const retrievedMemory = this.memoryResolver.getMemory(
+      validatedRequest.memoryRetrievalRequest as never,
+    );
+    const memoryReference = this.extractMemoryReference(retrievedMemory);
+    return this.composeContextRevisionWithMemory({
+      target: validatedRequest.target,
+      currentIdentity,
+      memoryReference,
+    });
+  }
+
   public getActiveContextRevision(
     request: GetActiveContextRevisionRequest,
   ): ActiveContextRevision;
@@ -331,12 +411,14 @@ export class ContextEngine
     request: ValidatedComposeRequest,
   ): ActiveContextRevision {
     if (request.target.kind === "new-lineage") {
-      return this.createFirstRevision(request.identityProjection, undefined);
+      return this.createFirstRevision(request.identityProjection, {
+        kind: "identity",
+      });
     }
     return this.createSuccessorRevision(
       request.target,
       request.identityProjection,
-      undefined,
+      { kind: "identity" },
     );
   }
 
@@ -344,21 +426,38 @@ export class ContextEngine
     request: ValidatedKnowledgeComposeRequest,
   ): ActiveContextRevision {
     if (request.target.kind === "new-lineage") {
-      return this.createFirstRevision(
-        request.identityProjection,
-        request.knowledgeProjection,
-      );
+      return this.createFirstRevision(request.identityProjection, {
+        kind: "knowledge",
+        projection: request.knowledgeProjection,
+      });
     }
     return this.createSuccessorRevision(
       request.target,
       request.identityProjection,
-      request.knowledgeProjection,
+      { kind: "knowledge", projection: request.knowledgeProjection },
+    );
+  }
+
+  private composeMemoryValidated(
+    request: ValidatedMemoryComposeRequest,
+  ): ActiveContextRevision {
+    const profile: ContextProfile = {
+      kind: "memory",
+      projection: request.memoryProjection,
+    };
+    if (request.target.kind === "new-lineage") {
+      return this.createFirstRevision(request.identityProjection, profile);
+    }
+    return this.createSuccessorRevision(
+      request.target,
+      request.identityProjection,
+      profile,
     );
   }
 
   private createFirstRevision(
     identityProjection: IdentityContextProjection,
-    knowledgeProjection: KnowledgeContextProjection | undefined,
+    profile: ContextProfile,
   ): ActiveContextRevision {
     const lineageIdentity = this.nextLineageIdentity();
     if (this.#lineages.has(lineageIdentity)) {
@@ -369,7 +468,7 @@ export class ContextEngine
       contextRevisionNumber(1),
       undefined,
       identityProjection,
-      knowledgeProjection,
+      profile,
     );
     const lineage: ContextLineageState = {
       lineageIdentity,
@@ -383,7 +482,7 @@ export class ContextEngine
   private createSuccessorRevision(
     target: ExistingLineageTarget,
     identityProjection: IdentityContextProjection,
-    knowledgeProjection: KnowledgeContextProjection | undefined,
+    profile: ContextProfile,
   ): ActiveContextRevision {
     const lineage = this.#lineages.get(target.lineageIdentity);
     if (lineage === undefined) {
@@ -399,7 +498,7 @@ export class ContextEngine
     const currentProjection = current.fragments[0].projection;
     if (
       sameProjection(currentProjection, identityProjection) &&
-      this.sameKnowledgeProjection(current, knowledgeProjection)
+      this.sameProfile(current, profile)
     ) {
       return current;
     }
@@ -409,7 +508,7 @@ export class ContextEngine
       contextRevisionNumber(current.revisionNumber + 1),
       current.revisionIdentity,
       identityProjection,
-      knowledgeProjection,
+      profile,
     );
 
     expireRuntimeContextRevision(current);
@@ -424,7 +523,7 @@ export class ContextEngine
     parentRevisionIdentity:
       ReturnType<typeof contextRevisionIdentity> | undefined,
     identityProjection: IdentityContextProjection,
-    knowledgeProjection: KnowledgeContextProjection | undefined,
+    profile: ContextProfile,
   ): ContextRevision {
     const revisionIdentity = this.nextRevisionIdentity();
     if (
@@ -451,16 +550,27 @@ export class ContextEngine
         : { parentRevisionIdentity }),
       createdAt,
     };
-    if (knowledgeProjection === undefined) {
+    if (profile.kind === "identity") {
       return createActiveRuntimeContextRevision({
         ...base,
         fragments: [fragment],
       });
     }
+    if (profile.kind === "memory") {
+      const memoryFragment = Object.freeze({
+        kind: "memory",
+        authoritativeOwner: "memory",
+        projection: profile.projection,
+      }) satisfies MemoryContextFragment;
+      return createActiveRuntimeContextRevision({
+        ...base,
+        fragments: [fragment, memoryFragment],
+      });
+    }
     const knowledgeFragment = Object.freeze({
       kind: "knowledge",
       authoritativeOwner: "knowledge",
-      projection: knowledgeProjection,
+      projection: profile.projection,
     }) satisfies KnowledgeContextFragment;
     return createActiveRuntimeContextRevision({
       ...base,
@@ -468,20 +578,34 @@ export class ContextEngine
     });
   }
 
-  private sameKnowledgeProjection(
+  private sameProfile(
     current: ContextRevision,
-    candidate: KnowledgeContextProjection | undefined,
+    candidate: ContextProfile,
   ): boolean {
-    if (current.fragments.length === 1) return candidate === undefined;
-    if (candidate === undefined) return false;
-    const existing = current.fragments[1].projection;
-    return (
-      existing.knowledgeIdentity === candidate.knowledgeIdentity &&
-      existing.validationState === candidate.validationState &&
-      existing.version === candidate.version &&
-      existing.currency === candidate.currency &&
-      existing.authoritativeOwner === candidate.authoritativeOwner
-    );
+    if (current.fragments.length === 1) return candidate.kind === "identity";
+    const fragment = current.fragments[1];
+    if (candidate.kind === "identity" || fragment.kind !== candidate.kind)
+      return false;
+    if (candidate.kind === "knowledge" && fragment.kind === "knowledge") {
+      const existing = fragment.projection;
+      return (
+        existing.knowledgeIdentity === candidate.projection.knowledgeIdentity &&
+        existing.validationState === candidate.projection.validationState &&
+        existing.version === candidate.projection.version &&
+        existing.currency === candidate.projection.currency &&
+        existing.authoritativeOwner === candidate.projection.authoritativeOwner
+      );
+    }
+    if (candidate.kind === "memory" && fragment.kind === "memory") {
+      const existing = fragment.projection;
+      return (
+        existing.memoryIdentity === candidate.projection.memoryIdentity &&
+        existing.kind === candidate.projection.kind &&
+        existing.lifecycleState === candidate.projection.lifecycleState &&
+        existing.authoritativeOwner === candidate.projection.authoritativeOwner
+      );
+    }
+    return false;
   }
 
   private nextLineageIdentity(): ContextLineageIdentity {
@@ -559,6 +683,35 @@ export class ContextEngine
     }
   }
 
+  private validateMemoryComposeRequest(
+    request: unknown,
+  ): ValidatedMemoryComposeRequest {
+    try {
+      if (
+        !isPlainRecord(request) ||
+        !hasExactFields(request, [
+          "target",
+          "currentIdentity",
+          "memoryReference",
+        ])
+      ) {
+        throw new InvalidContextInputError();
+      }
+      return Object.freeze({
+        target: this.validateTarget(Reflect.get(request, "target")),
+        identityProjection: this.validateIdentityProjection(
+          Reflect.get(request, "currentIdentity"),
+        ),
+        memoryProjection: this.validateMemoryProjection(
+          Reflect.get(request, "memoryReference"),
+        ),
+      });
+    } catch (error: unknown) {
+      if (isContextFailure(error)) throw error;
+      throw new InvalidContextInputError();
+    }
+  }
+
   private validatePrepareRequest(request: unknown): ValidatedPrepareRequest {
     try {
       if (
@@ -613,6 +766,34 @@ export class ContextEngine
     }
   }
 
+  private validateMemoryPrepareRequest(
+    request: unknown,
+  ): ValidatedMemoryPrepareRequest {
+    try {
+      if (
+        !isPlainRecord(request) ||
+        !hasExactFields(request, [
+          "target",
+          "identityResolutionRequest",
+          "memoryRetrievalRequest",
+        ])
+      ) {
+        throw new InvalidContextInputError();
+      }
+      return Object.freeze({
+        target: this.validateTarget(Reflect.get(request, "target")),
+        identityResolutionRequest: Reflect.get(
+          request,
+          "identityResolutionRequest",
+        ),
+        memoryRetrievalRequest: Reflect.get(request, "memoryRetrievalRequest"),
+      });
+    } catch (error: unknown) {
+      if (isContextFailure(error)) throw error;
+      throw new InvalidContextInputError();
+    }
+  }
+
   private extractKnowledgeReference(value: unknown): KnowledgeReference {
     try {
       if (
@@ -633,6 +814,49 @@ export class ContextEngine
     } catch (error: unknown) {
       if (error instanceof InvalidKnowledgeContextProjectionError) throw error;
       throw new InvalidKnowledgeContextProjectionError();
+    }
+  }
+
+  private extractMemoryReference(value: unknown): MemoryReference {
+    try {
+      if (
+        !isPlainRecord(value) ||
+        !hasExactFields(value, ["memory", "receipt"])
+      ) {
+        throw new InvalidMemoryContextProjectionError();
+      }
+      const receiptDescriptor = Reflect.getOwnPropertyDescriptor(
+        value,
+        "receipt",
+      );
+      if (
+        receiptDescriptor === undefined ||
+        receiptDescriptor.enumerable !== true ||
+        !("value" in receiptDescriptor) ||
+        !isPlainRecord(receiptDescriptor.value) ||
+        !hasExactFields(receiptDescriptor.value, [
+          "memoryReference",
+          "retrievedAt",
+          "purpose",
+        ])
+      ) {
+        throw new InvalidMemoryContextProjectionError();
+      }
+      const referenceDescriptor = Reflect.getOwnPropertyDescriptor(
+        receiptDescriptor.value,
+        "memoryReference",
+      );
+      if (
+        referenceDescriptor === undefined ||
+        referenceDescriptor.enumerable !== true ||
+        !("value" in referenceDescriptor)
+      ) {
+        throw new InvalidMemoryContextProjectionError();
+      }
+      return referenceDescriptor.value as MemoryReference;
+    } catch (error: unknown) {
+      if (error instanceof InvalidMemoryContextProjectionError) throw error;
+      throw new InvalidMemoryContextProjectionError();
     }
   }
 
@@ -738,6 +962,38 @@ export class ContextEngine
     } catch (error: unknown) {
       if (error instanceof InvalidKnowledgeContextProjectionError) throw error;
       throw new InvalidKnowledgeContextProjectionError();
+    }
+  }
+
+  private validateMemoryProjection(
+    reference: unknown,
+  ): MemoryContextProjection {
+    try {
+      if (
+        !isPlainRecord(reference) ||
+        !hasExactFields(reference, [
+          "memoryIdentity",
+          "kind",
+          "authoritativeCapability",
+          "lifecycleState",
+        ]) ||
+        Reflect.get(reference, "kind") !== "episodic" ||
+        Reflect.get(reference, "authoritativeCapability") !== "memory" ||
+        Reflect.get(reference, "lifecycleState") !== "stored"
+      ) {
+        throw new InvalidMemoryContextProjectionError();
+      }
+      return Object.freeze({
+        memoryIdentity: memoryIdentity(
+          Reflect.get(reference, "memoryIdentity"),
+        ),
+        kind: "episodic",
+        lifecycleState: "stored",
+        authoritativeOwner: "memory",
+      });
+    } catch (error: unknown) {
+      if (error instanceof InvalidMemoryContextProjectionError) throw error;
+      throw new InvalidMemoryContextProjectionError();
     }
   }
 

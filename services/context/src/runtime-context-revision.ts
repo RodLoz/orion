@@ -8,6 +8,8 @@ import type {
   IdentityContextRevision,
   KnowledgeAwareContextRevision,
   KnowledgeContextFragment,
+  MemoryAwareContextRevision,
+  MemoryContextFragment,
 } from "@orion/core";
 
 import { ContextRevisionLifecycle } from "./context-revision-lifecycle.js";
@@ -27,6 +29,9 @@ export type RuntimeContextRevisionInput = RuntimeContextRevisionInputBase &
     | Readonly<{ fragments: readonly [IdentityContextFragment] }>
     | Readonly<{
         fragments: readonly [IdentityContextFragment, KnowledgeContextFragment];
+      }>
+    | Readonly<{
+        fragments: readonly [IdentityContextFragment, MemoryContextFragment];
       }>
   );
 
@@ -61,7 +66,7 @@ export function createActiveRuntimeContextRevision(
       }),
       fragments,
     }) as IdentityContextRevision;
-  } else {
+  } else if (input.fragments[1].kind === "knowledge") {
     const fragments = Object.freeze([
       input.fragments[0],
       input.fragments[1],
@@ -75,6 +80,20 @@ export function createActiveRuntimeContextRevision(
       }),
       fragments,
     }) as KnowledgeAwareContextRevision;
+  } else {
+    const fragments = Object.freeze([
+      input.fragments[0],
+      input.fragments[1],
+    ]) as readonly [IdentityContextFragment, MemoryContextFragment];
+    revision = Object.freeze({
+      ...base,
+      creationMetadata: Object.freeze({
+        createdAt: input.createdAt,
+        sourceCount: 2 as const,
+        fragmentCount: 2 as const,
+      }),
+      fragments,
+    }) as MemoryAwareContextRevision;
   }
 
   LIFECYCLES.set(revision, lifecycle);

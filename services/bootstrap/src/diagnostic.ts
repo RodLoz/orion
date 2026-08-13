@@ -9,6 +9,7 @@ import { RuntimeCapabilityRegistry } from "./capability-registry.js";
 import {
   composeContextCapability,
   composeKnowledgeAwareContextCapability,
+  composeMemoryAwareContextCapability,
 } from "./context/context-composition.js";
 import { composeIdentityCapability } from "./identity/identity-composition.js";
 import { composeKnowledgeCapability } from "./knowledge/knowledge-composition.js";
@@ -135,21 +136,13 @@ export function composeDiagnosticRuntime(): DiagnosticResult {
   );
   const retainedBefore =
     memory.listRetainedMemoryReferences.listRetainedMemoryReferences({});
-  const forgotten = memory.forgetMemory.forgetMemory({
-    intent: "forget",
-    memoryIdentity: retained.memoryIdentity,
-  });
-  const retainedAfter =
-    memory.listRetainedMemoryReferences.listRetainedMemoryReferences({});
 
   if (
     retrieved.memory.memoryIdentity !== retained.memoryIdentity ||
     retrieved.receipt.memoryReference.memoryIdentity !==
       retained.memoryIdentity ||
     lastUsed !== retrieved.receipt.retrievedAt ||
-    retainedBefore.length !== 1 ||
-    forgotten.outcome !== "deleted" ||
-    retainedAfter.length !== 0
+    retainedBefore.length !== 1
   ) {
     throw new Error("Memory capability diagnostic failed.");
   }
@@ -343,6 +336,60 @@ export function composeDiagnosticRuntime(): DiagnosticResult {
     throw new Error("Knowledge-aware Context diagnostic failed.");
   }
 
+  const memoryAwareContext = composeMemoryAwareContextCapability(
+    identity.resolveCurrentIdentity,
+    memory.getMemory,
+  );
+  const memoryAwareRevision =
+    memoryAwareContext.prepareContextRevisionWithMemory.prepareContextRevisionWithMemory(
+      {
+        target: { kind: "new-lineage" },
+        identityResolutionRequest: {
+          resolutionReference: identity.demonstrationResolutionReference,
+        },
+        memoryRetrievalRequest: {
+          memoryIdentity: retained.memoryIdentity,
+          purpose: "diagnostic",
+        },
+      },
+    );
+  const retrievedMemoryAwareRevision =
+    memoryAwareContext.getActiveContextRevision.getActiveContextRevision({
+      lineageIdentity: memoryAwareRevision.lineageIdentity,
+    });
+  const authoritativeMemoryAwareRevision =
+    memoryAwareContext.verifyActiveContextRevisionAuthority.verifyActiveContextRevisionAuthority(
+      {
+        intent: "verify-active-context-revision-authority",
+        candidate: memoryAwareRevision,
+        expectedLineageIdentity: memoryAwareRevision.lineageIdentity,
+        expectedRevisionIdentity: memoryAwareRevision.revisionIdentity,
+        expectedRevisionNumber: memoryAwareRevision.revisionNumber,
+      },
+    );
+  if (
+    retrievedMemoryAwareRevision !== memoryAwareRevision ||
+    authoritativeMemoryAwareRevision !== memoryAwareRevision ||
+    memoryAwareRevision.creationMetadata.sourceCount !== 2 ||
+    memoryAwareRevision.creationMetadata.fragmentCount !== 2 ||
+    memoryAwareRevision.fragments.length !== 2 ||
+    memoryAwareRevision.fragments[0].kind !== "identity" ||
+    memoryAwareRevision.fragments[1].kind !== "memory" ||
+    memoryAwareRevision.lifecycleState !== "active"
+  ) {
+    throw new Error("Memory-aware Context diagnostic failed.");
+  }
+
+  const forgotten = memory.forgetMemory.forgetMemory({
+    intent: "forget",
+    memoryIdentity: retained.memoryIdentity,
+  });
+  const retainedAfter =
+    memory.listRetainedMemoryReferences.listRetainedMemoryReferences({});
+  if (forgotten.outcome !== "deleted" || retainedAfter.length !== 0) {
+    throw new Error("Memory capability diagnostic failed.");
+  }
+
   const planning = composePlanningCapability();
   const candidatePlan = planning.createCandidatePlan.createCandidatePlan({
     intent: "create-candidate-plan",
@@ -491,6 +538,17 @@ export function composeDiagnosticRuntime(): DiagnosticResult {
       activeFragmentCount: 2,
       canonicalFragmentOrderingPreserved: true,
       activeLifecycleState: "active",
+      knowledgeAwareSourceCount: 2,
+      knowledgeAwareFragmentCount: 2,
+      knowledgeAwareCanonicalFragmentOrderingPreserved: true,
+      knowledgeAwareActiveLifecycleState: "active",
+      knowledgeAwareAuthorityVerified: true,
+      memoryAwarePreparationSucceeded: true,
+      memoryAwareSourceCount: 2,
+      memoryAwareFragmentCount: 2,
+      memoryAwareCanonicalFragmentOrderingPreserved: true,
+      memoryAwareActiveLifecycleState: "active",
+      memoryAwareAuthorityVerified: true,
       initialIdentityState: "anonymous",
       activeIdentityState: "authenticated",
     }),

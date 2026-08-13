@@ -3,7 +3,7 @@
 | Field          | Value                                                     |
 | -------------- | --------------------------------------------------------- |
 | **Status**     | Active                                                    |
-| **Version**    | 2.0.1                                                     |
+| **Version**    | 2.0.2                                                     |
 | **Owner**      | Project Maintainers                                       |
 | **Milestone**  | M10 — Brain Orchestration Foundation                      |
 | **Created**    | 2026-07-29                                                |
@@ -400,7 +400,7 @@ Context authority failures are normalized by Brain to
 `BrainContextResolutionError`. Invocation is exactly once after structural
 validation, with no retry, minting, mutation, or diagnostic value exposure.
 
-This Contract is authoritative under Active ENGINE-0003 revision 3.0.0.
+This Contract is authoritative under Active ENGINE-0003 revision 4.0.0.
 Bootstrap may compose only the Context-owned callable.
 
 ### Evaluate Reasoning 2.0.0
@@ -548,13 +548,13 @@ Omission is valid. A present non-function or malformed observer is
 
 ### Issuer-Owned Authority Prerequisites
 
-ENGINE-0003 3.0.0, ENGINE-0006 2.0.0, and ENGINE-0007 2.0.0 are Active and
+ENGINE-0003 4.0.0, ENGINE-0006 2.0.0, and ENGINE-0007 2.0.0 are Active and
 provide the required issuer-owned verifier Contracts. Bootstrap may compose the
 exact issuer-owned callables but MUST NOT issue, register, wrap, or simulate
 their authority.
 
 The exact Active prerequisites are the
-[ENGINE-0003 Context Engine Revision 3.0.0](context/ENGINE-0003-Context-Engine-Revision-3.0.0.md),
+[ENGINE-0003 Context Engine Revision 4.0.0](context/ENGINE-0003-Context-Engine-Revision-4.0.0.md),
 [ENGINE-0006 Reasoning Engine Revision 2.0.0](reasoning/ENGINE-0006-Reasoning-Engine-Revision-2.0.0.md),
 and
 [ENGINE-0007 Planning Engine Revision 2.0.0](planning/ENGINE-0007-Planning-Engine-Revision-2.0.0.md).
@@ -1098,6 +1098,7 @@ ownership or authority.
 | 1.0.0   | 2026-07-29 | Established the Brain orchestration foundation and final cognitive result boundary.                                                                                               |
 | 2.0.0   | 2026-08-10 | Aligned Brain orchestration with the authoritative Context-to-Reasoning and exact Reasoning-to-Planning boundaries.                                                               |
 | 2.0.1   | 2026-08-11 | Aligned prerequisite and reference correspondence with Active Context 3.0.0, Reasoning 2.0.0, and Planning 2.0.0 revisions and removed the stale implementation-status statement. |
+| 2.0.2   | 2026-08-11 | Aligned prerequisite/reference correspondence with Active Context Engine 4.0.0; no Brain runtime semantics changed.                                                               |
 
 ## References
 
@@ -1107,7 +1108,7 @@ ownership or authority.
 - [ADR-0007 — Brain Orchestration Ownership and Planning Binding](../../docs/adr/ADR-0007-Brain-Orchestration-Ownership-and-Planning-Binding.md)
 - [ADR-0015 — Brain Cognitive Reference Orchestration and Final Cognitive Result Boundaries](../../docs/adr/ADR-0015-Brain-Cognitive-Reference-Orchestration-and-Final-Cognitive-Result-Boundaries.md)
 - [CONCEPT-0006 — Brain Orchestration Model](../concepts/CONCEPT-0006-Brain-Orchestration-Model.md)
-- [ENGINE-0003 — Context Engine 3.0.0](context/ENGINE-0003-Context-Engine-Revision-3.0.0.md)
+- [ENGINE-0003 — Context Engine 4.0.0](context/ENGINE-0003-Context-Engine-Revision-4.0.0.md)
 - [ENGINE-0006 — Reasoning Engine 2.0.0](reasoning/ENGINE-0006-Reasoning-Engine-Revision-2.0.0.md)
 - [ENGINE-0007 — Planning Engine 2.0.0](planning/ENGINE-0007-Planning-Engine-Revision-2.0.0.md)
 - [ENGINE-0009 — Security Engine](security/ENGINE-0009-Security-Engine.md)

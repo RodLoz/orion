@@ -297,6 +297,41 @@ function knowledgeAwareContext(): ActiveContextRevision {
   });
 }
 
+function memoryAwareContext(): ActiveContextRevision {
+  return frozen({
+    lineageIdentity: contextLineageIdentity("context.main"),
+    revisionIdentity: contextRevisionIdentity("context.memory.revision"),
+    revisionNumber: contextRevisionNumber(1),
+    creationMetadata: frozen({
+      createdAt: contextCreatedAt("2026-08-11T12:01:00Z"),
+      sourceCount: 2,
+      fragmentCount: 2,
+    }),
+    lifecycleState: "active" as const,
+    fragments: frozen([
+      frozen({
+        kind: "identity" as const,
+        authoritativeOwner: "identity" as const,
+        projection: frozen({
+          state: "authenticated" as const,
+          authoritativeOwner: "identity" as const,
+          identityIdentifier: "orion.identity.m1" as never,
+        }),
+      }),
+      frozen({
+        kind: "memory" as const,
+        authoritativeOwner: "memory" as const,
+        projection: frozen({
+          memoryIdentity: "orion.memory.m1" as never,
+          kind: "episodic" as const,
+          lifecycleState: "stored" as const,
+          authoritativeOwner: "memory" as const,
+        }),
+      }),
+    ]),
+  });
+}
+
 export const noneRequest = () =>
   createNormalizedCognitiveRequest({
     intent: "orchestrate-cognitive-request" as const,
@@ -498,6 +533,49 @@ describe("Brain Engine complete M10 runtime", () => {
       activeContextRevision: context,
       query: noneRequest().query,
     });
+  });
+
+  it("passes the fixed Identity + Memory Context profile to Reasoning as opaque authoritative Context", () => {
+    const context = memoryAwareContext();
+    const { ports } = fixture("respond");
+    ports.context.getActiveContextRevision.mockReturnValue(context as never);
+    ports.context.verifyActiveContextRevisionAuthority.mockImplementation(
+      ({ candidate }) => candidate,
+    );
+    const engine = running(ports);
+
+    expect(engine.orchestrateCognitiveRequest(noneRequest()).kind).toBe(
+      "response",
+    );
+    expect(
+      ports.context.verifyActiveContextRevisionAuthority,
+    ).toHaveBeenCalledWith(expect.objectContaining({ candidate: context }));
+    expect(ports.reasoning.evaluateReasoning).toHaveBeenCalledWith({
+      intent: "evaluate",
+      activeContextRevision: context,
+      query: noneRequest().query,
+    });
+  });
+
+  it("rejects a Memory fragment with mismatched attribution", () => {
+    const valid = memoryAwareContext();
+    const malformed = frozen({
+      ...valid,
+      fragments: frozen([
+        valid.fragments[0],
+        frozen({
+          ...valid.fragments[1],
+          authoritativeOwner: "knowledge",
+        }),
+      ]),
+    }) as unknown as ActiveContextRevision;
+    const { ports } = fixture("respond");
+    ports.context.getActiveContextRevision.mockReturnValue(malformed as never);
+
+    expect(() =>
+      running(ports).orchestrateCognitiveRequest(noneRequest()),
+    ).toThrow(BrainContextResolutionError);
+    expect(ports.reasoning.evaluateReasoning).not.toHaveBeenCalled();
   });
 
   it.each(["none", "skill-capability"] as const)(

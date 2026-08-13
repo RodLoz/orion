@@ -19,6 +19,7 @@ import {
   type EvaluateReasoning,
   type IdentityContextProjection,
   type KnowledgeContextFragment,
+  type MemoryContextFragment,
   type ReasoningOutcome,
   type VerifyReasoningOutcomeAuthority,
   type VerifyReasoningOutcomeAuthorityRequest,
@@ -133,10 +134,10 @@ export class ReasoningEngine
       ]);
       const isIdentityOnly =
         metadata.sourceCount === 1 && metadata.fragmentCount === 1;
-      const isKnowledgeAware =
+      const isSourceAware =
         metadata.sourceCount === 2 && metadata.fragmentCount === 2;
-      if (!isIdentityOnly && !isKnowledgeAware) throw new Error();
-      const fragmentCount = isKnowledgeAware ? 2 : 1;
+      if (!isIdentityOnly && !isSourceAware) throw new Error();
+      const fragmentCount = isSourceAware ? 2 : 1;
       const fragments = revision.fragments;
       if (
         !Array.isArray(fragments) ||
@@ -160,8 +161,8 @@ export class ReasoningEngine
       )
         throw new Error();
       const projection = this.validateProjection(fragment.projection);
-      const knowledgeFragment = isKnowledgeAware
-        ? this.captureKnowledgeFragment(fragments[1])
+      const sourceFragment = isSourceAware
+        ? this.captureOpaqueSourceFragment(fragments[1])
         : undefined;
       const lifecycle = contextLifecycleState(revision.lifecycleState);
       const revisionNumber = contextRevisionNumber(revision.revisionNumber);
@@ -184,7 +185,7 @@ export class ReasoningEngine
             }
           : {}),
         creationMetadata: Object.freeze(
-          isKnowledgeAware
+          isSourceAware
             ? {
                 createdAt: contextCreatedAt(metadata.createdAt),
                 sourceCount: 2 as const,
@@ -203,7 +204,7 @@ export class ReasoningEngine
             authoritativeOwner: "identity" as const,
             projection,
           }),
-          ...(knowledgeFragment === undefined ? [] : [knowledgeFragment]),
+          ...(sourceFragment === undefined ? [] : [sourceFragment]),
         ]),
       };
       return Object.freeze(reconstructed) as ActiveContextRevision;
@@ -212,18 +213,22 @@ export class ReasoningEngine
     }
   }
 
-  private captureKnowledgeFragment(value: unknown): KnowledgeContextFragment {
+  private captureOpaqueSourceFragment(
+    value: unknown,
+  ): KnowledgeContextFragment | MemoryContextFragment {
     const fragment = exactRecord(value, [
       "kind",
       "authoritativeOwner",
       "projection",
     ]);
-    if (
-      fragment.kind !== "knowledge" ||
-      fragment.authoritativeOwner !== "knowledge"
-    )
+    if (!(
+      (fragment.kind === "knowledge" &&
+        fragment.authoritativeOwner === "knowledge") ||
+      (fragment.kind === "memory" && fragment.authoritativeOwner === "memory")
+    ))
       throw new Error();
-    return freezeClone(fragment) as unknown as KnowledgeContextFragment;
+    return freezeClone(fragment) as unknown as
+      KnowledgeContextFragment | MemoryContextFragment;
   }
 
   private validateProjection(value: unknown): IdentityContextProjection {

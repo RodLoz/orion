@@ -4,6 +4,7 @@ import type {
   KnowledgeIdentity,
   KnowledgeVersion,
 } from "./knowledge.js";
+import type { MemoryIdentity } from "./memory.js";
 
 export type ContextLineageIdentity = string & {
   readonly __contextLineageIdentity: unique symbol;
@@ -55,8 +56,21 @@ export interface KnowledgeContextFragment {
   readonly projection: KnowledgeContextProjection;
 }
 
+export interface MemoryContextProjection {
+  readonly memoryIdentity: MemoryIdentity;
+  readonly kind: "episodic";
+  readonly lifecycleState: "stored";
+  readonly authoritativeOwner: "memory";
+}
+
+export interface MemoryContextFragment {
+  readonly kind: "memory";
+  readonly authoritativeOwner: "memory";
+  readonly projection: MemoryContextProjection;
+}
+
 export type ContextFragment =
-  IdentityContextFragment | KnowledgeContextFragment;
+  IdentityContextFragment | KnowledgeContextFragment | MemoryContextFragment;
 
 export interface IdentityContextRevisionCreationMetadata {
   readonly createdAt: ContextCreatedAt;
@@ -70,9 +84,16 @@ export interface KnowledgeAwareContextRevisionCreationMetadata {
   readonly fragmentCount: 2;
 }
 
+export interface MemoryAwareContextRevisionCreationMetadata {
+  readonly createdAt: ContextCreatedAt;
+  readonly sourceCount: 2;
+  readonly fragmentCount: 2;
+}
+
 export type ContextRevisionCreationMetadata =
   | IdentityContextRevisionCreationMetadata
-  | KnowledgeAwareContextRevisionCreationMetadata;
+  | KnowledgeAwareContextRevisionCreationMetadata
+  | MemoryAwareContextRevisionCreationMetadata;
 
 interface ContextRevisionBase {
   readonly lineageIdentity: ContextLineageIdentity;
@@ -95,8 +116,15 @@ export interface KnowledgeAwareContextRevision extends ContextRevisionBase {
   ];
 }
 
+export interface MemoryAwareContextRevision extends ContextRevisionBase {
+  readonly creationMetadata: MemoryAwareContextRevisionCreationMetadata;
+  readonly fragments: readonly [IdentityContextFragment, MemoryContextFragment];
+}
+
 export type ContextRevision =
-  IdentityContextRevision | KnowledgeAwareContextRevision;
+  | IdentityContextRevision
+  | KnowledgeAwareContextRevision
+  | MemoryAwareContextRevision;
 
 export type ActiveContextRevision = ContextRevision;
 

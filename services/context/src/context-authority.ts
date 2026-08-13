@@ -10,6 +10,7 @@ import {
   identityIdentifier,
   knowledgeIdentity,
   knowledgeVersion,
+  memoryIdentity,
   type ActiveContextRevision,
   type VerifyActiveContextRevisionAuthority,
 } from "@orion/core";
@@ -203,17 +204,37 @@ function assertContextStructure(value: unknown): void {
   )
     throw new Error();
   if (isKnowledgeAware) {
-    const knowledgeFragment = exactRecord(fragments[1], [
+    const sourceFragment = exactRecord(fragments[1], [
       "kind",
       "authoritativeOwner",
       "projection",
     ]);
     if (
-      knowledgeFragment.kind !== "knowledge" ||
-      knowledgeFragment.authoritativeOwner !== "knowledge"
+      sourceFragment.kind === "memory" &&
+      sourceFragment.authoritativeOwner === "memory"
+    ) {
+      const memoryProjection = exactRecord(sourceFragment.projection, [
+        "memoryIdentity",
+        "kind",
+        "lifecycleState",
+        "authoritativeOwner",
+      ]);
+      if (
+        memoryIdentity(memoryProjection.memoryIdentity) !==
+          memoryProjection.memoryIdentity ||
+        memoryProjection.kind !== "episodic" ||
+        memoryProjection.lifecycleState !== "stored" ||
+        memoryProjection.authoritativeOwner !== "memory"
+      )
+        throw new Error();
+      return;
+    }
+    if (
+      sourceFragment.kind !== "knowledge" ||
+      sourceFragment.authoritativeOwner !== "knowledge"
     )
       throw new Error();
-    const knowledgeProjection = exactRecord(knowledgeFragment.projection, [
+    const knowledgeProjection = exactRecord(sourceFragment.projection, [
       "knowledgeIdentity",
       "validationState",
       "version",

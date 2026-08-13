@@ -5,10 +5,13 @@ import {
 import type {
   ComposeContextRevision,
   ComposeContextRevisionWithKnowledge,
+  ComposeContextRevisionWithMemory,
   GetActiveContextRevision,
   GetKnowledge,
+  GetMemory,
   PrepareContextRevision,
   PrepareContextRevisionWithKnowledge,
+  PrepareContextRevisionWithMemory,
   ResolveCurrentIdentity,
   VerifyActiveContextRevisionAuthority,
 } from "@orion/core";
@@ -26,6 +29,11 @@ export interface ContextCapabilityComposition {
 export interface KnowledgeAwareContextCapabilityComposition extends ContextCapabilityComposition {
   readonly composeContextRevisionWithKnowledge: ComposeContextRevisionWithKnowledge;
   readonly prepareContextRevisionWithKnowledge: PrepareContextRevisionWithKnowledge;
+}
+
+export interface MemoryAwareContextCapabilityComposition extends ContextCapabilityComposition {
+  readonly composeContextRevisionWithMemory: ComposeContextRevisionWithMemory;
+  readonly prepareContextRevisionWithMemory: PrepareContextRevisionWithMemory;
 }
 
 export function composeContextCapability(
@@ -63,6 +71,29 @@ export function composeKnowledgeAwareContextCapability(
     getActiveContextRevision: engine,
     prepareContextRevision: engine,
     prepareContextRevisionWithKnowledge: engine,
+    engineState: engine.engineState,
+    verifyActiveContextRevisionAuthority: engine,
+  });
+}
+
+export function composeMemoryAwareContextCapability(
+  currentIdentityResolver: ResolveCurrentIdentity,
+  memoryResolver: GetMemory,
+): MemoryAwareContextCapabilityComposition {
+  const engine = new ContextEngine(
+    new DeterministicContextConstructionValues(),
+    currentIdentityResolver,
+    undefined,
+    memoryResolver,
+  );
+  engine.initialize();
+  engine.start();
+  return Object.freeze({
+    composeContextRevision: engine,
+    composeContextRevisionWithMemory: engine,
+    getActiveContextRevision: engine,
+    prepareContextRevision: engine,
+    prepareContextRevisionWithMemory: engine,
     engineState: engine.engineState,
     verifyActiveContextRevisionAuthority: engine,
   });

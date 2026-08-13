@@ -18,6 +18,17 @@ export interface ContextCapabilityDiagnostic {
   readonly activeFragmentCount: 2;
   readonly canonicalFragmentOrderingPreserved: true;
   readonly activeLifecycleState: "active";
+  readonly knowledgeAwareSourceCount: 2;
+  readonly knowledgeAwareFragmentCount: 2;
+  readonly knowledgeAwareCanonicalFragmentOrderingPreserved: true;
+  readonly knowledgeAwareActiveLifecycleState: "active";
+  readonly knowledgeAwareAuthorityVerified: true;
+  readonly memoryAwarePreparationSucceeded: true;
+  readonly memoryAwareSourceCount: 2;
+  readonly memoryAwareFragmentCount: 2;
+  readonly memoryAwareCanonicalFragmentOrderingPreserved: true;
+  readonly memoryAwareActiveLifecycleState: "active";
+  readonly memoryAwareAuthorityVerified: true;
   readonly initialIdentityState: "anonymous";
   readonly activeIdentityState: "authenticated";
 }

@@ -722,9 +722,9 @@ function validateContext(
   contextCreatedAt(metadata.createdAt);
   const isIdentityOnly =
     metadata.sourceCount === 1 && metadata.fragmentCount === 1;
-  const isKnowledgeAware =
+  const isSourceAware =
     metadata.sourceCount === 2 && metadata.fragmentCount === 2;
-  if (!isIdentityOnly && !isKnowledgeAware) throw new Error();
+  if (!isIdentityOnly && !isSourceAware) throw new Error();
   if (
     !Array.isArray(record.fragments) ||
     record.fragments.length !== metadata.fragmentCount
@@ -755,23 +755,18 @@ function validateContext(
     throw new Error();
   if (projectionRecord.state === "authenticated")
     identityIdentifier(projectionRecord.identityIdentifier);
-  if (isKnowledgeAware) {
-    const knowledgeFragment = record.fragments[1];
-    exactRecord(knowledgeFragment, [
-      "kind",
-      "authoritativeOwner",
-      "projection",
-    ]);
-    const knowledgeFragmentRecord = knowledgeFragment as Record<
-      string,
-      unknown
-    >;
-    if (
-      knowledgeFragmentRecord.kind !== "knowledge" ||
-      knowledgeFragmentRecord.authoritativeOwner !== "knowledge"
-    )
+  if (isSourceAware) {
+    const sourceFragment = record.fragments[1];
+    exactRecord(sourceFragment, ["kind", "authoritativeOwner", "projection"]);
+    const sourceFragmentRecord = sourceFragment as Record<string, unknown>;
+    if (!(
+      (sourceFragmentRecord.kind === "knowledge" &&
+        sourceFragmentRecord.authoritativeOwner === "knowledge") ||
+      (sourceFragmentRecord.kind === "memory" &&
+        sourceFragmentRecord.authoritativeOwner === "memory")
+    ))
       throw new Error();
-    requireDeepFrozen(knowledgeFragment);
+    requireDeepFrozen(sourceFragment);
   }
   if (
     record.lifecycleState !== "active" ||

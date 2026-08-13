@@ -59,9 +59,13 @@ While Active, CONTRACT-0001 is authoritative within its accepted semantic bounda
 
 ## Implementation Context
 
-- [ENGINE-0003 1.1.0 — Context Engine Authority Revision](../../specifications/engines/context/ENGINE-0003-Context-Engine-Authority-Revision-1.1.0.md)
+- [ENGINE-0003 4.0.0 — Context Engine Revision](../../specifications/engines/context/ENGINE-0003-Context-Engine-Revision-4.0.0.md)
+- [ENGINE-0004 1.1.0 — Memory Engine Revision](../../specifications/engines/memory/ENGINE-0004-Memory-Engine-Revision-1.1.0.md)
 
-The Context Engine specification describes the current Identity-only implementation milestone. It is implementation context and does not override the governing ADRs, the Context Concept, or this Contract within this Contract's accepted boundary once Active.
+The current Context and Memory Engine specifications describe the executable
+Identity, Knowledge, and Memory source specializations. This implementation
+correspondence is non-normative and does not override the governing ADRs,
+Concepts, or this Contract within its accepted boundary.
 
 ---
 
@@ -353,7 +357,10 @@ Future additive source specializations may define source-specific semantics with
 
 Breaking changes to ownership, authority, request purpose, result meaning, candidate availability, or adjacent responsibility boundaries require applicable higher-authority architectural approval, migration documentation, compatibility assessment, and Contract version evolution under OES-0004 and OES-0010.
 
-No generic executable Context-to-source conformance surface currently exists. Existing Identity, Memory, and Knowledge operations remain capability-specific and are not declared conformant with this Contract. Future executable surfaces may evolve deliberately to conform; implementation status does not create or weaken architectural authority.
+Executable conformance evidence now covers the capability-specific Identity,
+Knowledge, and Memory specializations. No generic executable source surface is
+introduced; implementation status does not create or weaken architectural
+authority.
 
 ---
 

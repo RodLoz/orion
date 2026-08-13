@@ -1,19 +1,21 @@
 # ENGINE-0004 — Memory Engine
 
-| Field          | Value                                            |
-| -------------- | ------------------------------------------------ |
-| **Status**     | Active                                           |
-| **Version**    | 1.0.0                                            |
-| **Owner**      | Project Maintainers                              |
-| **Created**    | 2026-07-20                                       |
-| **Updated**    | 2026-07-20                                       |
-| **Applies To** | Memory Engine, M3 — Memory Engine Vertical Slice |
+| Field             | Value                                                |
+| ----------------- | ---------------------------------------------------- |
+| **Status**        | Superseded                                           |
+| **Superseded By** | [1.1.0](ENGINE-0004-Memory-Engine-Revision-1.1.0.md) |
+| **Version**       | 1.0.0                                                |
+| **Owner**         | Project Maintainers                                  |
+| **Created**       | 2026-07-20                                           |
+| **Updated**       | 2026-08-11                                           |
+| **Applies To**    | Memory Engine, M3 — Memory Engine Vertical Slice     |
 
 ---
 
 ## Status
 
-This specification is Active and governs M3 implementation according to the documentation authority and status rules.
+This specification is Superseded by ENGINE-0004 1.1.0. It remains the
+historical authority for the original standalone M3 Memory implementation.
 
 The key words **MUST**, **MUST NOT**, **SHOULD**, **SHOULD NOT**, and **MAY** describe normative requirements within this specification.
 
