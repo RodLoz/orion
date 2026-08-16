@@ -1,58 +1,30 @@
 \# O.R.I.O.N.
 
-
-
 <p align="center">
-
-
 
 \# Omni-Responsive Intelligent Operating Network
 
-
-
 \*\*One Intelligence. Unlimited Possibilities.\*\*
-
-
 
 \*A capability-driven Artificial Intelligence platform designed to understand, learn, remember, and act across any device.\*
 
-
-
 </p>
 
-
-
 \---
-
-
 
 \## Vision
 
-
-
 O.R.I.O.N. is an AI Operating Network designed to provide a persistent intelligence that exists independently of any specific application, device, or technology provider.
-
-
 
 Instead of building isolated assistants for phones, computers, or smart devices, O.R.I.O.N. provides a single intelligent Core capable of interacting naturally across multiple environments while continuously learning, adapting, and expanding through modular capabilities.
 
-
-
 The platform is built around the principles of modularity, replaceability, interoperability, and long-term maintainability.
-
-
 
 \---
 
-
-
 \## Why O.R.I.O.N.?
 
-
-
 Today's AI assistants are generally tied to specific ecosystems.
-
-
 
 \- Siri belongs to Apple.
 
@@ -60,23 +32,13 @@ Today's AI assistants are generally tied to specific ecosystems.
 
 \- Alexa belongs to Amazon.
 
-
-
 O.R.I.O.N. aims to provide an alternative:
-
-
 
 An AI platform whose intelligence belongs to the platform itself—not to any single device or vendor.
 
-
-
 \---
 
-
-
 \## Core Goals
-
-
 
 \- Build a persistent AI platform.
 
@@ -90,19 +52,11 @@ An AI platform whose intelligence belongs to the platform itself—not to any si
 
 \- Allow long-term extensibility without architectural rewrites.
 
-
-
 \---
-
-
 
 \## Core Principles
 
-
-
 O.R.I.O.N. is built around a small number of engineering principles.
-
-
 
 \- Platform First
 
@@ -118,21 +72,13 @@ O.R.I.O.N. is built around a small number of engineering principles.
 
 \- Documentation as Code
 
-
-
 More details can be found in the documentation.
 
-
-
 \---
-
-
 
 \## High-Level Architecture
 
 The following is a runtime interaction flow, not source-code dependency direction. Source-code dependencies point inward toward Core abstractions; Core does not depend on Engines, Skills, Providers, Adapters, Infrastructure, or Clients.
-
-
 
 ```text
 
@@ -164,15 +110,9 @@ Infrastructure
 
 ```
 
-
-
 \---
 
-
-
 \## Project Structure
-
-
 
 ```text
 
@@ -208,19 +148,11 @@ AGENTS.md
 
 ```
 
-
-
 \---
-
-
 
 \## Documentation
 
-
-
 Project documentation is organized to separate vision, engineering standards, architecture, and implementation.
-
-
 
 | Document | Purpose |
 
@@ -238,151 +170,70 @@ Project documentation is organized to separate vision, engineering standards, ar
 
 | AGENTS | Guides AI agents and contributors. |
 
-
-
 \---
-
-
 
 \## Development Philosophy
 
-
-
 O.R.I.O.N. follows a documentation-first development model.
-
-
 
 Every important architectural decision is documented before implementation.
 
-
-
 The platform is designed around capabilities rather than technologies.
-
-
 
 Documentation evolves together with the source code.
 
-
-
 \---
-
-
 
 \## Current Status
 
+The architectural foundation and the M0–M10 process-local vertical slices are
+implemented. CONTRACT-0001 runtime specialization is active for Identity,
+Knowledge, and Memory.
 
-
-Current phase:
-
-
-
-\*\*Foundation\*\*
-
-
-
-The project is currently defining:
-
-
-
-\- Engineering Principles
-
-\- Architecture
-
-\- Repository Standards
-
-\- AI Collaboration Standards
-
-\- Core Contracts
-
-
-
-Implementation begins only after the architectural foundation is complete.
-
-
+Current authoritative status is maintained in `docs/roadmap.md`, the Active
+specifications under `specifications/`, and the `IMPLEMENTATION-M*.md` records.
 
 \---
-
-
 
 \## Roadmap
 
-
-
 Foundation
 
-
-
 ↓
-
-
 
 Core
 
-
-
 ↓
-
-
 
 Engines
 
-
-
 ↓
-
-
 
 Skills
 
-
-
 ↓
-
-
 
 Clients
 
-
-
 ↓
-
-
 
 Integrations
 
-
-
 ↓
-
-
 
 AI Agents
 
-
-
 ↓
-
-
 
 Marketplace
 
-
-
 \---
-
-
 
 \## Contributing
 
-
-
 O.R.I.O.N. welcomes future contributors.
 
-
-
 Before contributing, please read:
-
-
 
 \- MANIFESTO.md
 
@@ -392,31 +243,17 @@ Before contributing, please read:
 
 \- Architecture Decision Records (ADR)
 
-
-
 All contributions are expected to preserve the architectural integrity of the platform.
-
-
 
 \---
 
-
-
 \## Design Philosophy
-
-
 
 The goal is not to build another AI assistant.
 
-
-
 The goal is to build an Artificial Intelligence Operating Network capable of evolving for decades.
 
-
-
 Every design decision should prioritize:
-
-
 
 \- Simplicity
 
@@ -430,35 +267,18 @@ Every design decision should prioritize:
 
 \- Long-term sustainability
 
-
-
 \---
-
-
 
 \## License
 
-
-
 This project is released under the MIT License.
-
-
 
 \---
 
-
-
 <p align="center">
-
-
 
 \*\*O.R.I.O.N.\*\*
 
-
-
 \*One Intelligence. Unlimited Possibilities.\*
 
-
-
 </p>
-

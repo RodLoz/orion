@@ -3,10 +3,10 @@
 | Field          | Value                           |
 | -------------- | ------------------------------- |
 | **Status**     | Draft                           |
-| **Version**    | 1.0.0                           |
+| **Version**    | 1.0.1                           |
 | **Owner**      | Project Maintainers             |
 | **Created**    | 2026-07-29                      |
-| **Updated**    | 2026-07-31                      |
+| **Updated**    | 2026-08-12                      |
 | **Applies To** | Repository milestone sequencing |
 
 ---
@@ -21,27 +21,27 @@ implementation complete.
 
 Repository history, implementation records, and release tags establish:
 
-| Milestone  | Accepted scope                                        | Evidence                                                                |
-| ---------- | ----------------------------------------------------- | ----------------------------------------------------------------------- |
-| Foundation | Architectural foundation                              | `foundation-v1.0`                                                       |
-| M0         | Executable architectural skeleton                     | `IMPLEMENTATION-M0.md`                                                  |
-| M1         | Identity Engine vertical slice                        | `IMPLEMENTATION-M1.md`                                                  |
-| M2         | Context Engine vertical slice                         | `IMPLEMENTATION-M2.md`                                                  |
-| M3         | Memory Engine vertical slice                          | `IMPLEMENTATION-M3.md`                                                  |
-| M4         | Knowledge Engine vertical slice                       | `IMPLEMENTATION-M4.md`                                                  |
-| M5         | Reasoning Engine vertical slice                       | `m5-reasoning-v1.0`                                                     |
-| M6         | Planning Engine vertical slice                        | `m6-planning-v1.0`                                                      |
-| M7         | Skill catalog vertical slice                          | `m7-skill-v1.0`                                                         |
-| M8         | Security authorization decision foundation            | `m8-security-v1.0`                                                      |
-| M9         | Protected Skill invocation and governed authorization | `m9-v1.0`                                                               |
-| M10        | Brain orchestration foundation                        | `m10-v1.0` (pre-Phase-F baseline at `c52da61`); Phase F release pending |
+| Milestone  | Accepted scope                                        | Evidence               |
+| ---------- | ----------------------------------------------------- | ---------------------- |
+| Foundation | Architectural foundation                              | `foundation-v1.0`      |
+| M0         | Executable architectural skeleton                     | `IMPLEMENTATION-M0.md` |
+| M1         | Identity Engine vertical slice                        | `IMPLEMENTATION-M1.md` |
+| M2         | Context Engine vertical slice                         | `IMPLEMENTATION-M2.md` |
+| M3         | Memory Engine vertical slice                          | `IMPLEMENTATION-M3.md` |
+| M4         | Knowledge Engine vertical slice                       | `IMPLEMENTATION-M4.md` |
+| M5         | Reasoning Engine vertical slice                       | `m5-reasoning-v1.0`    |
+| M6         | Planning Engine vertical slice                        | `m6-planning-v1.0`     |
+| M7         | Skill catalog vertical slice                          | `m7-skill-v1.0`        |
+| M8         | Security authorization decision foundation            | `m8-security-v1.0`     |
+| M9         | Protected Skill invocation and governed authorization | `m9-v1.0`              |
+| M10        | Brain orchestration foundation                        | `m10-v1.1`             |
 
 # M10 Active Specification
 
 ## M10 — Brain Orchestration Foundation
 
-**Status:** Specification Active. Phase F-A/F-B implemented and
-review-accepted; release pending.
+**Status:** Specification Active. Phase F-A/F-B implemented, review-accepted,
+and released as `m10-v1.1`.
 
 M10 defines the first synchronous, deterministic, process-local Brain Engine
 vertical slice. It coordinates existing Core-custodied Context, Reasoning,
@@ -63,8 +63,7 @@ The Active specification set:
 - preserves every accepted M0–M9 semantic boundary.
 
 ADR-0007, CONCEPT-0006, and ENGINE-0001 are Active. The Brain runtime and its
-closed Bootstrap composition are implemented. Review acceptance does not mean
-that the uncommitted Phase F scope has been released or tagged.
+closed Bootstrap composition are implemented, review-accepted, and released.
 
 The current real Bootstrap graph reaches `request-more-context`. The accepted
 Brain `response` and `skill-result` branches remain runtime-complete and may
@@ -73,13 +72,14 @@ references. Bootstrap does not fabricate those references or alter Brain
 semantics. This is a Bootstrap composition reachability limitation, not a Brain
 defect.
 
-The required issuer-owned authority revisions are Active:
+The required issuer-owned authority operations remain available through the
+current Active Engine revisions:
 
-- [ENGINE-0003 Context Authority Revision 1.1.0](../specifications/engines/context/ENGINE-0003-Context-Engine-Authority-Revision-1.1.0.md),
+- [ENGINE-0003 Context Engine 4.0.0](../specifications/engines/context/ENGINE-0003-Context-Engine-Revision-4.0.0.md),
   defining `Verify Active Context Revision Authority 1.0.0`;
-- [ENGINE-0006 Reasoning Authority Revision 1.1.0](../specifications/engines/reasoning/ENGINE-0006-Reasoning-Engine-Authority-Revision-1.1.0.md),
+- [ENGINE-0006 Reasoning Engine 2.0.0](../specifications/engines/reasoning/ENGINE-0006-Reasoning-Engine-Revision-2.0.0.md),
   defining `Verify Reasoning Outcome Authority 1.0.0`; and
-- [ENGINE-0007 Planning Authority Revision 1.1.0](../specifications/engines/planning/ENGINE-0007-Planning-Engine-Authority-Revision-1.1.0.md),
+- [ENGINE-0007 Planning Engine 2.0.0](../specifications/engines/planning/ENGINE-0007-Planning-Engine-Revision-2.0.0.md),
   defining `Verify Candidate Plan Authority 1.0.0`.
 
 Bootstrap composes those Contracts but does not issue or simulate their
@@ -91,10 +91,10 @@ The immutable `m10-v1.0` tag points to commit `c52da61` and represents the
 accepted pre-Phase-F M10 baseline. It excludes all Phase F-A and Phase F-B work
 and must remain unchanged.
 
-Phase F-A and Phase F-B are implemented and review-accepted. Their release is
-pending the combined Phase F commit and final acceptance. Planned release tag:
-`m10-v1.1`, to be created as a new immutable tag only after acceptance of that
-commit. This roadmap does not state that `m10-v1.1` already exists.
+Phase F-A and Phase F-B are implemented, review-accepted, and released together
+at commit `7b811b9611af1ee3d22856ae979817a5dca9ca2b`. The immutable
+`m10-v1.1` tag represents that combined Phase F scope. The historical
+`m10-v1.0` tag remains the accepted pre-Phase-F baseline.
 
 # Explicitly Deferred Beyond M10
 

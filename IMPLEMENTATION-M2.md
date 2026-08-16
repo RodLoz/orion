@@ -120,4 +120,7 @@ Generic multi-source preparation, Context persistence, Snapshots, Exact Replay, 
 
 ## Next Milestone Recommendation
 
-Formally review and accept M2 before specifying another capability. A later milestone should reuse the Contract and revision-consumption pattern without expanding Context sources until their owning capability specifications are approved.
+Historical recommendation at M2 completion: formally review and accept M2
+before specifying another capability. M2 was subsequently accepted. Later
+milestones reused the Contract and revision-consumption pattern; current
+Context profiles remain fixed and require approved owning-capability authority.

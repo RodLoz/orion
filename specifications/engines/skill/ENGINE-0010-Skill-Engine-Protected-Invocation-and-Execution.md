@@ -3,32 +3,33 @@
 | Field          | Value                                                                |
 | -------------- | -------------------------------------------------------------------- |
 | **Status**     | Active                                                               |
-| **Version**    | 1.1.0                                                                |
+| **Version**    | 1.1.1                                                                |
 | **Owner**      | Project Maintainers                                                  |
 | **Milestone**  | M9 — Skill Engine: Protected Invocation and Execution Vertical Slice |
 | **Created**    | 2026-07-27                                                           |
-| **Updated**    | 2026-07-28                                                           |
+| **Updated**    | 2026-08-12                                                           |
 | **Applies To** | Skill Engine, Core Skill invocation values, and M9 Contracts         |
 
 ---
 
 ## Status
 
-This specification is the Active `1.1.0` M9 Engine authority, formally approved
-on 2026-07-28.
+This specification is the Active `1.1.1` M9 Engine authority. Version `1.1.1`
+is a correspondence-only patch to the approved `1.1.0` semantics.
 
-The existing M9 implementation remains non-conforming until this Active
-revision is implemented and the implementation is re-reviewed.
+The M9 implementation is conforming, review-accepted, and released as
+`m9-v1.0`.
 
 The key words **MUST**, **MUST NOT**, **SHOULD**, **SHOULD NOT**, and **MAY**
 describe normative requirements.
 
 ## Version
 
-Version `1.1.0` revises protected authorization enforcement to consume
-CONCEPT-0005 `1.1.0` and ENGINE-0009 `1.1.0` Authorization Evaluation Outcome
-authority. It preserves the complete Active `1.0.0` Skill behavior outside that
-handoff.
+Version `1.1.1` preserves the complete `1.1.0` semantics and corrects only
+current implementation correspondence. Version `1.1.0` revised protected
+authorization enforcement to consume CONCEPT-0005 `1.1.0` and ENGINE-0009
+`1.1.0` Authorization Evaluation Outcome authority. It preserves the complete
+`1.0.0` Skill behavior outside that handoff.
 
 ## Authority
 
@@ -2727,9 +2728,8 @@ M9 explicitly defers:
 
 ## Open Questions
 
-No implementation-critical semantic question remains for the M9 slice. The
-existing implementation remains non-conforming until this revision is
-implemented and the implementation is re-reviewed.
+No implementation-critical semantic question remains for the M9 slice. The M9
+implementation is conforming, review-accepted, and released.
 
 Future timeout, cancellation, async execution, external Skill packaging,
 isolation infrastructure, Events, persistence, Providers/Adapters, richer
@@ -2738,10 +2738,11 @@ authority.
 
 ## Change History
 
-| Version | Status | Date       | Change                                                                                                                                                                            |
-| ------- | ------ | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `1.1.0` | Active | 2026-07-28 | Approved M9 Engine Specification revision aligning protected Skill invocation with the Security-issued Authorization Evaluation Outcome and Governed Security Evaluation Summary. |
-| `1.0.0` | Active | 2026-07-28 | Approved initial M9 Engine Specification.                                                                                                                                         |
+| Version | Status     | Date       | Change                                                                                                                                                                            |
+| ------- | ---------- | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `1.1.1` | Active     | 2026-08-12 | Corrected current M9 implementation correspondence without changing Skill, authorization, protected-invocation, failure, or deferred-feature semantics.                           |
+| `1.1.0` | Superseded | 2026-07-28 | Approved M9 Engine Specification revision aligning protected Skill invocation with the Security-issued Authorization Evaluation Outcome and Governed Security Evaluation Summary. |
+| `1.0.0` | Superseded | 2026-07-28 | Approved initial M9 Engine Specification.                                                                                                                                         |
 
 ## Related Documents
 

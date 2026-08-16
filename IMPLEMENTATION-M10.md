@@ -5,9 +5,9 @@
 - `ADR-0007 — Brain Orchestration Ownership and Planning Binding`: Active.
 - `CONCEPT-0006 — Brain Orchestration Model`: Active.
 - `ENGINE-0001 — Brain Engine`: Active.
-- `ENGINE-0003 — Context Engine`: Active 1.1.0.
-- `ENGINE-0006 — Reasoning Engine`: Active 1.1.0.
-- `ENGINE-0007 — Planning Engine`: Active 1.1.0.
+- `ENGINE-0003 — Context Engine`: Active 4.0.0.
+- `ENGINE-0006 — Reasoning Engine`: Active 2.0.0.
+- `ENGINE-0007 — Planning Engine`: Active 2.0.0.
 
 The Active Context, Reasoning, and Planning revisions respectively authorize
 `Verify Active Context Revision Authority` 1.0.0,
@@ -16,8 +16,8 @@ The Active Context, Reasoning, and Planning revisions respectively authorize
 
 ## Milestone Status
 
-M10 Phase F implementation is review-accepted. The combined Phase F release
-commit and tag are pending.
+M10 Phase F implementation is review-accepted and released. The combined Phase
+F release is represented by the immutable `m10-v1.1` tag.
 
 - Phase A — Core foundations: complete.
 - Phase B — issuer authority runtime revisions: complete.
@@ -32,8 +32,9 @@ commit and tag are pending.
 - Phase H — Phase C/D regression, architecture, and quality gates: complete.
 
 The accepted Brain runtime and the review-accepted Bootstrap composition form
-the complete implemented M10 scope. This implementation status does not claim
-that the uncommitted Phase F work has been released or tagged.
+the complete implemented M10 scope. Phase F is released at commit
+`7b811b9611af1ee3d22856ae979817a5dca9ca2b` under the immutable `m10-v1.1`
+tag.
 
 ## Phase B Issuer Authority Runtime Revisions
 
@@ -370,11 +371,9 @@ The existing immutable `m10-v1.0` tag points to commit `c52da61`. It represents
 the accepted pre-Phase-F M10 baseline and does not contain Phase F-A or Phase
 F-B. The `m10-v1.0` tag must remain unchanged.
 
-Phase F-A and Phase F-B are implemented and review-accepted, but their combined
-release commit and tag are pending. After the combined Phase F commit is created
-and receives final acceptance, that scope will be represented by a new
-immutable `m10-v1.1` tag. This record does not claim that `m10-v1.1` already
-exists.
+Phase F-A and Phase F-B are implemented, review-accepted, and released together
+at commit `7b811b9611af1ee3d22856ae979817a5dca9ca2b`. The immutable
+`m10-v1.1` tag represents that combined Phase F scope.
 
 ## Scope
 

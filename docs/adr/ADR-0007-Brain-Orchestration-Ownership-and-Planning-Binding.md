@@ -3,10 +3,10 @@
 | Field             | Value                 |
 | ----------------- | --------------------- |
 | **Status**        | Active                |
-| **Version**       | 1.0.0                 |
+| **Version**       | 1.0.1                 |
 | **Owner**         | Project Maintainers   |
 | **Created**       | 2026-07-29            |
-| **Updated**       | 2026-07-29            |
+| **Updated**       | 2026-08-15            |
 | **Decision Type** | Architecture Decision |
 
 ---
@@ -156,9 +156,10 @@ Bootstrap may capture and compose the issuer-owned Contract implementations. It
 MUST NOT maintain the authority registry, issue an authoritative wrapper, or
 substitute adapter identity for Engine identity.
 
-These additions are authorized by the Active ENGINE-0003 1.1.0, ENGINE-0006
-1.1.0, and ENGINE-0007 1.1.0 revisions. ADR-0007, CONCEPT-0006, and ENGINE-0001
-now form the Active M10 specification set. M10 implementation has not started.
+These authority-verification operations remain available through the Active
+ENGINE-0003 4.0.0, ENGINE-0006 2.0.0, and ENGINE-0007 2.0.0 revisions.
+ADR-0007, CONCEPT-0006, and ENGINE-0001 2.0.2 form the Active M10 specification
+set. M10 is implemented, review-accepted, and released as `m10-v1.1`.
 
 # Final Cognitive Result Ownership
 
@@ -275,13 +276,13 @@ The implementation-authorizing specification set is:
 
 1. CONCEPT-0006 defines the shared Brain request, final result, lifecycle,
    provenance, and failure semantics.
-2. ENGINE-0001 defines the exact M10 operational vertical slice and
+2. ENGINE-0001 2.0.2 defines the exact M10 operational vertical slice and
    implementation-testable precedence.
-3. ENGINE-0003 1.1.0 is Active and defines
+3. ENGINE-0003 4.0.0 is Active and defines
    `Verify Active Context Revision Authority`.
-4. ENGINE-0006 1.1.0 is Active and defines
+4. ENGINE-0006 2.0.0 is Active and defines
    `Verify Reasoning Outcome Authority`.
-5. ENGINE-0007 1.1.0 is Active and defines
+5. ENGINE-0007 2.0.0 is Active and defines
    `Verify Candidate Plan Authority`.
 6. This ADR, CONCEPT-0006, and ENGINE-0001 are Active.
 
@@ -295,16 +296,22 @@ testability details, not new architectural ownership.
 - [Architecture](../architecture.md)
 - [ADR-0006 — Skill Selection, Binding, and Protected Invocation Ownership](ADR-0006-Skill-Selection-Binding-and-Protected-Invocation-Ownership.md)
 - [CONCEPT-0005 — Skill Invocation and Execution Model](../../specifications/concepts/CONCEPT-0005-Skill-Invocation-and-Execution-Model.md)
-- [ENGINE-0007 — Planning Engine 1.1.0](../../specifications/engines/planning/ENGINE-0007-Planning-Engine-Authority-Revision-1.1.0.md)
+- [ENGINE-0007 — Planning Engine 2.0.0](../../specifications/engines/planning/ENGINE-0007-Planning-Engine-Revision-2.0.0.md)
 - [ENGINE-0010 — Protected Skill Invocation](../../specifications/engines/skill/ENGINE-0010-Skill-Engine-Protected-Invocation-and-Execution.md)
 
 # Open Questions
 
 No implementation-critical ownership question remains. The M10 specification
-set is Active and ready for implementation planning.
+set is Active, implemented, review-accepted, and released.
 
 The Active prerequisite revisions are:
 
-- [ENGINE-0003 Context Authority Revision 1.1.0](../../specifications/engines/context/ENGINE-0003-Context-Engine-Authority-Revision-1.1.0.md);
-- [ENGINE-0006 Reasoning Authority Revision 1.1.0](../../specifications/engines/reasoning/ENGINE-0006-Reasoning-Engine-Authority-Revision-1.1.0.md); and
-- [ENGINE-0007 Planning Authority Revision 1.1.0](../../specifications/engines/planning/ENGINE-0007-Planning-Engine-Authority-Revision-1.1.0.md).
+- [ENGINE-0003 Context Engine 4.0.0](../../specifications/engines/context/ENGINE-0003-Context-Engine-Revision-4.0.0.md);
+- [ENGINE-0006 Reasoning Engine 2.0.0](../../specifications/engines/reasoning/ENGINE-0006-Reasoning-Engine-Revision-2.0.0.md); and
+- [ENGINE-0007 Planning Engine 2.0.0](../../specifications/engines/planning/ENGINE-0007-Planning-Engine-Revision-2.0.0.md).
+
+# Change History
+
+| Version | Date       | Description                                                                                                          |
+| ------- | ---------- | -------------------------------------------------------------------------------------------------------------------- |
+| 1.0.1   | 2026-08-15 | Corrected M10 implementation and current Engine revision correspondence without changing the architectural decision. |

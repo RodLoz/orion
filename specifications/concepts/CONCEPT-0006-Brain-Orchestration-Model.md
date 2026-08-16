@@ -3,10 +3,10 @@
 | Field          | Value                                                                 |
 | -------------- | --------------------------------------------------------------------- |
 | **Status**     | Active                                                                |
-| **Version**    | 1.0.0                                                                 |
+| **Version**    | 1.0.1                                                                 |
 | **Owner**      | O.R.I.O.N. Architecture                                               |
 | **Created**    | 2026-07-29                                                            |
-| **Updated**    | 2026-07-29                                                            |
+| **Updated**    | 2026-08-12                                                            |
 | **Applies To** | Brain requests, orchestration, lifecycle, and final cognitive results |
 
 ---
@@ -302,22 +302,24 @@ implementations. Bootstrap MUST NOT create an authoritative wrapper, maintain
 an authority registry, register a returned candidate, or substitute adapter
 identity for Engine identity.
 
-The required additive Engine revisions are now Active:
+The required authority-verification operations remain available through the
+current Active Engine revisions:
 
-- Active ENGINE-0003 revision 1.1.0:
+- Active ENGINE-0003 revision 4.0.0:
   `Verify Active Context Revision Authority`;
-- Active ENGINE-0006 revision 1.1.0:
+- Active ENGINE-0006 revision 2.0.0:
   `Verify Reasoning Outcome Authority`; and
-- Active ENGINE-0007 revision 1.1.0:
+- Active ENGINE-0007 revision 2.0.0:
   `Verify Candidate Plan Authority`.
 
-The M10 specification set is Active. M10 remains not implemented.
+The M10 specification set is Active. The M10 runtime and Bootstrap composition
+are implemented, review-accepted, and released as `m10-v1.1`.
 
 The Active prerequisite documents are the
-[Context authority revision](../engines/context/ENGINE-0003-Context-Engine-Authority-Revision-1.1.0.md),
-[Reasoning authority revision](../engines/reasoning/ENGINE-0006-Reasoning-Engine-Authority-Revision-1.1.0.md),
+[Context Engine 4.0.0 revision](../engines/context/ENGINE-0003-Context-Engine-Revision-4.0.0.md),
+[Reasoning Engine 2.0.0 revision](../engines/reasoning/ENGINE-0006-Reasoning-Engine-Revision-2.0.0.md),
 and
-[Planning authority revision](../engines/planning/ENGINE-0007-Planning-Engine-Authority-Revision-1.1.0.md).
+[Planning Engine 2.0.0 revision](../engines/planning/ENGINE-0007-Planning-Engine-Revision-2.0.0.md).
 
 Brain MUST capture every configured port and callable immutably at construction.
 Ports MUST be exact plain or null-prototype records with own enumerable data
@@ -664,9 +666,9 @@ An M10 implementation specification MUST require:
 
 # Open Questions
 
-No implementation-critical semantic question remains. The three additive
-Engine verifier revisions, ADR-0007, this CONCEPT-0006, and ENGINE-0001 are
-Active. M10 is ready for implementation planning.
+No implementation-critical semantic question remains. The current Context,
+Reasoning, and Planning revisions, ADR-0007, this CONCEPT-0006, and ENGINE-0001
+are Active. M10 is implemented, review-accepted, and released.
 
 # Compatibility
 
@@ -680,7 +682,13 @@ Active authority.
 - [CONCEPT-0003 — Context Model](CONCEPT-0003-Context-Model.md)
 - [CONCEPT-0004 — Authorization Model](CONCEPT-0004-Authorization-Model.md)
 - [CONCEPT-0005 — Skill Invocation and Execution Model](CONCEPT-0005-Skill-Invocation-and-Execution-Model.md)
-- [ENGINE-0006 — Reasoning Engine 1.1.0](../engines/reasoning/ENGINE-0006-Reasoning-Engine-Authority-Revision-1.1.0.md)
-- [ENGINE-0007 — Planning Engine 1.1.0](../engines/planning/ENGINE-0007-Planning-Engine-Authority-Revision-1.1.0.md)
+- [ENGINE-0006 — Reasoning Engine 2.0.0](../engines/reasoning/ENGINE-0006-Reasoning-Engine-Revision-2.0.0.md)
+- [ENGINE-0007 — Planning Engine 2.0.0](../engines/planning/ENGINE-0007-Planning-Engine-Revision-2.0.0.md)
 - [ENGINE-0009 — Security Engine](../engines/security/ENGINE-0009-Security-Engine.md)
 - [ENGINE-0010 — Protected Skill Invocation](../engines/skill/ENGINE-0010-Skill-Engine-Protected-Invocation-and-Execution.md)
+
+# Change History
+
+| Version | Date       | Description                                                                                                       |
+| ------- | ---------- | ----------------------------------------------------------------------------------------------------------------- |
+| 1.0.1   | 2026-08-12 | Corrected M10 implementation, release, and current Engine prerequisite correspondence without changing semantics. |

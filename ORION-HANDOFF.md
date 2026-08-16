@@ -1,10 +1,10 @@
 # O.R.I.O.N. — Project Handoff
 
-| Field | Value |
-|--------|--------|
-| **Status** | Active |
-| **Version** | 1.3.0 |
-| **Updated** | 2026-07-19 |
+| Field       | Value      |
+| ----------- | ---------- |
+| **Status**  | Active     |
+| **Version** | 1.3.1      |
+| **Updated** | 2026-08-15 |
 
 ---
 
@@ -26,13 +26,16 @@ The platform is intended to evolve beyond a conversational assistant by integrat
 
 # Current Phase
 
-Foundation Candidate
+Implemented process-local platform foundation
 
-The Architectural Foundation exists and has undergone correction following REVIEW-0002.
+The Architectural Foundation is established, and the M0–M10 process-local
+vertical slices are implemented. CONTRACT-0001 runtime specialization is active
+for Identity, Knowledge, and Memory.
 
-Implementation has not started.
-
-FND-001 through FND-007 from REVIEW-0002 have been resolved. Foundation Freeze has not been approved; a new independent Foundation Review is required first.
+The current Active Engine revisions include Brain 2.0.2, Context 4.0.0,
+Reasoning 2.0.0, and Planning 2.0.0. Authoritative milestone and implementation
+status is maintained in `docs/roadmap.md`, Active specifications, and the
+`IMPLEMENTATION-M*.md` records.
 
 ---
 
@@ -56,10 +59,9 @@ Completed foundation artifacts:
 - Context Concept Model
 - Corrections for REVIEW-0002 findings FND-001 through FND-007
 
-Pending:
-
-- Independent Foundation re-review
-- Foundation Freeze decision
+These review records remain historical evidence; the architectural foundation
+and subsequent implementation milestones are established in current repository
+authority.
 
 ---
 
@@ -173,9 +175,9 @@ Infrastructure provides execution.
 
 ---
 
-# Planned Engines
+# Engines
 
-Examples include:
+Implemented process-local Engine slices include:
 
 - Brain Engine
 - Identity Engine
@@ -184,22 +186,28 @@ Examples include:
 - Knowledge Engine
 - Reasoning Engine
 - Planning Engine
-- Voice Engine
 - Skill Engine
 - Security Engine
+
+Future capability examples include:
+
+- Voice Engine
 - Automation Engine
 - Vision Engine
 
 ---
 
-# Planned Repository Structure
+# Repository Structure
 
 ```text
+apps/
+core/
 docs/
+infrastructure/
+packages/
+services/
 specifications/
-src/
-tests/
-scripts/
+tools/
 ```
 
 Within specifications:
@@ -219,11 +227,10 @@ schemas/
 
 # Next Milestones
 
-1. Conduct an independent Foundation re-review
-2. Decide Foundation Freeze based on the new review
-3. Bootstrap implementation only after approval
-4. Create Engine Specifications at the appropriate post-freeze stage
-5. Build the first executable platform
+Use `docs/roadmap.md`, Active specifications, and reviewed implementation
+records to select and govern the next milestone. Preserve the current
+process-local runtime and architectural boundaries unless separately approved
+authority changes them.
 
 ---
 
@@ -265,9 +272,9 @@ Implementation must follow Engineering Standards.
 
 # Current Objective
 
-Prepare the corrected Foundation for an independent re-review.
-
-Implementation begins only after the Foundation has been formally approved.
+Keep the implemented M0–M10 process-local platform aligned with its Active
+specifications and select subsequent work through the documented architecture
+and milestone-governance process.
 
 ---
 
