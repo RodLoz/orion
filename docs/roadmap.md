@@ -3,10 +3,10 @@
 | Field          | Value                           |
 | -------------- | ------------------------------- |
 | **Status**     | Draft                           |
-| **Version**    | 1.0.1                           |
+| **Version**    | 1.0.2                           |
 | **Owner**      | Project Maintainers             |
 | **Created**    | 2026-07-29                      |
-| **Updated**    | 2026-08-12                      |
+| **Updated**    | 2026-08-15                      |
 | **Applies To** | Repository milestone sequencing |
 
 ---
@@ -65,12 +65,20 @@ The Active specification set:
 ADR-0007, CONCEPT-0006, and ENGINE-0001 are Active. The Brain runtime and its
 closed Bootstrap composition are implemented, review-accepted, and released.
 
-The current real Bootstrap graph reaches `request-more-context`. The accepted
-Brain `response` and `skill-result` branches remain runtime-complete and may
-become reachable when later integration supplies authentic Memory or Knowledge
-references. Bootstrap does not fabricate those references or alter Brain
-semantics. This is a Bootstrap composition reachability limitation, not a Brain
-defect.
+The current real Bootstrap graph prepares the fixed Identity-only Context
+profile and reaches `request-more-context`. The authoritative, implemented
+Identity + Knowledge and Identity + Memory profiles are exercised through
+diagnostic and test composition paths but are not wired through the production
+Brain composition path.
+
+Current Reasoning preserves a Knowledge or Memory Context fragment opaquely and
+selects its bounded rule only from the Identity projection. Profile B or C is
+therefore neither necessary nor sufficient to make the runtime-complete Brain
+`response` or `skill-result` branch reachable. Production B/C reachability is
+deferred because no accepted current runtime consumer requires it. Any future
+source-aware Reasoning semantics require a separate architectural decision;
+Bootstrap does not fabricate source references, alter Brain semantics, or
+introduce a caller/profile-selection API merely for mechanical reachability.
 
 The required issuer-owned authority operations remain available through the
 current Active Engine revisions:

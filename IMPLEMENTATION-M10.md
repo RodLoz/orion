@@ -347,18 +347,21 @@ one frozen `orchestrateCognitiveRequest` callable. No Engine, verifier,
 authority registry, allocator, preparation operation, or lifecycle control is
 publicly exposed.
 
-The current real end-to-end Bootstrap graph completes the
-`request-more-context` branch. ENGINE-0001 intentionally supplies empty Memory
-and Knowledge reference arrays, and the accepted Reasoning runtime requests
-more Context for both anonymous and authenticated Context without authentic
-references. The already implemented and accepted Brain `response` and
-`skill-result` branches remain runtime-complete but are not currently reachable
-through this real composition. This is a Bootstrap composition reachability
-limitation, not a Brain defect.
+The current real end-to-end Bootstrap graph prepares the fixed Identity-only
+Context profile and completes the `request-more-context` branch. The fixed
+Identity + Knowledge and Identity + Memory profiles are authoritative,
+implemented, and exercised through diagnostic and test composition paths, but
+they are not wired through the production Brain composition path.
 
-Bootstrap introduces no semantic adapter and fabricates no Memory or Knowledge
-reference. Later authentic Memory/Knowledge integration may make the other
-already implemented branches reachable without changing Brain semantics.
+Current Reasoning accepts all three Context profiles, preserves any Knowledge
+or Memory fragment opaquely, and selects its bounded rule only from the
+Identity projection. Consequently, Profile B or C is neither necessary nor
+sufficient to make the already implemented Brain `response` or `skill-result`
+branch reachable. Production B/C reachability remains deferred because no
+accepted current runtime consumer requires it. Any future source-aware
+Reasoning semantics require a separate architectural decision; Bootstrap
+introduces no semantic adapter, fabricates no source reference, and exposes no
+caller or profile-selection API merely for mechanical reachability.
 
 Phase F validation includes 14 Bootstrap test files with 81 tests, the complete
 81-file repository regression with 1,678 tests, production build, all 11 test
