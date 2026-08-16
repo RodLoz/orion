@@ -1,22 +1,24 @@
 # ENGINE-0005 — Knowledge Engine Revision
 
-| Field          | Value                                                                               |
-| -------------- | ----------------------------------------------------------------------------------- |
-| **Status**     | Active                                                                              |
-| **Supersedes** | 1.0.0                                                                               |
-| **Version**    | 1.1.0                                                                               |
-| **Owner**      | Project Maintainers                                                                 |
-| **Created**    | 2026-08-11                                                                          |
-| **Updated**    | 2026-08-11                                                                          |
-| **Applies To** | Knowledge Engine behavior and qualified-source participation in Context preparation |
+| Field             | Value                                                                               |
+| ----------------- | ----------------------------------------------------------------------------------- |
+| **Status**        | Superseded                                                                          |
+| **Supersedes**    | 1.0.0                                                                               |
+| **Superseded By** | [1.2.0](ENGINE-0005-Knowledge-Engine-Revision-1.2.0.md)                             |
+| **Version**       | 1.1.0                                                                               |
+| **Owner**         | Project Maintainers                                                                 |
+| **Created**       | 2026-08-11                                                                          |
+| **Updated**       | 2026-08-11                                                                          |
+| **Applies To**    | Knowledge Engine behavior and qualified-source participation in Context preparation |
 
 ---
 
 ## Status and Authority
 
-This specification is Active and is the sole current canonical ENGINE-0005
-revision. It supersedes version 1.0.0, which remains historical and
-non-authoritative.
+This specification is Superseded by ENGINE-0005 1.2.0. It remains the
+historical authority for the milestone that added Knowledge participation as
+a qualified source in CONTRACT-0001 Context preparation and superseded version
+1.0.0.
 
 Version 1.1.0 preserves the complete Knowledge Engine 1.0.0 semantics and adds
 the approved collaboration by which the unchanged Get Knowledge operation
