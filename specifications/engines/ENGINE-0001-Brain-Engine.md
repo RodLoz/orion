@@ -1,21 +1,23 @@
 # ENGINE-0001 — Brain Engine
 
-| Field          | Value                                                     |
-| -------------- | --------------------------------------------------------- |
-| **Status**     | Active                                                    |
-| **Version**    | 2.0.2                                                     |
-| **Owner**      | Project Maintainers                                       |
-| **Milestone**  | M10 — Brain Orchestration Foundation                      |
-| **Created**    | 2026-07-29                                                |
-| **Updated**    | 2026-08-11                                                |
-| **Applies To** | Brain Engine, Core Brain Contracts, and M10 orchestration |
+| Field             | Value                                                           |
+| ----------------- | --------------------------------------------------------------- |
+| **Status**        | Superseded                                                      |
+| **Superseded By** | [ENGINE-0001 2.0.3](ENGINE-0001-Brain-Engine-Revision-2.0.3.md) |
+| **Version**       | 2.0.2                                                           |
+| **Owner**         | Project Maintainers                                             |
+| **Milestone**     | M10 — Brain Orchestration Foundation                            |
+| **Created**       | 2026-07-29                                                      |
+| **Updated**       | 2026-08-11                                                      |
+| **Applies To**    | Brain Engine, Core Brain Contracts, and M10 orchestration       |
 
 ---
 
 ## Status
 
-This specification is Active and authoritative. Applicable Active ADRs,
-including ADR-0015, specialize and constrain its orchestration boundaries.
+This specification is Superseded by ENGINE-0001 2.0.3. It remains the
+historical authority for the M10 Brain Orchestration Foundation and its
+correspondence through Context 4.0.0, Reasoning 2.0.0, and Planning 2.0.0.
 
 The key words **MUST**, **MUST NOT**, **SHOULD**, **SHOULD NOT**, and **MAY**
 describe normative requirements.
@@ -1049,7 +1051,7 @@ or configurable semantic policy may be introduced for testing.
 M10 is implementation-ready because:
 
 1. ADR-0007 is approved.
-2. CONCEPT-0006 and this specification are Active.
+2. CONCEPT-0006 and this specification were Active for 2.0.2 acceptance.
 3. Every public Contract has exact metadata, input, output, failure, authority,
    and compatibility definitions.
 4. No Active authority conflict remains.
@@ -1080,12 +1082,13 @@ M10 is implementation-ready because:
 
 ## Open Questions
 
-No implementation-critical question remains. The specification is Active.
+No implementation-critical question remained at 2.0.2 acceptance. This
+specification is now Superseded.
 
 ## Compatibility
 
-This Active specification consumes the current Context, Reasoning, Planning,
-Security, and Skill public Contracts and preserves their semantic ownership,
+This historical 2.0.2 specification consumed the then-current Context,
+Reasoning, Planning, Security, and Skill public Contracts and preserved their semantic ownership,
 failure meaning, authority requirements, immutability, and dependency
 direction. Version 2.0.0 removes the former parallel Reasoning evidence path
 and corresponding Planning evidence counts. It introduces no new capability
