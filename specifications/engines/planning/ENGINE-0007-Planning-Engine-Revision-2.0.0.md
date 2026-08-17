@@ -1,24 +1,23 @@
 # ENGINE-0007 — Planning Engine Revision
 
-| Field          | Value                                                             |
-| -------------- | ----------------------------------------------------------------- |
-| **Status**     | Active                                                            |
-| **Supersedes** | 1.1.0                                                             |
-| **Version**    | 2.0.0                                                             |
-| **Owner**      | Planning Engine                                                   |
-| **Created**    | 2026-07-29                                                        |
-| **Updated**    | 2026-08-10                                                        |
-| **Applies To** | Candidate Plan construction, issuance, and authority verification |
+| Field             | Value                                                              |
+| ----------------- | ------------------------------------------------------------------ |
+| **Status**        | Superseded                                                         |
+| **Supersedes**    | 1.1.0                                                              |
+| **Superseded By** | [ENGINE-0007 2.1.0](ENGINE-0007-Planning-Engine-Revision-2.1.0.md) |
+| **Version**       | 2.0.0                                                              |
+| **Owner**         | Planning Engine                                                    |
+| **Created**       | 2026-07-29                                                         |
+| **Updated**       | 2026-08-10                                                         |
+| **Applies To**    | Candidate Plan construction, issuance, and authority verification  |
 
 ---
 
 ## Status and Authority
 
-This specification is Active and is the sole current canonical ENGINE-0007
-revision. It supersedes versions 1.0.0 and 1.1.0. Those versions remain
-historical and non-authoritative; this specification does not incorporate
-their incompatible correspondence, category, explainability, or verification
-semantics.
+This specification is Superseded by ENGINE-0007 2.1.0. It remains the
+historical authority for the Planning 2.0.0 correspondence with Reasoning
+2.0.0 and superseded versions 1.0.0 and 1.1.0.
 
 Planning is the semantic owner of Candidate Plan construction and Planning
 Outcome semantics. Core is the schema custodian. The Planning Engine runtime
