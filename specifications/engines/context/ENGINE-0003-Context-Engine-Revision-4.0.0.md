@@ -1,22 +1,24 @@
 # ENGINE-0003 — Context Engine Revision
 
-| Field          | Value                                                                                              |
-| -------------- | -------------------------------------------------------------------------------------------------- |
-| **Status**     | Active                                                                                             |
-| **Supersedes** | 3.0.0                                                                                              |
-| **Version**    | 4.0.0                                                                                              |
-| **Owner**      | Context Engine                                                                                     |
-| **Created**    | 2026-08-11                                                                                         |
-| **Updated**    | 2026-08-11                                                                                         |
-| **Applies To** | Context preparation profiles, source incorporation, revision lifecycle, and authority verification |
+| Field             | Value                                                                                              |
+| ----------------- | -------------------------------------------------------------------------------------------------- |
+| **Status**        | Superseded                                                                                         |
+| **Supersedes**    | 3.0.0                                                                                              |
+| **Superseded By** | [5.0.0](ENGINE-0003-Context-Engine-Revision-5.0.0.md)                                              |
+| **Version**       | 4.0.0                                                                                              |
+| **Owner**         | Context Engine                                                                                     |
+| **Created**       | 2026-08-11                                                                                         |
+| **Updated**       | 2026-08-11                                                                                         |
+| **Applies To**    | Context preparation profiles, source incorporation, revision lifecycle, and authority verification |
 
 ---
 
 ## Status and Authority
 
-This specification is Active and is the sole current canonical ENGINE-0003
-revision. It supersedes versions 1.0.0, 1.1.0, 2.0.0, and 3.0.0, which remain
-historical and non-authoritative.
+This specification is Superseded by ENGINE-0003 5.0.0. It remains the
+historical authority for the milestone that added the fixed Identity + Memory
+profile while preserving the Identity-only and Identity + Knowledge profiles,
+and superseded versions 1.0.0, 1.1.0, 2.0.0, and 3.0.0.
 
 It defines exactly three fixed preparation profiles: Identity-only, Identity
 
