@@ -1,22 +1,24 @@
 # ENGINE-0003 — Context Engine Revision
 
-| Field          | Value                                                                                                           |
-| -------------- | --------------------------------------------------------------------------------------------------------------- |
-| **Status**     | Active                                                                                                          |
-| **Supersedes** | 5.0.0                                                                                                           |
-| **Version**    | 5.0.1                                                                                                           |
-| **Owner**      | Context Engine                                                                                                  |
-| **Created**    | 2026-08-17                                                                                                      |
-| **Updated**    | 2026-08-17                                                                                                      |
-| **Applies To** | Context 5.0.0 semantic preservation and closed Knowledge 1.2.0/1.3.0 specification correspondence for Profile B |
+| Field             | Value                                                                                                           |
+| ----------------- | --------------------------------------------------------------------------------------------------------------- |
+| **Status**        | Superseded                                                                                                      |
+| **Supersedes**    | 5.0.0                                                                                                           |
+| **Superseded By** | [5.1.0](ENGINE-0003-Context-Engine-Revision-5.1.0.md)                                                           |
+| **Version**       | 5.0.1                                                                                                           |
+| **Owner**         | Context Engine                                                                                                  |
+| **Created**       | 2026-08-17                                                                                                      |
+| **Updated**       | 2026-08-18                                                                                                      |
+| **Applies To**    | Context 5.0.0 semantic preservation and closed Knowledge 1.2.0/1.3.0 specification correspondence for Profile B |
 
 ---
 
 ## Status and Authority
 
-This specification is Active and is the sole current canonical ENGINE-0003
-revision. It supersedes versions 1.0.0, 1.1.0, 2.0.0, 3.0.0, 4.0.0, and 5.0.0.
-Those revisions remain historical and non-authoritative.
+This specification is Superseded by ENGINE-0003 5.1.0. It remains the
+historical authority for the Context 5.0.1 closed Knowledge 1.2.0/1.3.0
+correspondence and supersedes versions 1.0.0, 1.1.0, 2.0.0, 3.0.0, 4.0.0, and
+5.0.0.
 
 This revision incorporates every normative Context 5.0.0 semantic unchanged.
 Its only normative delta is a closed specification correspondence that permits
