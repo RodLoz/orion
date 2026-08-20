@@ -1,22 +1,23 @@
 # ENGINE-0006 — Reasoning Engine Revision
 
-| Field          | Value                                                              |
-| -------------- | ------------------------------------------------------------------ |
-| **Status**     | Active                                                             |
-| **Supersedes** | 1.1.0                                                              |
-| **Version**    | 2.0.0                                                              |
-| **Owner**      | Reasoning Engine                                                   |
-| **Created**    | 2026-07-29                                                         |
-| **Updated**    | 2026-08-10                                                         |
-| **Applies To** | Reasoning evaluation, outcome issuance, and authority verification |
+| Field             | Value                                                               |
+| ----------------- | ------------------------------------------------------------------- |
+| **Status**        | Superseded                                                          |
+| **Supersedes**    | 1.1.0                                                               |
+| **Superseded By** | [ENGINE-0006 3.0.0](ENGINE-0006-Reasoning-Engine-Revision-3.0.0.md) |
+| **Version**       | 2.0.0                                                               |
+| **Owner**         | Reasoning Engine                                                    |
+| **Created**       | 2026-07-29                                                          |
+| **Updated**       | 2026-08-20                                                          |
+| **Applies To**    | Reasoning evaluation, outcome issuance, and authority verification  |
 
 ---
 
 ## Status and Authority
 
-This specification is Active and is the sole current canonical ENGINE-0006
-revision. It supersedes versions 1.0.0 and 1.1.0. Those versions remain
-historical and non-authoritative; this specification does not incorporate
+This specification is Superseded by ENGINE-0006 3.0.0. It remains the
+historical authority for the Reasoning 2.0.0 semantics and supersedes versions
+1.0.0 and 1.1.0. Those versions remain historical and non-authoritative; this specification does not incorporate
 their incompatible request, reference, rule, outcome, explainability, or
 failure semantics.
 
