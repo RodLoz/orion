@@ -1,22 +1,23 @@
 # ENGINE-0005 — Knowledge Engine Revision
 
-| Field          | Value                                                                                           |
-| -------------- | ----------------------------------------------------------------------------------------------- |
-| **Status**     | Active                                                                                          |
-| **Supersedes** | 1.1.0                                                                                           |
-| **Version**    | 1.2.0                                                                                           |
-| **Owner**      | Project Maintainers                                                                             |
-| **Created**    | 2026-08-16                                                                                      |
-| **Updated**    | 2026-08-16                                                                                      |
-| **Applies To** | Knowledge-owned bounded proposition projection issuance and verification for Context candidates |
+| Field             | Value                                                                                           |
+| ----------------- | ----------------------------------------------------------------------------------------------- |
+| **Status**        | Superseded                                                                                      |
+| **Supersedes**    | 1.1.0                                                                                           |
+| **Superseded By** | [1.3.0](ENGINE-0005-Knowledge-Engine-Revision-1.3.0.md)                                         |
+| **Version**       | 1.2.0                                                                                           |
+| **Owner**         | Project Maintainers                                                                             |
+| **Created**       | 2026-08-16                                                                                      |
+| **Updated**       | 2026-08-19                                                                                      |
+| **Applies To**    | Knowledge-owned bounded proposition projection issuance and verification for Context candidates |
 
 ---
 
 ## Status and Authority
 
-This specification is Active and is the sole current canonical ENGINE-0005
-revision. It supersedes versions 1.0.0 and 1.1.0. Those revisions remain
-historical and non-authoritative.
+This specification is Superseded by ENGINE-0005 1.3.0. It remains the
+historical authority for the Knowledge 1.2.0 bounded proposition projection
+semantics and supersedes versions 1.0.0 and 1.1.0.
 
 Version 1.2.0 preserves the complete Knowledge Engine 1.1.0 semantics and adds
 the bounded proposition projection capability authorized by ADR-0020.
