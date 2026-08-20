@@ -1,22 +1,24 @@
 # ENGINE-0005 — Knowledge Engine Revision
 
-| Field          | Value                                                                                                   |
-| -------------- | ------------------------------------------------------------------------------------------------------- |
-| **Status**     | Active                                                                                                  |
-| **Supersedes** | 1.2.0                                                                                                   |
-| **Version**    | 1.3.0                                                                                                   |
-| **Owner**      | Project Maintainers                                                                                     |
-| **Created**    | 2026-08-17                                                                                              |
-| **Updated**    | 2026-08-19                                                                                              |
-| **Applies To** | Knowledge-owned acceptance, issuance, and verification of one structured textual proposition projection |
+| Field             | Value                                                                                                   |
+| ----------------- | ------------------------------------------------------------------------------------------------------- |
+| **Status**        | Superseded                                                                                              |
+| **Supersedes**    | 1.2.0                                                                                                   |
+| **Superseded By** | [ENGINE-0005 2.0.0](ENGINE-0005-Knowledge-Engine-Revision-2.0.0.md)                                     |
+| **Version**       | 1.3.0                                                                                                   |
+| **Owner**         | Project Maintainers                                                                                     |
+| **Created**       | 2026-08-17                                                                                              |
+| **Updated**       | 2026-08-20                                                                                              |
+| **Applies To**    | Knowledge-owned acceptance, issuance, and verification of one structured textual proposition projection |
 
 ---
 
 ## Status and Authority
 
-This specification is Active and is the sole current canonical ENGINE-0005
-revision. It supersedes Knowledge Engine 1.2.0; that revision and earlier
-revisions remain historical and non-authoritative.
+This specification is Superseded by Knowledge Engine 2.0.0. It remains the
+historical authority for Knowledge Engine 1.3.0 semantics and supersedes
+Knowledge Engine 1.2.0; that revision and earlier revisions remain historical
+and non-authoritative.
 
 This revision preserves all Knowledge Engine 1.2.0 semantics and adds the
 structured textual proposition semantics specified below. Applicable Active
@@ -995,6 +997,7 @@ This section defines required evidence, not a concrete test or runtime design.
 | 1.1.0   | 2026-08-11 | Added unchanged Get Knowledge participation as a qualified source for CONTRACT-0001 Context preparation.                                                                                                                           |
 | 1.2.0   | 2026-08-16 | Added bounded proposition projection issuance and verification for Source-Aware Reasoning participation.                                                                                                                           |
 | 1.3.0   | 2026-08-17 | Drafted additive structured textual proposition acceptance and projection; synchronized accepted source ownership, lifecycle currentness, Knowledge capability attribution, and single-capture projection authority with ADR-0021. |
+| 1.3.0   | 2026-08-20 | Superseded by Knowledge Engine 2.0.0.                                                                                                                                                                                              |
 
 ## References
 
