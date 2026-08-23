@@ -1,22 +1,24 @@
 # ENGINE-0005 — Knowledge Engine Revision
 
-| Field          | Value                                                                                 |
-| -------------- | ------------------------------------------------------------------------------------- |
-| **Status**     | Active                                                                                |
-| **Supersedes** | 1.3.0                                                                                 |
-| **Version**    | 2.0.0                                                                                 |
-| **Owner**      | Project Maintainers                                                                   |
-| **Created**    | 2026-08-20                                                                            |
-| **Updated**    | 2026-08-20                                                                            |
-| **Applies To** | Knowledge acceptance, durable lifecycle persistence, reconstruction, and supersession |
+| Field             | Value                                                                                 |
+| ----------------- | ------------------------------------------------------------------------------------- |
+| **Status**        | Superseded                                                                            |
+| **Supersedes**    | 1.3.0                                                                                 |
+| **Superseded By** | [ENGINE-0005 3.0.0](ENGINE-0005-Knowledge-Engine-Revision-3.0.0.md)                   |
+| **Version**       | 2.0.0                                                                                 |
+| **Owner**         | Project Maintainers                                                                   |
+| **Created**       | 2026-08-20                                                                            |
+| **Updated**       | 2026-08-23                                                                            |
+| **Applies To**    | Knowledge acceptance, durable lifecycle persistence, reconstruction, and supersession |
 
 ---
 
 ## Status and Authority
 
-This specification is Active and is the sole current canonical ENGINE-0005
-revision. It supersedes Knowledge Engine 1.3.0, which remains historical and
-non-authoritative.
+This specification is Superseded by Knowledge Engine 3.0.0. It remains the
+historical authority for Knowledge Engine 2.0.0 semantics and supersedes
+Knowledge Engine 1.3.0; that revision and earlier revisions remain historical
+and non-authoritative.
 
 Applicable ADRs, Concepts, Engineering Standards, and Contracts govern in a
 conflict.
@@ -432,6 +434,7 @@ privacy boundaries, and physical neutrality.
 | 2.0.0   | 2026-08-20 | Draft successor defining durable Knowledge lifecycle persistence, reconstruction, and atomic supersession. |
 | 2.0.0   | 2026-08-20 | Clarified known pre-commit Store failure versus ambiguous completion and retry reconstruction.             |
 | 2.0.0   | 2026-08-20 | Activated as the sole current canonical ENGINE-0005 revision and superseded 1.3.0.                         |
+| 2.0.0   | 2026-08-23 | Superseded by Knowledge Engine 3.0.0.                                                                      |
 
 # Engineering Motto
 
