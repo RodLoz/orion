@@ -91,18 +91,26 @@ export class PlanningAuthority implements VerifyCandidatePlanAuthority {
       );
       if (
         value.expectedReasoningStatus !== "completed" ||
-        !["anonymous-context", "context-only"].includes(
-          value.expectedReasoningCategory as string,
-        ) ||
+        ![
+          "anonymous-context",
+          "context-only",
+          "knowledge-grounded-success",
+          "knowledge-not-applicable",
+          "knowledge-insufficient",
+        ].includes(value.expectedReasoningCategory as string) ||
         !["none", "request-more-context"].includes(
           value.expectedCandidateNextAction as string,
         ) ||
         !["anonymous", "authenticated"].includes(
           value.expectedIdentityState as string,
         ) ||
-        !["anonymous-identity", "authenticated-context-only"].includes(
-          value.expectedReasoningRuleCategory as string,
-        )
+        ![
+          "anonymous-identity",
+          "authenticated-context-only",
+          "authenticated-knowledge-applicable-sufficient",
+          "authenticated-knowledge-not-applicable",
+          "authenticated-knowledge-applicable-insufficient",
+        ].includes(value.expectedReasoningRuleCategory as string)
       )
         throw new Error();
     } catch {

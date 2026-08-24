@@ -13,6 +13,10 @@ import {
   createContextConsumptionReference,
   createReasoningExplainabilitySummary,
   createReasoningOutcome,
+  createBoundedReasoningQuery,
+  createReasoning3StructuredKnowledgeTuple,
+  evaluateReasoningApplicability,
+  evaluateReasoningSufficiency,
   identityIdentifier,
   reasoningQuery,
   type ActiveContextRevision,
@@ -20,9 +24,11 @@ import {
   type IdentityContextProjection,
   type KnowledgeContextFragment,
   type MemoryContextFragment,
+  type StructuredKnowledgeContextFragment,
   type ReasoningOutcome,
   type VerifyReasoningOutcomeAuthority,
   type VerifyReasoningOutcomeAuthorityRequest,
+  type VerifyActiveContextRevisionAuthority,
 } from "@orion/core";
 import { ReasoningAuthority } from "./reasoning-authority.js";
 
@@ -40,6 +46,13 @@ export class ReasoningEngine
 {
   #state: ReasoningEngineLifecycleState = "initialize";
   readonly #authority = new ReasoningAuthority();
+  private readonly contextAuthority:
+    VerifyActiveContextRevisionAuthority | undefined;
+  public constructor(
+    ...args: [contextAuthority?: VerifyActiveContextRevisionAuthority]
+  ) {
+    this.contextAuthority = args[0];
+  }
   public get engineState(): ReasoningEngineLifecycleState {
     return this.#state;
   }
@@ -66,6 +79,65 @@ export class ReasoningEngine
     const outcome = this.evaluateRules(Object.freeze({ context, query }));
     this.#authority.register(outcome, suppliedContext);
     return outcome;
+  }
+
+  public evaluateReasoning3(request: unknown): ReasoningOutcome {
+    if (this.#state !== "running") throw new InvalidReasoningStateError();
+    const top = this.validateTopLevel(request);
+    const suppliedContext = this.captureContextField(top.source);
+    this.verifyReasoning3ContextAuthority(suppliedContext);
+    const context = this.validateContextField(suppliedContext, true);
+    if (context.lifecycleState !== "active") throw new InactiveContextError();
+    const structured = this.validateStructuredProfile(context);
+    const query = this.validateBoundedQueryField(top.source);
+    let tuple: ReturnType<typeof createReasoning3StructuredKnowledgeTuple>;
+    try {
+      tuple = createReasoning3StructuredKnowledgeTuple({
+        subjectKey: structured.projection.semanticValue.subjectKey,
+        predicateKey: structured.projection.semanticValue.predicateKey,
+        textualScalar: structured.projection.semanticValue.textualScalar,
+      });
+    } catch {
+      throw new InvalidReasoningInputError();
+    }
+    const applicability = evaluateReasoningApplicability(query, tuple);
+    const outcome =
+      applicability === "NOT_APPLICABLE"
+        ? this.createReasoning3Outcome(
+            context,
+            "knowledge-not-applicable",
+            "authenticated-knowledge-not-applicable",
+            "request-more-context",
+            "The bounded Knowledge tuple does not satisfy the Reasoning query.",
+            "Additional context may be required before another bounded evaluation.",
+          )
+        : (() => {
+            evaluateReasoningSufficiency(query, tuple, applicability);
+            return this.createReasoning3Outcome(
+              context,
+              "knowledge-grounded-success",
+              "authenticated-knowledge-applicable-sufficient",
+              "none",
+              "The bounded Knowledge tuple satisfies the Reasoning query.",
+              "The grounded result is available for advisory planning.",
+            );
+          })();
+    this.#authority.register(outcome, suppliedContext);
+    return outcome;
+  }
+
+  private verifyReasoning3ContextAuthority(
+    context: ActiveContextRevision,
+  ): void {
+    if (this.contextAuthority === undefined)
+      throw new InvalidActiveContextError();
+    this.contextAuthority.verifyActiveContextRevisionAuthority({
+      intent: "verify-active-context-revision-authority",
+      candidate: context,
+      expectedLineageIdentity: context.lineageIdentity,
+      expectedRevisionIdentity: context.revisionIdentity,
+      expectedRevisionNumber: context.revisionNumber,
+    });
   }
 
   public verifyReasoningOutcomeAuthority(
@@ -104,16 +176,22 @@ export class ReasoningEngine
     }
   }
 
-  private validateContextField(value: unknown): ActiveContextRevision {
+  private validateContextField(
+    value: unknown,
+    allowStructured = false,
+  ): ActiveContextRevision {
     try {
-      return this.validateContext(value);
+      return this.validateContext(value, allowStructured);
     } catch (error: unknown) {
       if (error instanceof InvalidActiveContextError) throw error;
       throw new InvalidActiveContextError();
     }
   }
 
-  private validateContext(value: unknown): ActiveContextRevision {
+  private validateContext(
+    value: unknown,
+    allowStructured = false,
+  ): ActiveContextRevision {
     try {
       const revision = exactRecord(
         value,
@@ -162,7 +240,7 @@ export class ReasoningEngine
         throw new Error();
       const projection = this.validateProjection(fragment.projection);
       const sourceFragment = isSourceAware
-        ? this.captureOpaqueSourceFragment(fragments[1])
+        ? this.captureOpaqueSourceFragment(fragments[1], allowStructured)
         : undefined;
       const lifecycle = contextLifecycleState(revision.lifecycleState);
       const revisionNumber = contextRevisionNumber(revision.revisionNumber);
@@ -215,12 +293,24 @@ export class ReasoningEngine
 
   private captureOpaqueSourceFragment(
     value: unknown,
-  ): KnowledgeContextFragment | MemoryContextFragment {
+    allowStructured = false,
+  ):
+    | KnowledgeContextFragment
+    | MemoryContextFragment
+    | StructuredKnowledgeContextFragment {
     const fragment = exactRecord(value, [
       "kind",
       "authoritativeOwner",
       "projection",
     ]);
+    if (
+      allowStructured &&
+      fragment.kind === "structured-knowledge" &&
+      fragment.authoritativeOwner === "knowledge"
+    )
+      return freezeClone(
+        fragment,
+      ) as unknown as StructuredKnowledgeContextFragment;
     if (!(
       (fragment.kind === "knowledge" &&
         fragment.authoritativeOwner === "knowledge") ||
@@ -274,6 +364,62 @@ export class ReasoningEngine
       if (error instanceof InvalidReasoningQueryError) throw error;
       throw new InvalidReasoningQueryError();
     }
+  }
+
+  private validateBoundedQueryField(
+    source: Record<string, unknown>,
+  ): ReturnType<typeof createBoundedReasoningQuery> {
+    try {
+      return createBoundedReasoningQuery(Reflect.get(source, "query"));
+    } catch {
+      throw new InvalidReasoningInputError();
+    }
+  }
+
+  private validateStructuredProfile(
+    context: ActiveContextRevision,
+  ): StructuredKnowledgeContextFragment {
+    const identity = context.fragments[0].projection;
+    const fragment = context.fragments[1];
+    if (
+      identity.state !== "authenticated" ||
+      fragment === undefined ||
+      fragment.kind !== "structured-knowledge" ||
+      context.fragments.length !== 2
+    )
+      throw new InvalidReasoningInputError();
+    return fragment;
+  }
+
+  private createReasoning3Outcome(
+    context: ActiveContextRevision,
+    category: "knowledge-grounded-success" | "knowledge-not-applicable",
+    ruleCategory:
+      | "authenticated-knowledge-applicable-sufficient"
+      | "authenticated-knowledge-not-applicable",
+    nextAction: "none" | "request-more-context",
+    conclusion: string,
+    response: string,
+  ): ReasoningOutcome {
+    const contextConsumptionReference = createContextConsumptionReference({
+      lineageIdentity: context.lineageIdentity,
+      revisionIdentity: context.revisionIdentity,
+      revisionNumber: context.revisionNumber,
+      lifecycleState: context.lifecycleState,
+      authoritativeCapability: "context",
+    });
+    return createReasoningOutcome({
+      status: "completed",
+      category,
+      conclusion,
+      response,
+      nextAction,
+      explainability: createReasoningExplainabilitySummary({
+        contextConsumptionReference,
+        identityState: "authenticated",
+        ruleCategory,
+      }),
+    });
   }
 
   private evaluateRules(request: NormalizedRequest): ReasoningOutcome {

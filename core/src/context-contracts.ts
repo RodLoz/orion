@@ -10,6 +10,10 @@ import type { GetKnowledgeRequest } from "./knowledge-contracts.js";
 import type { KnowledgeReference } from "./knowledge.js";
 import type { GetMemoryRequest } from "./memory-contracts.js";
 import type { MemoryReference } from "./memory.js";
+import type {
+  ContextPreparationSemanticScope,
+  StructuredKnowledgeContextFragment,
+} from "./context-applicability.js";
 
 export type ComposeContextTarget =
   | Readonly<{ kind: "new-lineage" }>
@@ -62,6 +66,31 @@ export interface PrepareContextRevisionWithKnowledgeRequest {
 export interface PrepareContextRevisionWithKnowledge {
   prepareContextRevisionWithKnowledge(
     request: PrepareContextRevisionWithKnowledgeRequest,
+  ): ActiveContextRevision;
+}
+
+export interface PrepareContextRevisionWithStructuredKnowledgeRequest {
+  readonly target: ComposeContextTarget;
+  readonly identityResolutionRequest: IdentityResolutionRequest;
+  readonly contextPreparationSemanticScope: ContextPreparationSemanticScope;
+  readonly knowledgeRetrievalRequest: GetKnowledgeRequest;
+}
+
+export interface PrepareContextRevisionWithStructuredKnowledge {
+  prepareContextRevisionWithStructuredKnowledge(
+    request: PrepareContextRevisionWithStructuredKnowledgeRequest,
+  ): ActiveContextRevision;
+}
+
+export interface ComposeContextRevisionWithStructuredKnowledgeRequest {
+  readonly target: ComposeContextTarget;
+  readonly currentIdentity: CurrentIdentity;
+  readonly structuredKnowledgeFragment: StructuredKnowledgeContextFragment;
+}
+
+export interface ComposeContextRevisionWithStructuredKnowledge {
+  composeContextRevisionWithStructuredKnowledge(
+    request: ComposeContextRevisionWithStructuredKnowledgeRequest,
   ): ActiveContextRevision;
 }
 

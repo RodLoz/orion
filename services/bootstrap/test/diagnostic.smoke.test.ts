@@ -5,11 +5,11 @@ import { runDiagnosticRuntime } from "../src/run.js";
 describe("M0 diagnostic runtime", () => {
   it.each(["debug", "info", "warn", "error"] as const)(
     "emits exactly one mandatory result at %s log level",
-    (logLevel) => {
+    async (logLevel) => {
       const diagnosticOutput: string[] = [];
       const logOutput: string[] = [];
 
-      const result = runDiagnosticRuntime({
+      const result = await runDiagnosticRuntime({
         environment: { ORION_LOG_LEVEL: logLevel },
         logSink: (record) => logOutput.push(record),
         diagnosticResultSink: (record) => diagnosticOutput.push(record),

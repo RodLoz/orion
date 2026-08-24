@@ -6,9 +6,11 @@ export {
 export {
   composeContextCapability,
   composeKnowledgeAwareContextCapability,
+  composeStructuredKnowledgeAwareContextCapability,
   composeMemoryAwareContextCapability,
   type ContextCapabilityComposition,
   type KnowledgeAwareContextCapabilityComposition,
+  type StructuredKnowledgeAwareContextCapabilityComposition,
   type MemoryAwareContextCapabilityComposition,
 } from "./context/context-composition.js";
 export { DeterministicContextConstructionValues } from "./context/deterministic-context-construction-values.js";
@@ -16,6 +18,7 @@ export { DeterministicMemoryConstructionValues } from "./memory/deterministic-me
 export { InMemoryMemoryStore } from "./memory/in-memory-memory-store.js";
 export { DeterministicKnowledgeConstructionValues } from "./knowledge/deterministic-knowledge-construction-values.js";
 export { InMemoryKnowledgeStore } from "./knowledge/in-memory-knowledge-store.js";
+export { PostgreSQLKnowledgeStore } from "./knowledge/postgresql-knowledge-store.js";
 export {
   composeKnowledgeCapability,
   type KnowledgeCapabilityComposition,
@@ -29,6 +32,7 @@ export {
   loadBootstrapConfiguration,
   type BootstrapConfiguration,
   type BootstrapEnvironment,
+  type KnowledgeStoreMode,
 } from "./configuration.js";
 export {
   ConsoleStructuredLogger,

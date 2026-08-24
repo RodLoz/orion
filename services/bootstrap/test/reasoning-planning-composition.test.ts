@@ -63,6 +63,7 @@ describe("Reasoning Bootstrap composition", () => {
     );
     expect(Reflect.ownKeys(composition)).toEqual([
       "evaluateReasoning",
+      "evaluateReasoning3",
       "verifyReasoningOutcomeAuthority",
       "engineState",
     ]);

@@ -11,8 +11,10 @@ import {
   knowledgeIdentity,
   knowledgeVersion,
   memoryIdentity,
+  createStructuredKnowledgeContextFragment,
   type ActiveContextRevision,
   type VerifyActiveContextRevisionAuthority,
+  type StructuredKnowledgeContextFragment,
 } from "@orion/core";
 import {
   captureSnapshot,
@@ -232,8 +234,19 @@ function assertContextStructure(value: unknown): void {
     if (
       sourceFragment.kind !== "knowledge" ||
       sourceFragment.authoritativeOwner !== "knowledge"
-    )
-      throw new Error();
+    ) {
+      if (
+        sourceFragment.kind !== "structured-knowledge" ||
+        sourceFragment.authoritativeOwner !== "knowledge"
+      )
+        throw new Error();
+      createStructuredKnowledgeContextFragment({
+        kind: sourceFragment.kind,
+        authoritativeOwner: sourceFragment.authoritativeOwner,
+        ...(sourceFragment.projection as Record<string, unknown>),
+      } as unknown as StructuredKnowledgeContextFragment);
+      return;
+    }
     const knowledgeProjection = exactRecord(sourceFragment.projection, [
       "knowledgeIdentity",
       "validationState",

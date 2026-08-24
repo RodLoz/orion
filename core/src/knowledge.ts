@@ -1,3 +1,8 @@
+import {
+  createAcceptedStructuredKnowledgeProposition,
+  type AcceptedStructuredKnowledgeProposition,
+} from "./knowledge-structured-proposition.js";
+
 export const KNOWLEDGE_CLAIM_MAX_CODE_POINTS = 4096;
 export const KNOWLEDGE_REASON_MAX_CODE_POINTS = 512;
 export const KNOWLEDGE_IDENTITY_MAX_CODE_POINTS = 128;
@@ -33,11 +38,15 @@ export type KnowledgeTimestamp = string & {
 export type KnowledgeVersion = number & {
   readonly __knowledgeVersion: unique symbol;
 };
+export type KnowledgeAcceptanceOrder = string & {
+  readonly __knowledgeAcceptanceOrder: unique symbol;
+};
 
 export type KnowledgeEvidenceDecision = "accept" | "reject";
 export type KnowledgeSourceType =
   "manual-assertion" | "approved-internal-source";
 export type KnowledgeCurrency = "current" | "superseded";
+export type KnowledgeLifecycleStanding = "current" | "superseded";
 export type KnowledgeRejectionCategory =
   "authority-rejected" | "contradiction-preserved";
 
@@ -59,7 +68,7 @@ export interface KnowledgeProvenance {
   readonly sourceReference?: KnowledgeSourceReference;
 }
 
-export interface KnowledgeRecord {
+interface KnowledgeRecordBase {
   readonly knowledgeIdentity: KnowledgeIdentity;
   readonly claim: CandidateClaim;
   readonly provenance: KnowledgeProvenance;
@@ -69,6 +78,18 @@ export interface KnowledgeRecord {
   readonly version: KnowledgeVersion;
   readonly supersedesKnowledgeIdentity?: KnowledgeIdentity;
 }
+
+export type KnowledgeRecord =
+  | Readonly<
+      KnowledgeRecordBase & {
+        acceptedStructuredProposition?: never;
+      }
+    >
+  | Readonly<
+      KnowledgeRecordBase & {
+        acceptedStructuredProposition: AcceptedStructuredKnowledgeProposition;
+      }
+    >;
 
 export interface KnowledgeReference {
   readonly knowledgeIdentity: KnowledgeIdentity;
@@ -184,6 +205,28 @@ export function knowledgeVersion(value: unknown): KnowledgeVersion {
   return value as KnowledgeVersion;
 }
 
+export function knowledgeAcceptanceOrder(
+  value: unknown,
+): KnowledgeAcceptanceOrder {
+  if (
+    typeof value !== "string" ||
+    value.length === 0 ||
+    value.trim().length === 0
+  ) {
+    throw new InvalidKnowledgeAcceptanceOrderValueError();
+  }
+  return value as KnowledgeAcceptanceOrder;
+}
+
+export function knowledgeLifecycleStanding(
+  value: unknown,
+): KnowledgeLifecycleStanding {
+  if (value !== "current" && value !== "superseded") {
+    throw new InvalidKnowledgeLifecycleStandingValueError();
+  }
+  return value;
+}
+
 export function createKnowledgeAcceptanceEvidence(
   input: unknown,
 ): KnowledgeAcceptanceEvidence {
@@ -257,7 +300,11 @@ export function createKnowledgeRecord(input: unknown): KnowledgeRecord {
           "acceptedAt",
           "version",
         ],
-        ["supersedesKnowledgeIdentity", "validationState"],
+        [
+          "supersedesKnowledgeIdentity",
+          "validationState",
+          "acceptedStructuredProposition",
+        ],
       ) ||
       (Object.hasOwn(input, "validationState") &&
         input.validationState !== "accepted")
@@ -282,6 +329,14 @@ export function createKnowledgeRecord(input: unknown): KnowledgeRecord {
       validationState: "accepted",
       acceptedAt: knowledgeTimestamp(input.acceptedAt),
       version: knowledgeVersion(input.version),
+      ...(Object.hasOwn(input, "acceptedStructuredProposition")
+        ? {
+            acceptedStructuredProposition:
+              createAcceptedStructuredKnowledgeProposition(
+                input.acceptedStructuredProposition,
+              ),
+          }
+        : {}),
       ...(Object.hasOwn(input, "supersedesKnowledgeIdentity")
         ? {
             supersedesKnowledgeIdentity: knowledgeIdentity(
@@ -475,6 +530,18 @@ export class InvalidKnowledgeVersionValueError extends Error {
   public constructor() {
     super("Knowledge Version value is invalid.");
     this.name = "InvalidKnowledgeVersionValueError";
+  }
+}
+export class InvalidKnowledgeAcceptanceOrderValueError extends Error {
+  public constructor() {
+    super("Knowledge acceptance order value is invalid.");
+    this.name = "InvalidKnowledgeAcceptanceOrderValueError";
+  }
+}
+export class InvalidKnowledgeLifecycleStandingValueError extends Error {
+  public constructor() {
+    super("Knowledge lifecycle standing value is invalid.");
+    this.name = "InvalidKnowledgeLifecycleStandingValueError";
   }
 }
 export class InvalidKnowledgeRecordValueError extends Error {

@@ -27,6 +27,30 @@ const outcomeCases = [
     "authenticated",
     "authenticated-context-only",
   ],
+  [
+    "knowledge-grounded-success",
+    "A bounded Knowledge proposition satisfied the Reasoning query.",
+    "The grounded response is available for advisory planning.",
+    "none",
+    "authenticated",
+    "authenticated-knowledge-applicable-sufficient",
+  ],
+  [
+    "knowledge-not-applicable",
+    "The incorporated Knowledge tuple did not match the bounded query.",
+    "Additional context may be required before another bounded evaluation.",
+    "request-more-context",
+    "authenticated",
+    "authenticated-knowledge-not-applicable",
+  ],
+  [
+    "knowledge-insufficient",
+    "The bounded Knowledge evaluation was insufficient.",
+    "Additional context may be required before another bounded evaluation.",
+    "request-more-context",
+    "authenticated",
+    "authenticated-knowledge-applicable-insufficient",
+  ],
 ] as const;
 
 function outcome(index = 1) {

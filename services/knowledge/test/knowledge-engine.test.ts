@@ -11,12 +11,19 @@ import {
   KnowledgeNotFoundError,
   KnowledgeStoreUnavailableError,
   createKnowledgeRecord,
+  createKnowledgeLifecycleSnapshot,
+  knowledgeAcceptanceOrder,
   type KnowledgeConstructionValues,
   type KnowledgeIdentity,
   type KnowledgeRecord,
   type KnowledgeStore,
   type KnowledgeStoreGetResult,
   type KnowledgeStorePutResult,
+  type PutIndependentAcceptedKnowledgeRequest,
+  type PutIndependentAcceptedKnowledgeResult,
+  type SupersedeCurrentKnowledgeRequest,
+  type SupersedeCurrentKnowledgeResult,
+  type KnowledgeLifecycleSnapshotResult,
 } from "@orion/core";
 import { describe, expect, it } from "vitest";
 
@@ -64,7 +71,7 @@ class TestStore implements KnowledgeStore {
   thrown: unknown = undefined;
   putCalls = 0;
 
-  public put(record: KnowledgeRecord): KnowledgeStorePutResult {
+  public async put(record: KnowledgeRecord): Promise<KnowledgeStorePutResult> {
     this.maybeThrow();
     this.putCalls += 1;
     if (!this.available) return { status: "unavailable" };
@@ -82,7 +89,9 @@ class TestStore implements KnowledgeStore {
     return { status: "stored", knowledgeIdentity: record.knowledgeIdentity };
   }
 
-  public get(identity: KnowledgeIdentity): KnowledgeStoreGetResult {
+  public async get(
+    identity: KnowledgeIdentity,
+  ): Promise<KnowledgeStoreGetResult> {
     this.maybeThrow();
     if (!this.available) return { status: "unavailable" };
     if (this.overrideGet !== NO_STORE_OVERRIDE) {
@@ -94,17 +103,64 @@ class TestStore implements KnowledgeStore {
       : { status: "found", record };
   }
 
+  public async putIndependentAcceptedKnowledge(
+    request: PutIndependentAcceptedKnowledgeRequest,
+  ): Promise<PutIndependentAcceptedKnowledgeResult> {
+    const result = await this.put(request.record);
+    if (
+      result.status === "stored" &&
+      result.knowledgeIdentity === request.record.knowledgeIdentity
+    ) {
+      return {
+        status: "stored",
+        knowledgeIdentity: request.record.knowledgeIdentity,
+        acceptanceOrder: knowledgeAcceptanceOrder(
+          `test-order-${this.records.size}`,
+        ),
+      };
+    }
+    return result as PutIndependentAcceptedKnowledgeResult;
+  }
+
+  public async supersedeCurrentKnowledge(
+    request: SupersedeCurrentKnowledgeRequest,
+  ): Promise<SupersedeCurrentKnowledgeResult> {
+    const result = await this.put(request.successor);
+    if (
+      result.status === "stored" &&
+      result.knowledgeIdentity === request.successor.knowledgeIdentity
+    ) {
+      return {
+        status: "superseded",
+        predecessorKnowledgeIdentity:
+          request.expectedPredecessorKnowledgeIdentity,
+        successorKnowledgeIdentity: request.successor.knowledgeIdentity,
+        acceptanceOrder: knowledgeAcceptanceOrder(
+          `test-order-${this.records.size}`,
+        ),
+      };
+    }
+    return result as SupersedeCurrentKnowledgeResult;
+  }
+
+  public async loadKnowledgeLifecycleSnapshot(): Promise<KnowledgeLifecycleSnapshotResult> {
+    return {
+      status: "loaded",
+      snapshot: createKnowledgeLifecycleSnapshot({ entries: [] }),
+    };
+  }
+
   private maybeThrow(): void {
     if (this.thrown !== undefined) throw this.thrown;
   }
 }
 
-function createEngine(
+async function createEngine(
   store = new TestStore(),
   construction = new TestConstruction(),
 ) {
   const engine = new KnowledgeEngine(store, construction);
-  engine.initialize();
+  await engine.initialize();
   engine.start();
   return { engine, store, construction };
 }
@@ -127,8 +183,8 @@ function request(decision: "accept" | "reject" = "accept") {
   };
 }
 
-function accept(engine: KnowledgeEngine) {
-  const decision = engine.evaluateKnowledgeClaim(request());
+async function accept(engine: KnowledgeEngine) {
+  const decision = await engine.evaluateKnowledgeClaim(request());
   if (decision.outcome !== "accepted") throw new Error("test setup failed");
   return decision;
 }
@@ -159,19 +215,19 @@ function establishConfirmedPredecessor(
   return engine[knowledgeEngineTestState](record);
 }
 
-describe("Knowledge Engine acceptance and rejection", () => {
-  it("accepts an explicit valid claim only after Store confirmation", () => {
-    const { engine, store } = createEngine();
-    const decision = accept(engine);
+describe("Knowledge Engine acceptance and rejection", async () => {
+  it("accepts an explicit valid claim only after Store confirmation", async () => {
+    const { engine, store } = await createEngine();
+    const decision = await accept(engine);
     expect(decision.record.version).toBe(1);
     expect(decision.record.validationState).toBe("accepted");
     expect(store.records.size).toBe(1);
     expect(engine.listKnowledgeReferences({})).toHaveLength(1);
   });
 
-  it("rejects explicit authority rejection without identity or Store mutation", () => {
-    const { engine, store, construction } = createEngine();
-    expect(engine.evaluateKnowledgeClaim(request("reject"))).toEqual({
+  it("rejects explicit authority rejection without identity or Store mutation", async () => {
+    const { engine, store, construction } = await createEngine();
+    expect(await engine.evaluateKnowledgeClaim(request("reject"))).toEqual({
       outcome: "rejected",
       category: "authority-rejected",
     });
@@ -180,38 +236,38 @@ describe("Knowledge Engine acceptance and rejection", () => {
     expect(engine.listKnowledgeReferences({})).toHaveLength(0);
   });
 
-  it("distinguishes invalid Claim, Evidence, and request input", () => {
-    const { engine } = createEngine();
-    expect(() => engine.evaluateKnowledgeClaim(null)).toThrow(
+  it("distinguishes invalid Claim, Evidence, and request input", async () => {
+    const { engine } = await createEngine();
+    await expect(engine.evaluateKnowledgeClaim(null)).rejects.toThrow(
       InvalidKnowledgeInputError,
     );
-    expect(() =>
+    await expect(
       engine.evaluateKnowledgeClaim({ ...request(), claim: 4 }),
-    ).toThrow(InvalidClaimError);
-    expect(() =>
+    ).rejects.toThrow(InvalidClaimError);
+    await expect(
       engine.evaluateKnowledgeClaim({
         ...request(),
         acceptanceEvidence: { decision: "accept" },
       }),
-    ).toThrow(InvalidAcceptanceEvidenceError);
-    expect(() =>
+    ).rejects.toThrow(InvalidAcceptanceEvidenceError);
+    await expect(
       engine.evaluateKnowledgeClaim({ ...request(), unexpected: true }),
-    ).toThrow(InvalidKnowledgeInputError);
+    ).rejects.toThrow(InvalidKnowledgeInputError);
   });
 
-  it("normalizes Store unavailability and duplicate identity", () => {
-    const unavailable = createEngine();
+  it("normalizes Store unavailability and duplicate identity", async () => {
+    const unavailable = await createEngine();
     unavailable.store.available = false;
-    expect(() => accept(unavailable.engine)).toThrow(
+    await expect(accept(unavailable.engine)).rejects.toThrow(
       KnowledgeStoreUnavailableError,
     );
 
-    const duplicate = createEngine(
+    const duplicate = await createEngine(
       new TestStore(),
       new TestConstruction(["knowledge-1", "knowledge-1"]),
     );
-    accept(duplicate.engine);
-    expect(() => accept(duplicate.engine)).toThrow(
+    await accept(duplicate.engine);
+    await expect(accept(duplicate.engine)).rejects.toThrow(
       DuplicateKnowledgeIdentityError,
     );
   });
@@ -221,10 +277,12 @@ describe("Knowledge Engine acceptance and rejection", () => {
     { status: "stored", knowledgeIdentity: "other" },
   ])(
     "keeps write-then-malformed confirmation invisible: %j",
-    (confirmation) => {
-      const setup = createEngine();
+    async (confirmation) => {
+      const setup = await createEngine();
       setup.store.writeThenPutResult = confirmation;
-      expect(() => accept(setup.engine)).toThrow(InvalidKnowledgeStateError);
+      await expect(accept(setup.engine)).rejects.toThrow(
+        InvalidKnowledgeStateError,
+      );
       expect(setup.store.records.size).toBe(1);
       expect(() =>
         setup.engine.getKnowledge({ knowledgeIdentity: "knowledge-1" }),
@@ -234,10 +292,10 @@ describe("Knowledge Engine acceptance and rejection", () => {
   );
 });
 
-describe("Knowledge Engine Get, List, contradiction, and supersession", () => {
-  it("retrieves accepted Knowledge and lists current privacy-minimal references", () => {
-    const { engine } = createEngine();
-    const accepted = accept(engine);
+describe("Knowledge Engine Get, List, contradiction, and supersession", async () => {
+  it("retrieves accepted Knowledge and lists current privacy-minimal references", async () => {
+    const { engine } = await createEngine();
+    const accepted = await accept(engine);
     const retrieved = engine.getKnowledge({
       knowledgeIdentity: accepted.record.knowledgeIdentity,
     });
@@ -250,35 +308,35 @@ describe("Knowledge Engine Get, List, contradiction, and supersession", () => {
     );
   });
 
-  it("distinguishes unconfirmed Knowledge from confirmed Store not-found", () => {
-    const setup = createEngine();
+  it("serves confirmed Knowledge from reconstructed memory without Store I/O", async () => {
+    const setup = await createEngine();
     expect(() =>
       setup.engine.getKnowledge({ knowledgeIdentity: "unknown" }),
     ).toThrow(KnowledgeNotFoundError);
 
-    const accepted = accept(setup.engine);
+    const accepted = await accept(setup.engine);
     setup.store.overrideGet = { status: "not-found" };
-    expect(() =>
+    expect(
       setup.engine.getKnowledge({
         knowledgeIdentity: accepted.record.knowledgeIdentity,
-      }),
-    ).toThrow(InvalidKnowledgeStateError);
+      }).knowledge,
+    ).toEqual(accepted.record);
   });
 
   it.each([0, 101, -1, 1.5, "1", Number.NaN, { valueOf: () => 1 }])(
     "rejects invalid List limit %j",
-    (limit) => {
-      const { engine } = createEngine();
+    async (limit) => {
+      const { engine } = await createEngine();
       expect(() => engine.listKnowledgeReferences({ limit })).toThrow(
         InvalidKnowledgeInputError,
       );
     },
   );
 
-  it("defaults List to 50, accepts 1 and 100, and preserves order", () => {
-    const { engine } = createEngine();
-    const first = accept(engine);
-    const second = accept(engine);
+  it("defaults List to 50, accepts 1 and 100, and preserves order", async () => {
+    const { engine } = await createEngine();
+    const first = await accept(engine);
+    const second = await accept(engine);
     expect(
       engine.listKnowledgeReferences({}).map((r) => r.knowledgeIdentity),
     ).toEqual([
@@ -289,23 +347,23 @@ describe("Knowledge Engine Get, List, contradiction, and supersession", () => {
     expect(engine.listKnowledgeReferences({ limit: 100 })).toHaveLength(2);
   });
 
-  it("requires complete contradiction resolution", () => {
-    const { engine } = createEngine();
-    const existing = accept(engine);
-    expect(() =>
+  it("requires complete contradiction resolution", async () => {
+    const { engine } = await createEngine();
+    const existing = await accept(engine);
+    await expect(
       engine.evaluateKnowledgeClaim({
         ...request(),
         contradictsKnowledgeIdentity: existing.record.knowledgeIdentity,
       }),
-    ).toThrow(ContradictionRequiresResolutionError);
+    ).rejects.toThrow(ContradictionRequiresResolutionError);
     expect(engine.listKnowledgeReferences({})).toHaveLength(1);
   });
 
-  it("reject-candidate keeps existing Knowledge current without Store mutation", () => {
-    const { engine, store } = createEngine();
-    const existing = accept(engine);
+  it("reject-candidate keeps existing Knowledge current without Store mutation", async () => {
+    const { engine, store } = await createEngine();
+    const existing = await accept(engine);
     const putsBefore = store.putCalls;
-    const result = engine.evaluateKnowledgeClaim({
+    const result = await engine.evaluateKnowledgeClaim({
       ...request(),
       contradictsKnowledgeIdentity: existing.record.knowledgeIdentity,
       contradictionDecision: "reject-candidate",
@@ -323,11 +381,11 @@ describe("Knowledge Engine Get, List, contradiction, and supersession", () => {
     ).toBe("current");
   });
 
-  it("supersedes explicitly while preserving immutable historical Knowledge", () => {
-    const { engine } = createEngine();
-    const predecessor = accept(engine);
+  it("supersedes explicitly while preserving immutable historical Knowledge", async () => {
+    const { engine } = await createEngine();
+    const predecessor = await accept(engine);
     const snapshot = predecessor.record;
-    const successor = engine.evaluateKnowledgeClaim({
+    const successor = await engine.evaluateKnowledgeClaim({
       ...request(),
       claim: "An explicitly superseding candidate.",
       contradictsKnowledgeIdentity: predecessor.record.knowledgeIdentity,
@@ -348,18 +406,18 @@ describe("Knowledge Engine Get, List, contradiction, and supersession", () => {
     expect(engine.listKnowledgeReferences({})).toEqual([successor.reference]);
   });
 
-  it("failed successor confirmation leaves predecessor current", () => {
-    const setup = createEngine();
-    const predecessor = accept(setup.engine);
+  it("failed successor confirmation leaves predecessor current", async () => {
+    const setup = await createEngine();
+    const predecessor = await accept(setup.engine);
     setup.store.writeThenPutResult = { status: "stored" };
-    expect(() =>
+    await expect(
       setup.engine.evaluateKnowledgeClaim({
         ...request(),
         contradictsKnowledgeIdentity: predecessor.record.knowledgeIdentity,
         contradictionDecision: "supersede-existing",
         contradictionReason: "Attempt a failed successor.",
       }),
-    ).toThrow(InvalidKnowledgeStateError);
+    ).rejects.toThrow(InvalidKnowledgeStateError);
     expect(
       setup.engine.getKnowledge({
         knowledgeIdentity: predecessor.record.knowledgeIdentity,
@@ -368,62 +426,61 @@ describe("Knowledge Engine Get, List, contradiction, and supersession", () => {
     expect(setup.engine.listKnowledgeReferences({})).toHaveLength(1);
   });
 
-  it("preserves a confirmed predecessor when Store reports not-found", () => {
-    const setup = createEngine();
-    const predecessor = accept(setup.engine);
+  it("uses reconstructed predecessor state without Store reads", async () => {
+    const setup = await createEngine();
+    const predecessor = await accept(setup.engine);
     const identityCallsBefore = setup.construction.identityCalls;
     const putCallsBefore = setup.store.putCalls;
     setup.store.overrideGet = { status: "not-found" };
-    expect(() =>
-      setup.engine.evaluateKnowledgeClaim({
-        ...request(),
-        contradictsKnowledgeIdentity: predecessor.record.knowledgeIdentity,
-        contradictionDecision: "supersede-existing",
-        contradictionReason: "Attempt replacement while Store is inconsistent.",
-      }),
-    ).toThrow(InvalidKnowledgeStateError);
-    expect(setup.construction.identityCalls).toBe(identityCallsBefore);
-    expect(setup.store.putCalls).toBe(putCallsBefore);
+    const successor = await setup.engine.evaluateKnowledgeClaim({
+      ...request(),
+      contradictsKnowledgeIdentity: predecessor.record.knowledgeIdentity,
+      contradictionDecision: "supersede-existing",
+      contradictionReason: "Attempt replacement while Store is inconsistent.",
+    });
+    expect(successor.outcome).toBe("accepted");
+    expect(setup.construction.identityCalls).toBe(identityCallsBefore + 1);
+    expect(setup.store.putCalls).toBe(putCallsBefore + 1);
 
     setup.store.overrideGet = NO_STORE_OVERRIDE;
     expect(
       setup.engine.getKnowledge({
         knowledgeIdentity: predecessor.record.knowledgeIdentity,
       }).reference.currency,
-    ).toBe("current");
+    ).toBe("superseded");
   });
 
-  it("rejects unknown and historical supersession targets", () => {
-    const { engine } = createEngine();
-    expect(() =>
+  it("rejects unknown and historical supersession targets", async () => {
+    const { engine } = await createEngine();
+    await expect(
       engine.evaluateKnowledgeClaim({
         ...request(),
         contradictsKnowledgeIdentity: "unknown",
         contradictionDecision: "supersede-existing",
         contradictionReason: "Unknown target.",
       }),
-    ).toThrow(KnowledgeNotFoundError);
-    const predecessor = accept(engine);
-    const successor = engine.evaluateKnowledgeClaim({
+    ).rejects.toThrow(KnowledgeNotFoundError);
+    const predecessor = await accept(engine);
+    const successor = await engine.evaluateKnowledgeClaim({
       ...request(),
       contradictsKnowledgeIdentity: predecessor.record.knowledgeIdentity,
       contradictionDecision: "supersede-existing",
       contradictionReason: "Valid replacement.",
     });
     expect(successor.outcome).toBe("accepted");
-    expect(() =>
+    await expect(
       engine.evaluateKnowledgeClaim({
         ...request(),
         contradictsKnowledgeIdentity: predecessor.record.knowledgeIdentity,
         contradictionDecision: "supersede-existing",
         contradictionReason: "Historical target.",
       }),
-    ).toThrow(InvalidSupersessionError);
+    ).rejects.toThrow(InvalidSupersessionError);
   });
 });
 
-describe("Knowledge Engine Version and hostile Store boundaries", () => {
-  it("increments one below maximum exactly and rejects maximum", () => {
+describe("Knowledge Engine Version and hostile Store boundaries", async () => {
+  it("increments one below maximum exactly and rejects maximum", async () => {
     expect(calculateNextKnowledgeVersion(KNOWLEDGE_VERSION_MAX - 1)).toBe(
       KNOWLEDGE_VERSION_MAX,
     );
@@ -437,15 +494,15 @@ describe("Knowledge Engine Version and hostile Store boundaries", () => {
     }
   });
 
-  it("supersedes one below maximum through the public Engine contract", () => {
-    const setup = createEngine();
+  it("supersedes one below maximum through the public Engine contract", async () => {
+    const setup = await createEngine();
     const predecessor = establishConfirmedPredecessor(
       setup.engine,
       setup.store,
       KNOWLEDGE_VERSION_MAX - 1,
     );
     const predecessorSnapshot = structuredClone(predecessor);
-    const successor = setup.engine.evaluateKnowledgeClaim({
+    const successor = await setup.engine.evaluateKnowledgeClaim({
       ...request(),
       contradictsKnowledgeIdentity: predecessor.knowledgeIdentity,
       contradictionDecision: "supersede-existing",
@@ -469,8 +526,8 @@ describe("Knowledge Engine Version and hostile Store boundaries", () => {
     expect(predecessor).toEqual(predecessorSnapshot);
   });
 
-  it("rejects maximum-version supersession before allocation or Store mutation", () => {
-    const setup = createEngine();
+  it("rejects maximum-version supersession before allocation or Store mutation", async () => {
+    const setup = await createEngine();
     const predecessor = establishConfirmedPredecessor(
       setup.engine,
       setup.store,
@@ -479,14 +536,14 @@ describe("Knowledge Engine Version and hostile Store boundaries", () => {
     const predecessorSnapshot = structuredClone(predecessor);
     const identityCallsBefore = setup.construction.identityCalls;
     const putCallsBefore = setup.store.putCalls;
-    expect(() =>
+    await expect(
       setup.engine.evaluateKnowledgeClaim({
         ...request(),
         contradictsKnowledgeIdentity: predecessor.knowledgeIdentity,
         contradictionDecision: "supersede-existing",
         contradictionReason: "Attempt to exceed the maximum safe version.",
       }),
-    ).toThrow(InvalidSupersessionError);
+    ).rejects.toThrow(InvalidSupersessionError);
     expect(setup.construction.identityCalls).toBe(identityCallsBefore);
     expect(setup.store.putCalls).toBe(putCallsBefore);
     expect(
@@ -501,106 +558,19 @@ describe("Knowledge Engine Version and hostile Store boundaries", () => {
     expect(setup.store.records.size).toBe(1);
   });
 
-  it.each([
-    new Proxy(
-      {},
-      {
-        getPrototypeOf() {
-          throw new Error("hostile prototype");
-        },
-      },
-    ),
-    new Proxy(
-      {},
-      {
-        get(target, property, receiver) {
-          if (property === "status") throw new Error("hostile property");
-          return Reflect.get(target, property, receiver);
-        },
-      },
-    ),
-  ])("classifies hostile Store result as Invalid Knowledge State", (result) => {
-    const setup = createEngine();
-    const accepted = accept(setup.engine);
-    setup.store.overrideGet = result;
-    expect(() =>
+  it("does not consult a hostile Store during READY reads", async () => {
+    const setup = await createEngine();
+    const accepted = await accept(setup.engine);
+    setup.store.thrown = new Error("must not be observed");
+    expect(
       setup.engine.getKnowledge({
         knowledgeIdentity: accepted.record.knowledgeIdentity,
-      }),
-    ).toThrow(InvalidKnowledgeStateError);
+      }).knowledge,
+    ).toEqual(accepted.record);
   });
 
-  it.each([
-    null,
-    undefined,
-    7,
-    "found",
-    [],
-    {},
-    { status: "unexpected" },
-    { status: "found", record: {} },
-  ])(
-    "rejects malformed Store result as Invalid Knowledge State: %j",
-    (result) => {
-      const setup = createEngine();
-      const accepted = accept(setup.engine);
-      setup.store.overrideGet = result;
-      expect(() =>
-        setup.engine.getKnowledge({
-          knowledgeIdentity: accepted.record.knowledgeIdentity,
-        }),
-      ).toThrow(InvalidKnowledgeStateError);
-    },
-  );
-
-  it("rejects malformed Store-returned Records including invalid Version", () => {
-    const setup = createEngine();
-    const accepted = accept(setup.engine);
-    setup.store.overrideGet = {
-      status: "found",
-      record: { ...accepted.record, version: KNOWLEDGE_VERSION_MAX + 1 },
-    };
-    expect(() =>
-      setup.engine.getKnowledge({
-        knowledgeIdentity: accepted.record.knowledgeIdentity,
-      }),
-    ).toThrow(InvalidKnowledgeStateError);
-  });
-
-  it.each([
-    "2026-02-30T00:00:00.000Z",
-    "2026-02-29T00:00:00.000Z",
-    "2026-04-31T00:00:00.000Z",
-  ])("rejects impossible Store-returned timestamp %s", (acceptedAt) => {
-    const setup = createEngine();
-    const accepted = accept(setup.engine);
-    setup.store.overrideGet = {
-      status: "found",
-      record: { ...accepted.record, acceptedAt },
-    };
-    expect(() =>
-      setup.engine.getKnowledge({
-        knowledgeIdentity: accepted.record.knowledgeIdentity,
-      }),
-    ).toThrow(InvalidKnowledgeStateError);
-  });
-
-  it.each([new Error("native detail"), "non-error detail"])(
-    "normalizes Store invocation throw without leakage",
-    (thrown) => {
-      const setup = createEngine();
-      const accepted = accept(setup.engine);
-      setup.store.thrown = thrown;
-      expect(() =>
-        setup.engine.getKnowledge({
-          knowledgeIdentity: accepted.record.knowledgeIdentity,
-        }),
-      ).toThrow(KnowledgeStoreUnavailableError);
-    },
-  );
-
-  it("rejects coercible caller identities without Store access", () => {
-    const { engine } = createEngine();
+  it("rejects coercible caller identities without Store access", async () => {
+    const { engine } = await createEngine();
     expect(() =>
       engine.getKnowledge({
         knowledgeIdentity: { toString: () => "knowledge-1" },

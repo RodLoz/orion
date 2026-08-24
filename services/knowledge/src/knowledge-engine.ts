@@ -6,40 +6,77 @@ import {
   InvalidKnowledgeIdentityError,
   InvalidKnowledgeInputError,
   InvalidKnowledgeStateError,
+  InvalidKnowledgeProjectionRequestError,
+  InvalidKnowledgeProjectionVerificationRequestError,
   InvalidSupersessionError,
   KNOWLEDGE_VERSION_MAX,
   KnowledgeNotFoundError,
+  KnowledgeProjectionAuthorityVerificationError,
+  KnowledgeProjectionConstructionError,
+  KnowledgeProjectionIneligibleError,
+  KnowledgeProjectionIssuanceError,
+  KnowledgeProjectionPreparationMismatchError,
+  KnowledgeProjectionVersionMismatchError,
   KnowledgeStoreUnavailableError,
   candidateClaim,
   createAcceptedKnowledgeDecision,
   createKnowledgeAcceptanceEvidence,
+  createAcceptedStructuredKnowledgeProposition,
+  createAcceptedStructuredKnowledgeSourceOwnershipCorrespondence,
+  createKnowledgeAcceptanceSemanticInput,
+  createKnowledgeLifecycleSnapshotResult,
+  createPutIndependentAcceptedKnowledgeRequest,
+  createPutIndependentAcceptedKnowledgeResult,
+  createKnowledgeCapabilityAttribution,
+  createKnowledgeOwnedSourceCurrentnessDetermination,
+  createKnowledgeProjectionRequest,
   createKnowledgeProvenance,
   createKnowledgeRecord,
   createKnowledgeReference,
+  createSupersedeCurrentKnowledgeRequest,
+  createSupersedeCurrentKnowledgeResult,
   createRejectedKnowledgeDecision,
+  createStructuredKnowledgeProjectionCandidate,
   knowledgeContradictionReason,
   knowledgeIdentity,
   knowledgeTimestamp,
   knowledgeVersion,
+  propositionIdentity,
+  underlyingSourceAuthorityCorrespondence,
   type EvaluateKnowledgeClaim,
   type GetKnowledge,
   type KnowledgeAcceptanceDecision,
   type KnowledgeAcceptanceEvidence,
   type KnowledgeConstructionValues,
   type KnowledgeIdentity,
+  type KnowledgeAcceptanceSemanticInput,
+  type KnowledgeOwnedSourceCurrentnessDetermination,
   type KnowledgeProvenance,
+  type KnowledgeProjectionRequest,
   type KnowledgeRecord,
   type KnowledgeReference,
   type KnowledgeStore,
   type KnowledgeVersion,
   type ListKnowledgeReferences,
+  type ProjectStructuredKnowledge,
   type RetrievedKnowledge,
+  type StructuredKnowledgeProjection,
+  type VerifyStructuredKnowledgeProjectionAuthority,
+  type VerifyStructuredKnowledgeProjectionAuthorityRequest,
 } from "@orion/core";
+
+import { KnowledgeProjectionAuthority } from "./knowledge-projection-authority.js";
+import {
+  createKnowledgeSettlementCoordinator,
+  type KnowledgeSettlementCompletion,
+  type KnowledgeSettlementCoordinator,
+} from "./knowledge-settlement-coordinator.js";
 
 interface ValidatedEvaluation {
   readonly claim: ReturnType<typeof candidateClaim>;
   readonly evidence: KnowledgeAcceptanceEvidence;
   readonly provenance: KnowledgeProvenance;
+  readonly semanticInput: KnowledgeAcceptanceSemanticInput;
   readonly contradiction?: Readonly<{
     target: KnowledgeIdentity;
     decision: "reject-candidate" | "supersede-existing";
@@ -51,62 +88,128 @@ interface ConfirmedMetadata {
   readonly version: KnowledgeVersion;
 }
 
+interface ReconstructedRuntimeState {
+  readonly confirmed: Map<KnowledgeIdentity, ConfirmedMetadata>;
+  readonly current: Set<KnowledgeIdentity>;
+  readonly acceptanceOrder: KnowledgeIdentity[];
+  readonly records: Map<KnowledgeIdentity, KnowledgeRecord>;
+}
+
+class AmbiguousKnowledgeMutationError extends Error {}
+
 /** @internal Test-only state fixture; not exported from the package entry point. */
 export const knowledgeEngineTestState = Symbol("knowledgeEngineTestState");
 
-export class KnowledgeEngine
-  implements EvaluateKnowledgeClaim, GetKnowledge, ListKnowledgeReferences
+export class KnowledgeEngineRuntime
+  implements
+    EvaluateKnowledgeClaim,
+    GetKnowledge,
+    ListKnowledgeReferences,
+    ProjectStructuredKnowledge,
+    VerifyStructuredKnowledgeProjectionAuthority
 {
-  #engineState: KnowledgeEngineLifecycleState = "initialize";
-  readonly #confirmed = new Map<KnowledgeIdentity, ConfirmedMetadata>();
-  readonly #current = new Set<KnowledgeIdentity>();
-  readonly #acceptanceOrder: KnowledgeIdentity[] = [];
+  #engineState: KnowledgeEngineLifecycleState = "created";
+  #confirmed = new Map<KnowledgeIdentity, ConfirmedMetadata>();
+  #current = new Set<KnowledgeIdentity>();
+  #acceptanceOrder: KnowledgeIdentity[] = [];
+  #records = new Map<KnowledgeIdentity, KnowledgeRecord>();
+  #projectionAuthority = new KnowledgeProjectionAuthority();
+  #initialization: Promise<void> | undefined;
+  #recovery: Promise<void> | undefined;
+  #shutdown: Promise<void> | undefined;
+  #shutdownRequested = false;
+  #mutationTail: Promise<void> = Promise.resolve();
 
   public constructor(
     private readonly store: KnowledgeStore,
     private readonly construction: KnowledgeConstructionValues,
+    private readonly settlementCoordinator: KnowledgeSettlementCoordinator = createKnowledgeSettlementCoordinator(),
   ) {}
 
   public get engineState(): KnowledgeEngineLifecycleState {
     return this.#engineState;
   }
 
-  public initialize(): void {
-    if (this.#engineState !== "initialize") {
-      throw new KnowledgeEngineInitializationError();
+  public initialize(): Promise<void> {
+    if (
+      this.#engineState === "initializing" &&
+      this.#initialization !== undefined
+    ) {
+      return this.#initialization;
     }
+    if (this.#engineState !== "created") {
+      return Promise.reject(new KnowledgeEngineInitializationError());
+    }
+    if (
+      typeof this.construction?.nextKnowledgeIdentity !== "function" ||
+      typeof this.construction?.nextAcceptedAt !== "function"
+    ) {
+      this.#engineState = "failed-initialization";
+      return Promise.reject(new KnowledgeEngineInitializationError());
+    }
+    this.#engineState = "initializing";
+    let settle: KnowledgeSettlementCompletion;
     try {
-      if (
-        typeof this.store?.put !== "function" ||
-        typeof this.store?.get !== "function" ||
-        typeof this.construction?.nextKnowledgeIdentity !== "function" ||
-        typeof this.construction?.nextAcceptedAt !== "function"
-      ) {
-        throw new Error();
-      }
+      settle = this.settlementCoordinator.admit();
     } catch {
-      throw new KnowledgeEngineInitializationError();
+      this.#engineState = "failed-initialization";
+      return Promise.reject(new KnowledgeEngineInitializationError());
     }
-    this.#engineState = "ready";
+    const attempt = this.performInitialization(settle);
+    this.#initialization = attempt;
+    return attempt;
   }
 
   public start(): void {
     if (this.#engineState !== "ready") {
       throw new KnowledgeEngineInitializationError();
     }
-    this.#engineState = "running";
   }
 
-  public stop(): void {
-    if (this.#engineState !== "running") {
-      throw new KnowledgeEngineInitializationError();
+  public stop(): Promise<void> {
+    if (this.#engineState === "stopped") return Promise.resolve();
+    if (this.#engineState === "failed-shutdown") {
+      return Promise.reject(new KnowledgeEngineShutdownError());
     }
-    this.#engineState = "stopped";
+    if (this.#shutdown !== undefined) return this.#shutdown;
+    this.#shutdownRequested = true;
+    if (
+      this.#engineState !== "initializing" &&
+      this.#engineState !== "reconstructing"
+    ) {
+      this.#engineState = "stopping";
+    }
+    const shutdown = this.performShutdown();
+    this.#shutdown = shutdown;
+    return shutdown;
+  }
+
+  public recover(): Promise<void> {
+    if (
+      this.#engineState === "reconstructing" &&
+      this.#recovery !== undefined
+    ) {
+      return this.#recovery;
+    }
+    if (this.#engineState !== "reconstruction-required") {
+      return Promise.reject(new KnowledgeEngineRecoveryError());
+    }
+    this.#engineState = "reconstructing";
+    let settle: KnowledgeSettlementCompletion;
+    try {
+      settle = this.settlementCoordinator.admit();
+    } catch {
+      this.#engineState = "reconstruction-required";
+      return Promise.reject(new KnowledgeEngineRecoveryError());
+    }
+    const recovery = this.performRecovery(settle);
+    this.#recovery = recovery;
+    return recovery;
   }
 
   /** @internal Establishes an already confirmed Record for boundary tests. */
   public [knowledgeEngineTestState](value: unknown): KnowledgeRecord {
-    this.requireRunning();
+    this.requireReady();
     const record = createKnowledgeRecord(value);
     if (this.#confirmed.has(record.knowledgeIdentity)) {
       throw new DuplicateKnowledgeIdentityError();
@@ -117,13 +220,45 @@ export class KnowledgeEngine
     );
     this.#current.add(record.knowledgeIdentity);
     this.#acceptanceOrder.push(record.knowledgeIdentity);
+    this.#records.set(record.knowledgeIdentity, record);
     return record;
   }
 
-  public evaluateKnowledgeClaim(request: unknown): KnowledgeAcceptanceDecision {
-    this.requireRunning();
+  public evaluateKnowledgeClaim(
+    request: unknown,
+  ): Promise<KnowledgeAcceptanceDecision> {
+    let evaluation: ValidatedEvaluation;
     try {
-      const evaluation = this.validateEvaluation(request);
+      evaluation = this.validateEvaluation(request);
+      this.requireReady();
+    } catch (error: unknown) {
+      return Promise.reject(
+        isPublicFailure(error) ? error : new InvalidKnowledgeInputError(),
+      );
+    }
+    let settle: KnowledgeSettlementCompletion;
+    try {
+      settle = this.settlementCoordinator.admit();
+    } catch {
+      return Promise.reject(new InvalidKnowledgeStateError());
+    }
+    const operation = this.#mutationTail
+      .then(() => this.executeEvaluation(evaluation))
+      .finally(settle);
+    this.#mutationTail = operation.then(
+      () => undefined,
+      () => undefined,
+    );
+    return operation;
+  }
+
+  private async executeEvaluation(
+    evaluation: ValidatedEvaluation,
+  ): Promise<KnowledgeAcceptanceDecision> {
+    if (this.#engineState !== "ready" && this.#engineState !== "stopping") {
+      throw new KnowledgeStoreUnavailableError();
+    }
+    try {
       const contradiction = evaluation.contradiction;
       let predecessor: KnowledgeRecord | undefined;
 
@@ -154,6 +289,22 @@ export class KnowledgeEngine
       if (this.#confirmed.has(identity)) {
         throw new DuplicateKnowledgeIdentityError();
       }
+      let acceptedStructuredProposition;
+      if ("structuredProposition" in evaluation.semanticInput) {
+        // The explicit authority review governs the complete submitted
+        // candidate. Reconstructing the accepted correspondence here keeps the
+        // caller proposal distinct until that review has accepted it.
+        const sourceOwnershipCorrespondence =
+          createAcceptedStructuredKnowledgeSourceOwnershipCorrespondence(
+            evaluation.semanticInput.sourceOwnershipProposal,
+          );
+        acceptedStructuredProposition =
+          createAcceptedStructuredKnowledgeProposition({
+            propositionIdentity: this.nextPropositionIdentity(),
+            semanticValue: evaluation.semanticInput.structuredProposition,
+            sourceOwnershipCorrespondence,
+          });
+      }
       const record = createKnowledgeRecord({
         knowledgeIdentity: identity,
         claim: evaluation.claim,
@@ -161,16 +312,42 @@ export class KnowledgeEngine
         acceptanceEvidence: evaluation.evidence,
         acceptedAt: this.nextAcceptedAt(),
         version,
+        ...(acceptedStructuredProposition === undefined
+          ? {}
+          : { acceptedStructuredProposition }),
         ...(predecessor === undefined
           ? {}
           : { supersedesKnowledgeIdentity: predecessor.knowledgeIdentity }),
       });
-      const result = this.callStore(() => this.store.put(record));
-      this.validatePutResult(result, identity);
+      if (predecessor === undefined) {
+        const result = await this.callMutationStore(() =>
+          this.store.putIndependentAcceptedKnowledge(
+            createPutIndependentAcceptedKnowledgeRequest({ record }),
+          ),
+        );
+        this.validateIndependentAcceptanceResult(result, identity);
+      } else {
+        const result = await this.callMutationStore(() =>
+          this.store.supersedeCurrentKnowledge(
+            createSupersedeCurrentKnowledgeRequest({
+              expectedPredecessorKnowledgeIdentity:
+                predecessor.knowledgeIdentity,
+              expectedPredecessorVersion: predecessor.version,
+              successor: record,
+            }),
+          ),
+        );
+        this.validateSupersessionResult(
+          result,
+          predecessor.knowledgeIdentity,
+          identity,
+        );
+      }
 
       this.#confirmed.set(identity, Object.freeze({ version }));
       this.#current.add(identity);
       this.#acceptanceOrder.push(identity);
+      this.#records.set(identity, record);
       if (predecessor !== undefined) {
         this.#current.delete(predecessor.knowledgeIdentity);
       }
@@ -182,13 +359,17 @@ export class KnowledgeEngine
       });
       return createAcceptedKnowledgeDecision({ record, reference });
     } catch (error: unknown) {
+      if (error instanceof AmbiguousKnowledgeMutationError) {
+        this.#engineState = "reconstruction-required";
+        throw new KnowledgeStoreUnavailableError();
+      }
       if (isPublicFailure(error)) throw error;
       throw new InvalidKnowledgeInputError();
     }
   }
 
   public getKnowledge(request: unknown): RetrievedKnowledge {
-    this.requireRunning();
+    this.requireReady();
     try {
       if (
         !isPlainRecord(request) ||
@@ -211,10 +392,152 @@ export class KnowledgeEngine
     }
   }
 
+  public projectStructuredKnowledge(
+    request: KnowledgeProjectionRequest,
+  ): StructuredKnowledgeProjection;
+  public projectStructuredKnowledge(
+    request: unknown,
+  ): StructuredKnowledgeProjection;
+  public projectStructuredKnowledge(
+    request: unknown,
+  ): StructuredKnowledgeProjection {
+    this.requireReady();
+    let projectionRequest: KnowledgeProjectionRequest;
+    try {
+      projectionRequest = createKnowledgeProjectionRequest(request);
+    } catch {
+      throw new InvalidKnowledgeProjectionRequestError();
+    }
+
+    const identity = projectionRequest.target.knowledgeIdentity;
+    const metadata = this.#confirmed.get(identity);
+    if (metadata === undefined) throw new KnowledgeNotFoundError();
+    if (
+      metadata.version !== projectionRequest.target.expectedKnowledgeVersion
+    ) {
+      throw new KnowledgeProjectionVersionMismatchError();
+    }
+    const record = this.loadConfirmedRecord(identity, {
+      allowCurrentnessInconsistency: true,
+    });
+    const accepted = record.acceptedStructuredProposition;
+    if (accepted === undefined) {
+      if (record.version !== metadata.version) {
+        throw new InvalidKnowledgeStateError();
+      }
+      throw new KnowledgeProjectionIneligibleError();
+    }
+
+    const prerequisites = projectionRequest.preparationPrerequisites;
+    const ownership = accepted.sourceOwnershipCorrespondence;
+    if (
+      record.version !== metadata.version &&
+      ownership.currentnessOwner !== "knowledge-owned-currentness"
+    ) {
+      throw new InvalidKnowledgeStateError();
+    }
+    if (prerequisites.currentnessOwner !== ownership.currentnessOwner) {
+      throw new KnowledgeProjectionPreparationMismatchError();
+    }
+
+    let candidateInput: Record<string, unknown>;
+    if (ownership.currentnessOwner === "knowledge-owned-currentness") {
+      const determination = this.determineKnowledgeOwnedCurrentness(
+        record,
+        prerequisites.candidatePreparationAssociation,
+      );
+      if (determination.outcome === "negative") {
+        throw new KnowledgeProjectionIneligibleError();
+      }
+      if (determination.outcome === "unable-to-determine") {
+        throw new KnowledgeSourceCurrentnessUnableToDetermineError();
+      }
+      candidateInput = {
+        semanticValue: accepted.semanticValue,
+        correspondence: {
+          candidatePreparationAssociation:
+            prerequisites.candidatePreparationAssociation,
+          propositionIdentity: accepted.propositionIdentity,
+          knowledgeIdentity: record.knowledgeIdentity,
+          knowledgeVersion: record.version,
+          validationState: "accepted",
+          attribution: createKnowledgeCapabilityAttribution({
+            authoritativeCapability: "knowledge",
+          }),
+          sourceOwnershipCorrespondence: ownership,
+          knowledgeOwnedCurrentnessDetermination: determination,
+        },
+      };
+    } else {
+      if (prerequisites.currentnessOwner !== "external-source-currentness") {
+        throw new KnowledgeProjectionPreparationMismatchError();
+      }
+      const external = prerequisites.externalCurrentnessCorrespondence;
+      if (
+        external.applicableOwner !== ownership.applicableOwner ||
+        external.propositionSourceRelationship !==
+          ownership.propositionSourceRelationship
+      ) {
+        throw new KnowledgeProjectionPreparationMismatchError();
+      }
+      candidateInput = {
+        semanticValue: accepted.semanticValue,
+        correspondence: {
+          candidatePreparationAssociation:
+            prerequisites.candidatePreparationAssociation,
+          propositionIdentity: accepted.propositionIdentity,
+          knowledgeIdentity: record.knowledgeIdentity,
+          knowledgeVersion: record.version,
+          validationState: "accepted",
+          attribution: createKnowledgeCapabilityAttribution({
+            authoritativeCapability: "knowledge",
+          }),
+          sourceOwnershipCorrespondence: ownership,
+          externalCurrentnessCorrespondence: external,
+          underlyingSourceAuthority: underlyingSourceAuthorityCorrespondence(
+            external.issuerVerification,
+          ),
+        },
+      };
+    }
+
+    try {
+      const candidate =
+        createStructuredKnowledgeProjectionCandidate(candidateInput);
+      return this.#projectionAuthority.capture(candidate);
+    } catch (error) {
+      if (error instanceof KnowledgeProjectionIssuanceError) throw error;
+      throw new KnowledgeProjectionConstructionError();
+    }
+  }
+
+  public verifyStructuredKnowledgeProjectionAuthority(
+    request: VerifyStructuredKnowledgeProjectionAuthorityRequest,
+  ): StructuredKnowledgeProjection;
+  public verifyStructuredKnowledgeProjectionAuthority(
+    request: unknown,
+  ): StructuredKnowledgeProjection;
+  public verifyStructuredKnowledgeProjectionAuthority(
+    request: unknown,
+  ): StructuredKnowledgeProjection {
+    this.requireReady();
+    try {
+      return this.#projectionAuthority.verify(request);
+    } catch (error) {
+      if (
+        error instanceof InvalidKnowledgeProjectionVerificationRequestError ||
+        error instanceof KnowledgeProjectionAuthorityVerificationError
+      ) {
+        throw error;
+      }
+      throw new KnowledgeProjectionAuthorityVerificationError();
+    }
+  }
+
   public listKnowledgeReferences(
     request: unknown,
   ): readonly KnowledgeReference[] {
-    this.requireRunning();
+    this.requireReady();
     try {
       if (!isPlainRecord(request) || !hasExactFields(request, [], ["limit"])) {
         throw new InvalidKnowledgeInputError();
@@ -260,6 +583,9 @@ export class KnowledgeEngine
           "contradictsKnowledgeIdentity",
           "contradictionDecision",
           "contradictionReason",
+          "structuredProposition",
+          "samePropositionDeclaration",
+          "sourceOwnershipProposal",
         ],
       ) ||
       request.intent !== "evaluate"
@@ -268,10 +594,28 @@ export class KnowledgeEngine
     }
 
     let claim;
+    let semanticInput;
     try {
-      claim = candidateClaim(request.claim);
+      semanticInput = createKnowledgeAcceptanceSemanticInput({
+        claim: request.claim,
+        ...(Object.hasOwn(request, "structuredProposition")
+          ? { structuredProposition: request.structuredProposition }
+          : {}),
+        ...(Object.hasOwn(request, "samePropositionDeclaration")
+          ? { samePropositionDeclaration: request.samePropositionDeclaration }
+          : {}),
+        ...(Object.hasOwn(request, "sourceOwnershipProposal")
+          ? { sourceOwnershipProposal: request.sourceOwnershipProposal }
+          : {}),
+      });
+      claim = semanticInput.claim;
     } catch {
-      throw new InvalidClaimError();
+      try {
+        candidateClaim(request.claim);
+      } catch {
+        throw new InvalidClaimError();
+      }
+      throw new InvalidKnowledgeInputError();
     }
 
     let evidence;
@@ -297,7 +641,8 @@ export class KnowledgeEngine
     if (!hasTarget && (hasDecision || hasReason)) {
       throw new InvalidKnowledgeInputError();
     }
-    if (!hasTarget) return Object.freeze({ claim, evidence, provenance });
+    if (!hasTarget)
+      return Object.freeze({ claim, evidence, provenance, semanticInput });
 
     if (
       request.contradictionDecision !== "reject-candidate" &&
@@ -315,6 +660,7 @@ export class KnowledgeEngine
       claim,
       evidence,
       provenance,
+      semanticInput,
       contradiction: Object.freeze({
         target: this.callerIdentity(request.contradictsKnowledgeIdentity),
         decision: request.contradictionDecision,
@@ -323,9 +669,163 @@ export class KnowledgeEngine
     });
   }
 
-  private loadConfirmedRecord(identity: KnowledgeIdentity): KnowledgeRecord {
-    const result = this.callStore(() => this.store.get(identity));
-    return this.validateGetResult(result, identity);
+  private async reconstructLifecycle(): Promise<ReconstructedRuntimeState> {
+    const snapshotResult = createKnowledgeLifecycleSnapshotResult(
+      await this.store.loadKnowledgeLifecycleSnapshot(),
+    );
+    if (snapshotResult.status !== "loaded") {
+      throw new Error();
+    }
+    const entries = snapshotResult.snapshot.entries;
+    const entryByIdentity = new Map<
+      KnowledgeIdentity,
+      (typeof entries)[number]
+    >();
+    const childByIdentity = new Map<KnowledgeIdentity, KnowledgeIdentity>();
+    const orders = new Set<string>();
+    const records = new Map<KnowledgeIdentity, KnowledgeRecord>();
+
+    for (const entry of entries) {
+      if (entryByIdentity.has(entry.knowledgeIdentity)) throw new Error();
+      if (orders.has(entry.acceptanceOrder)) throw new Error();
+      orders.add(entry.acceptanceOrder);
+      const stored = await this.store.get(entry.knowledgeIdentity);
+      if (!isPlainRecord(stored) || stored.status !== "found")
+        throw new Error();
+      const record = this.validateStoredRecord(stored.record);
+      if (
+        record.knowledgeIdentity !== entry.knowledgeIdentity ||
+        record.version !== entry.version ||
+        record.supersedesKnowledgeIdentity !==
+          entry.predecessorKnowledgeIdentity
+      ) {
+        throw new Error();
+      }
+      if (entry.predecessorKnowledgeIdentity === entry.knowledgeIdentity) {
+        throw new Error();
+      }
+      entryByIdentity.set(entry.knowledgeIdentity, entry);
+      records.set(entry.knowledgeIdentity, record);
+    }
+
+    for (const entry of entries) {
+      const predecessor = entry.predecessorKnowledgeIdentity;
+      if (predecessor === undefined) continue;
+      const predecessorEntry = entryByIdentity.get(predecessor);
+      if (predecessorEntry === undefined) throw new Error();
+      if (childByIdentity.has(predecessor)) throw new Error();
+      if (
+        calculateNextKnowledgeVersion(predecessorEntry.version) !==
+        entry.version
+      ) {
+        throw new Error();
+      }
+      childByIdentity.set(predecessor, entry.knowledgeIdentity);
+    }
+
+    const visiting = new Set<KnowledgeIdentity>();
+    const visited = new Set<KnowledgeIdentity>();
+    const visit = (identity: KnowledgeIdentity): void => {
+      if (visiting.has(identity)) throw new Error();
+      if (visited.has(identity)) return;
+      visiting.add(identity);
+      const predecessor =
+        entryByIdentity.get(identity)?.predecessorKnowledgeIdentity;
+      if (predecessor !== undefined) visit(predecessor);
+      visiting.delete(identity);
+      visited.add(identity);
+    };
+    for (const entry of entries) visit(entry.knowledgeIdentity);
+
+    for (const entry of entries) {
+      const hasSuccessor = childByIdentity.has(entry.knowledgeIdentity);
+      if ((entry.standing === "current") === hasSuccessor) throw new Error();
+    }
+
+    const confirmed = new Map<KnowledgeIdentity, ConfirmedMetadata>();
+    const current = new Set<KnowledgeIdentity>();
+    const acceptanceOrder: KnowledgeIdentity[] = [];
+    for (const entry of entries) {
+      confirmed.set(
+        entry.knowledgeIdentity,
+        Object.freeze({ version: entry.version }),
+      );
+      if (entry.standing === "current") current.add(entry.knowledgeIdentity);
+      acceptanceOrder.push(entry.knowledgeIdentity);
+    }
+    return { confirmed, current, acceptanceOrder, records };
+  }
+
+  private validateIndependentAcceptanceResult(
+    result: unknown,
+    identity: KnowledgeIdentity,
+  ): void {
+    let parsed: ReturnType<typeof createPutIndependentAcceptedKnowledgeResult>;
+    try {
+      parsed = createPutIndependentAcceptedKnowledgeResult(result);
+    } catch {
+      throw new InvalidKnowledgeStateError();
+    }
+    if (parsed.status === "stored" && parsed.knowledgeIdentity === identity)
+      return;
+    if (parsed.status === "duplicate")
+      throw new DuplicateKnowledgeIdentityError();
+    if (parsed.status === "unavailable")
+      throw new KnowledgeStoreUnavailableError();
+    if (parsed.status === "ambiguous")
+      throw new AmbiguousKnowledgeMutationError();
+    throw new InvalidKnowledgeStateError();
+  }
+
+  private validateSupersessionResult(
+    result: unknown,
+    predecessor: KnowledgeIdentity,
+    successor: KnowledgeIdentity,
+  ): void {
+    let parsed: ReturnType<typeof createSupersedeCurrentKnowledgeResult>;
+    try {
+      parsed = createSupersedeCurrentKnowledgeResult(result);
+    } catch {
+      throw new InvalidKnowledgeStateError();
+    }
+    if (
+      parsed.status === "superseded" &&
+      parsed.predecessorKnowledgeIdentity === predecessor &&
+      parsed.successorKnowledgeIdentity === successor
+    ) {
+      return;
+    }
+    if (
+      parsed.status === "predecessor-not-found" ||
+      parsed.status === "stale-predecessor"
+    ) {
+      throw new InvalidSupersessionError();
+    }
+    if (parsed.status === "duplicate")
+      throw new DuplicateKnowledgeIdentityError();
+    if (parsed.status === "unavailable")
+      throw new KnowledgeStoreUnavailableError();
+    if (parsed.status === "ambiguous")
+      throw new AmbiguousKnowledgeMutationError();
+    throw new InvalidKnowledgeStateError();
+  }
+
+  private loadConfirmedRecord(
+    identity: KnowledgeIdentity,
+    options: Readonly<{ allowCurrentnessInconsistency?: boolean }> = {},
+  ): KnowledgeRecord {
+    const record = this.#records.get(identity);
+    const metadata = this.#confirmed.get(identity);
+    if (record === undefined || metadata === undefined) {
+      throw new InvalidKnowledgeStateError();
+    }
+    if (
+      record.version !== metadata.version &&
+      options.allowCurrentnessInconsistency !== true
+    ) {
+      throw new InvalidKnowledgeStateError();
+    }
+    return record;
   }
 
   private validateStoredRecord(value: unknown): KnowledgeRecord {
@@ -343,7 +843,7 @@ export class KnowledgeEngine
             "acceptedAt",
             "version",
           ],
-          ["supersedesKnowledgeIdentity"],
+          ["supersedesKnowledgeIdentity", "acceptedStructuredProposition"],
         ) ||
         value.validationState !== "accepted"
       ) {
@@ -356,73 +856,16 @@ export class KnowledgeEngine
         acceptanceEvidence: value.acceptanceEvidence,
         acceptedAt: value.acceptedAt,
         version: value.version,
+        ...(Object.hasOwn(value, "acceptedStructuredProposition")
+          ? {
+              acceptedStructuredProposition:
+                value.acceptedStructuredProposition,
+            }
+          : {}),
         ...(Object.hasOwn(value, "supersedesKnowledgeIdentity")
           ? { supersedesKnowledgeIdentity: value.supersedesKnowledgeIdentity }
           : {}),
       });
-    });
-  }
-
-  private validatePutResult(
-    result: unknown,
-    identity: KnowledgeIdentity,
-  ): void {
-    this.inspectStoreResult(() => {
-      if (!isPlainRecord(result) || typeof result.status !== "string") {
-        throw new InvalidKnowledgeStateError();
-      }
-      if (
-        result.status === "unavailable" &&
-        hasExactFields(result, ["status"])
-      ) {
-        throw new KnowledgeStoreUnavailableError();
-      }
-      if (result.status === "duplicate" && hasExactFields(result, ["status"])) {
-        throw new DuplicateKnowledgeIdentityError();
-      }
-      if (
-        result.status !== "stored" ||
-        !hasExactFields(result, ["status", "knowledgeIdentity"]) ||
-        knowledgeIdentity(result.knowledgeIdentity) !== identity
-      ) {
-        throw new InvalidKnowledgeStateError();
-      }
-    });
-  }
-
-  private validateGetResult(
-    result: unknown,
-    identity: KnowledgeIdentity,
-  ): KnowledgeRecord {
-    return this.inspectStoreResult(() => {
-      if (!isPlainRecord(result) || typeof result.status !== "string") {
-        throw new InvalidKnowledgeStateError();
-      }
-      if (
-        result.status === "unavailable" &&
-        hasExactFields(result, ["status"])
-      ) {
-        throw new KnowledgeStoreUnavailableError();
-      }
-      if (result.status === "not-found" && hasExactFields(result, ["status"])) {
-        throw new InvalidKnowledgeStateError();
-      }
-      if (
-        result.status !== "found" ||
-        !hasExactFields(result, ["status", "record"])
-      ) {
-        throw new InvalidKnowledgeStateError();
-      }
-      const record = this.validateStoredRecord(result.record);
-      const metadata = this.#confirmed.get(identity);
-      if (
-        record.knowledgeIdentity !== identity ||
-        metadata === undefined ||
-        record.version !== metadata.version
-      ) {
-        throw new InvalidKnowledgeStateError();
-      }
-      return record;
     });
   }
 
@@ -450,11 +893,51 @@ export class KnowledgeEngine
     }
   }
 
-  private callStore(operation: () => unknown): unknown {
+  private nextPropositionIdentity() {
     try {
-      return operation();
+      const allocator = this.construction.nextPropositionIdentity;
+      if (typeof allocator !== "function") {
+        throw new Error();
+      }
+      return propositionIdentity(allocator.call(this.construction));
     } catch {
-      throw new KnowledgeStoreUnavailableError();
+      throw new InvalidKnowledgeStateError();
+    }
+  }
+
+  private determineKnowledgeOwnedCurrentness(
+    record: Extract<
+      KnowledgeRecord,
+      { readonly acceptedStructuredProposition: unknown }
+    >,
+    association: KnowledgeProjectionRequest["preparationPrerequisites"]["candidatePreparationAssociation"],
+  ): KnowledgeOwnedSourceCurrentnessDetermination {
+    const metadata = this.#confirmed.get(record.knowledgeIdentity);
+    const outcome =
+      metadata === undefined || metadata.version !== record.version
+        ? "unable-to-determine"
+        : this.#current.has(record.knowledgeIdentity)
+          ? "positive"
+          : "negative";
+    return createKnowledgeOwnedSourceCurrentnessDetermination({
+      currentnessOwner: "knowledge-owned-currentness",
+      outcome,
+      knowledgeIdentity: record.knowledgeIdentity,
+      knowledgeVersion: record.version,
+      propositionIdentity:
+        record.acceptedStructuredProposition.propositionIdentity,
+      semanticValue: record.acceptedStructuredProposition.semanticValue,
+      candidatePreparationAssociation: association,
+    });
+  }
+
+  private async callMutationStore(
+    operation: () => Promise<unknown>,
+  ): Promise<unknown> {
+    try {
+      return await operation();
+    } catch {
+      throw new AmbiguousKnowledgeMutationError();
     }
   }
 
@@ -474,8 +957,65 @@ export class KnowledgeEngine
     }
   }
 
-  private requireRunning(): void {
-    if (this.#engineState !== "running") throw new InvalidKnowledgeStateError();
+  private requireReady(): void {
+    if (this.#engineState !== "ready") throw new InvalidKnowledgeStateError();
+  }
+
+  private publishReconstructedState(state: ReconstructedRuntimeState): void {
+    this.#confirmed = state.confirmed;
+    this.#current = state.current;
+    this.#acceptanceOrder = state.acceptanceOrder;
+    this.#records = state.records;
+    this.#projectionAuthority = new KnowledgeProjectionAuthority();
+  }
+
+  private async performInitialization(
+    settle: KnowledgeSettlementCompletion,
+  ): Promise<void> {
+    try {
+      const replacement = await this.reconstructLifecycle();
+      this.publishReconstructedState(replacement);
+      this.#engineState = this.#shutdownRequested ? "stopping" : "ready";
+    } catch {
+      this.#engineState = "failed-initialization";
+      throw new KnowledgeEngineInitializationError();
+    } finally {
+      settle();
+    }
+  }
+
+  private async performRecovery(
+    settle: KnowledgeSettlementCompletion,
+  ): Promise<void> {
+    try {
+      const replacement = await this.reconstructLifecycle();
+      this.publishReconstructedState(replacement);
+      this.#engineState = this.#shutdownRequested ? "stopping" : "ready";
+    } catch {
+      this.#engineState = "reconstruction-required";
+      throw new KnowledgeEngineRecoveryError();
+    } finally {
+      settle();
+    }
+  }
+
+  private async performShutdown(): Promise<void> {
+    try {
+      if (this.#initialization !== undefined) {
+        await this.#initialization.catch(() => undefined);
+      }
+      if (this.#recovery !== undefined) {
+        await this.#recovery.catch(() => undefined);
+      }
+      this.#engineState = "stopping";
+      await this.#mutationTail;
+      this.#engineState = "stopping";
+      await this.settlementCoordinator.waitUntilSettled();
+      this.#engineState = "stopped";
+    } catch {
+      this.#engineState = "failed-shutdown";
+      throw new KnowledgeEngineShutdownError();
+    }
   }
 }
 
@@ -519,12 +1059,43 @@ function isPublicFailure(error: unknown): boolean {
 }
 
 export type KnowledgeEngineLifecycleState =
-  "initialize" | "ready" | "running" | "stopped";
+  | "created"
+  | "initializing"
+  | "ready"
+  | "reconstruction-required"
+  | "reconstructing"
+  | "stopping"
+  | "stopped"
+  | "failed-initialization"
+  | "failed-shutdown";
 
 export class KnowledgeEngineInitializationError extends Error {
   public constructor() {
     super("Knowledge Engine dependencies or lifecycle are invalid.");
     this.name = "KnowledgeEngineInitializationError";
+  }
+}
+
+export class KnowledgeEngineRecoveryError extends Error {
+  public constructor() {
+    super("Knowledge Engine recovery failed or is not permitted.");
+    this.name = "KnowledgeEngineRecoveryError";
+  }
+}
+
+export class KnowledgeEngineShutdownError extends Error {
+  public constructor() {
+    super("Knowledge Engine shutdown settlement failed.");
+    this.name = "KnowledgeEngineShutdownError";
+  }
+}
+
+export class KnowledgeSourceCurrentnessUnableToDetermineError extends Error {
+  public constructor() {
+    super(
+      "Knowledge could not determine Source Currentness for the preparation.",
+    );
+    this.name = "KnowledgeSourceCurrentnessUnableToDetermineError";
   }
 }
 

@@ -4,7 +4,7 @@ import type {
   ContextRevisionNumber,
   ActiveContextRevision,
 } from "./context.js";
-import type { ReasoningOutcome } from "./reasoning.js";
+import type { BoundedReasoningQuery, ReasoningOutcome } from "./reasoning.js";
 
 export interface EvaluateReasoningRequest {
   readonly intent: "evaluate";
@@ -13,6 +13,12 @@ export interface EvaluateReasoningRequest {
 }
 export interface EvaluateReasoning {
   evaluateReasoning(request: EvaluateReasoningRequest): ReasoningOutcome;
+}
+
+export interface EvaluateReasoning3Request {
+  readonly intent: "evaluate";
+  readonly activeContextRevision: ActiveContextRevision;
+  readonly query: BoundedReasoningQuery;
 }
 
 export interface VerifyReasoningOutcomeAuthorityRequest {

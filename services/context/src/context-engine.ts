@@ -4,14 +4,22 @@ import {
   InvalidContextAuthorityStateError,
   InvalidContextInputError,
   InvalidContextLifecycleTransitionError,
+  InvalidContextPreparationScopeError,
   InvalidIdentityContextProjectionError,
   InvalidKnowledgeContextProjectionError,
   InvalidMemoryContextProjectionError,
+  InvalidStructuredKnowledgeContextFragmentError,
   NoActiveContextRevisionError,
   contextCreatedAt,
   contextLineageIdentity,
   contextRevisionIdentity,
   contextRevisionNumber,
+  candidatePreparationAssociation,
+  contextualApplicabilityCardinality,
+  createContextPreparationSemanticScope,
+  createKnowledgeProjectionRequest,
+  createStructuredKnowledgeContextFragment,
+  evaluateContextualApplicability,
   identityIdentifier,
   knowledgeIdentity,
   knowledgeVersion,
@@ -23,12 +31,15 @@ import {
   type ComposeContextRevisionWithKnowledgeRequest,
   type ComposeContextRevisionWithMemory,
   type ComposeContextRevisionWithMemoryRequest,
+  type ComposeContextRevisionWithStructuredKnowledge,
+  type ComposeContextRevisionWithStructuredKnowledgeRequest,
   type ContextConstructionValues,
   type ContextLineageIdentity,
   type ContextRevision,
   type GetActiveContextRevision,
   type GetActiveContextRevisionRequest,
   type GetKnowledge,
+  type ProjectStructuredKnowledge,
   type GetMemory,
   type IdentityContextFragment,
   type IdentityContextProjection,
@@ -44,8 +55,13 @@ import {
   type PrepareContextRevisionWithKnowledgeRequest,
   type PrepareContextRevisionWithMemory,
   type PrepareContextRevisionWithMemoryRequest,
+  type PrepareContextRevisionWithStructuredKnowledge,
+  type PrepareContextRevisionWithStructuredKnowledgeRequest,
   type ResolveCurrentIdentity,
   type VerifyActiveContextRevisionAuthority,
+  type VerifyStructuredKnowledgeProjectionAuthority,
+  type StructuredKnowledgeProjection,
+  type StructuredKnowledgeContextFragment,
   type VerifyActiveContextRevisionAuthorityRequest,
 } from "@orion/core";
 
@@ -84,6 +100,10 @@ interface ValidatedKnowledgeComposeRequest extends ValidatedComposeRequest {
   readonly knowledgeProjection: KnowledgeContextProjection;
 }
 
+interface ValidatedStructuredKnowledgeComposeRequest extends ValidatedComposeRequest {
+  readonly structuredKnowledgeFragment: StructuredKnowledgeContextFragment;
+}
+
 interface ValidatedMemoryComposeRequest extends ValidatedComposeRequest {
   readonly memoryProjection: MemoryContextProjection;
 }
@@ -97,6 +117,13 @@ interface ValidatedKnowledgePrepareRequest extends ValidatedPrepareRequest {
   readonly knowledgeRetrievalRequest: unknown;
 }
 
+interface ValidatedStructuredKnowledgePrepareRequest extends ValidatedPrepareRequest {
+  readonly contextPreparationSemanticScope: ReturnType<
+    typeof createContextPreparationSemanticScope
+  >;
+  readonly knowledgeRetrievalRequest: unknown;
+}
+
 interface ValidatedMemoryPrepareRequest extends ValidatedPrepareRequest {
   readonly memoryRetrievalRequest: unknown;
 }
@@ -107,7 +134,11 @@ type ContextProfile =
       kind: "knowledge";
       projection: KnowledgeContextProjection;
     }>
-  | Readonly<{ kind: "memory"; projection: MemoryContextProjection }>;
+  | Readonly<{ kind: "memory"; projection: MemoryContextProjection }>
+  | Readonly<{
+      kind: "structured-knowledge";
+      fragment: StructuredKnowledgeContextFragment;
+    }>;
 
 const CONTEXT_FAILURES = [
   InvalidContextInputError,
@@ -115,6 +146,8 @@ const CONTEXT_FAILURES = [
   InvalidIdentityContextProjectionError,
   InvalidKnowledgeContextProjectionError,
   InvalidMemoryContextProjectionError,
+  InvalidContextPreparationScopeError,
+  InvalidStructuredKnowledgeContextFragmentError,
   ContextLineageNotFoundError,
   ContextValidationFailureError,
   NoActiveContextRevisionError,
@@ -158,15 +191,40 @@ function sameProjection(
   );
 }
 
+function stableStructuredFragmentEqual(
+  left: StructuredKnowledgeContextFragment,
+  right: StructuredKnowledgeContextFragment,
+): boolean {
+  const stable = (fragment: StructuredKnowledgeContextFragment): unknown => ({
+    kind: fragment.kind,
+    authoritativeOwner: fragment.authoritativeOwner,
+    projection: {
+      semanticValue: fragment.projection.semanticValue,
+      propositionIdentity: fragment.projection.propositionIdentity,
+      knowledgeIdentity: fragment.projection.knowledgeIdentity,
+      knowledgeVersion: fragment.projection.knowledgeVersion,
+      sourceOwnershipCorrespondence:
+        fragment.projection.sourceOwnershipCorrespondence,
+      sourceCurrentnessCorrespondence:
+        fragment.projection.sourceCurrentnessCorrespondence,
+      attribution: fragment.projection.attribution,
+      underlyingSourceAuthority: fragment.projection.underlyingSourceAuthority,
+    },
+  });
+  return JSON.stringify(stable(left)) === JSON.stringify(stable(right));
+}
+
 export class ContextEngine
   implements
     ComposeContextRevision,
     ComposeContextRevisionWithKnowledge,
     ComposeContextRevisionWithMemory,
+    ComposeContextRevisionWithStructuredKnowledge,
     GetActiveContextRevision,
     PrepareContextRevision,
     PrepareContextRevisionWithKnowledge,
     PrepareContextRevisionWithMemory,
+    PrepareContextRevisionWithStructuredKnowledge,
     VerifyActiveContextRevisionAuthority
 {
   readonly #lineages = new Map<ContextLineageIdentity, ContextLineageState>();
@@ -178,6 +236,8 @@ export class ContextEngine
     private readonly currentIdentityResolver: ResolveCurrentIdentity,
     private readonly knowledgeResolver?: GetKnowledge,
     private readonly memoryResolver?: GetMemory,
+    private readonly structuredKnowledgeResolver?: ProjectStructuredKnowledge &
+      VerifyStructuredKnowledgeProjectionAuthority,
   ) {
     if (
       construction === undefined ||
@@ -205,7 +265,12 @@ export class ContextEngine
         (this.knowledgeResolver !== undefined &&
           typeof this.knowledgeResolver.getKnowledge !== "function") ||
         (this.memoryResolver !== undefined &&
-          typeof this.memoryResolver.getMemory !== "function")
+          typeof this.memoryResolver.getMemory !== "function") ||
+        (this.structuredKnowledgeResolver !== undefined &&
+          (typeof this.structuredKnowledgeResolver
+            .projectStructuredKnowledge !== "function" ||
+            typeof this.structuredKnowledgeResolver
+              .verifyStructuredKnowledgeProjectionAuthority !== "function"))
       ) {
         throw new ContextEngineInitializationError();
       }
@@ -355,6 +420,96 @@ export class ContextEngine
     });
   }
 
+  public composeContextRevisionWithStructuredKnowledge(
+    request: ComposeContextRevisionWithStructuredKnowledgeRequest,
+  ): ActiveContextRevision;
+  public composeContextRevisionWithStructuredKnowledge(
+    request: unknown,
+  ): ActiveContextRevision;
+  public composeContextRevisionWithStructuredKnowledge(
+    request: unknown,
+  ): ActiveContextRevision {
+    this.requireEngineState("running");
+    try {
+      return this.composeStructuredKnowledgeValidated(
+        this.validateStructuredKnowledgeComposeRequest(request),
+      );
+    } catch (error: unknown) {
+      if (isContextFailure(error)) throw error;
+      throw new ContextValidationFailureError();
+    }
+  }
+
+  public prepareContextRevisionWithStructuredKnowledge(
+    request: PrepareContextRevisionWithStructuredKnowledgeRequest,
+  ): ActiveContextRevision;
+  public prepareContextRevisionWithStructuredKnowledge(
+    request: unknown,
+  ): ActiveContextRevision;
+  public prepareContextRevisionWithStructuredKnowledge(
+    request: unknown,
+  ): ActiveContextRevision {
+    this.requireEngineState("running");
+    if (
+      this.knowledgeResolver === undefined ||
+      this.structuredKnowledgeResolver === undefined
+    ) {
+      throw new ContextEngineInitializationError();
+    }
+    const validatedRequest =
+      this.validateStructuredKnowledgePrepareRequest(request);
+    const association = candidatePreparationAssociation(
+      this.nextRevisionIdentity(),
+    );
+    const currentIdentity = this.currentIdentityResolver.resolveCurrentIdentity(
+      validatedRequest.identityResolutionRequest as never,
+    );
+    const retrievedKnowledge = this.knowledgeResolver.getKnowledge(
+      validatedRequest.knowledgeRetrievalRequest as never,
+    );
+    const knowledgeReference =
+      this.extractKnowledgeReference(retrievedKnowledge);
+    const projection =
+      this.structuredKnowledgeResolver.projectStructuredKnowledge(
+        createKnowledgeProjectionRequest({
+          intent: "project-structured-knowledge",
+          target: {
+            knowledgeIdentity: knowledgeReference.knowledgeIdentity,
+            expectedKnowledgeVersion: knowledgeReference.version,
+          },
+          preparationPrerequisites: {
+            currentnessOwner: "knowledge-owned-currentness",
+            candidatePreparationAssociation: association,
+          },
+        }),
+      );
+    const verified =
+      this.structuredKnowledgeResolver.verifyStructuredKnowledgeProjectionAuthority(
+        {
+          intent: "verify-knowledge-projection-authority",
+          candidate: projection,
+        },
+      );
+    const result = evaluateContextualApplicability(
+      verified.semanticValue,
+      validatedRequest.contextPreparationSemanticScope,
+    );
+    const cardinality = contextualApplicabilityCardinality([result]);
+    if (!cardinality.canIncorporate) {
+      if (result === "NOT_APPLICABLE") {
+        throw new NoApplicableStructuredKnowledgeCandidateError();
+      }
+      throw new ContextValidationFailureError();
+    }
+    const structuredKnowledgeFragment =
+      this.createStructuredKnowledgeFragment(verified);
+    return this.composeContextRevisionWithStructuredKnowledge({
+      target: validatedRequest.target,
+      currentIdentity,
+      structuredKnowledgeFragment,
+    });
+  }
+
   public getActiveContextRevision(
     request: GetActiveContextRevisionRequest,
   ): ActiveContextRevision;
@@ -444,6 +599,23 @@ export class ContextEngine
     const profile: ContextProfile = {
       kind: "memory",
       projection: request.memoryProjection,
+    };
+    if (request.target.kind === "new-lineage") {
+      return this.createFirstRevision(request.identityProjection, profile);
+    }
+    return this.createSuccessorRevision(
+      request.target,
+      request.identityProjection,
+      profile,
+    );
+  }
+
+  private composeStructuredKnowledgeValidated(
+    request: ValidatedStructuredKnowledgeComposeRequest,
+  ): ActiveContextRevision {
+    const profile: ContextProfile = {
+      kind: "structured-knowledge",
+      fragment: request.structuredKnowledgeFragment,
     };
     if (request.target.kind === "new-lineage") {
       return this.createFirstRevision(request.identityProjection, profile);
@@ -567,6 +739,12 @@ export class ContextEngine
         fragments: [fragment, memoryFragment],
       });
     }
+    if (profile.kind === "structured-knowledge") {
+      return createActiveRuntimeContextRevision({
+        ...base,
+        fragments: [fragment, profile.fragment],
+      });
+    }
     const knowledgeFragment = Object.freeze({
       kind: "knowledge",
       authoritativeOwner: "knowledge",
@@ -604,6 +782,12 @@ export class ContextEngine
         existing.lifecycleState === candidate.projection.lifecycleState &&
         existing.authoritativeOwner === candidate.projection.authoritativeOwner
       );
+    }
+    if (
+      candidate.kind === "structured-knowledge" &&
+      fragment.kind === "structured-knowledge"
+    ) {
+      return stableStructuredFragmentEqual(fragment, candidate.fragment);
     }
     return false;
   }
@@ -712,6 +896,35 @@ export class ContextEngine
     }
   }
 
+  private validateStructuredKnowledgeComposeRequest(
+    request: unknown,
+  ): ValidatedStructuredKnowledgeComposeRequest {
+    try {
+      if (
+        !isPlainRecord(request) ||
+        !hasExactFields(request, [
+          "target",
+          "currentIdentity",
+          "structuredKnowledgeFragment",
+        ])
+      ) {
+        throw new InvalidContextInputError();
+      }
+      return Object.freeze({
+        target: this.validateTarget(Reflect.get(request, "target")),
+        identityProjection: this.validateIdentityProjection(
+          Reflect.get(request, "currentIdentity"),
+        ),
+        structuredKnowledgeFragment: this.validateStructuredKnowledgeFragment(
+          Reflect.get(request, "structuredKnowledgeFragment"),
+        ),
+      });
+    } catch (error: unknown) {
+      if (isContextFailure(error)) throw error;
+      throw new InvalidContextInputError();
+    }
+  }
+
   private validatePrepareRequest(request: unknown): ValidatedPrepareRequest {
     try {
       if (
@@ -792,6 +1005,97 @@ export class ContextEngine
       if (isContextFailure(error)) throw error;
       throw new InvalidContextInputError();
     }
+  }
+
+  private validateStructuredKnowledgePrepareRequest(
+    request: unknown,
+  ): ValidatedStructuredKnowledgePrepareRequest {
+    try {
+      if (
+        !isPlainRecord(request) ||
+        !hasExactFields(request, [
+          "target",
+          "identityResolutionRequest",
+          "contextPreparationSemanticScope",
+          "knowledgeRetrievalRequest",
+        ])
+      ) {
+        throw new InvalidContextInputError();
+      }
+      return Object.freeze({
+        target: this.validateTarget(Reflect.get(request, "target")),
+        identityResolutionRequest: Reflect.get(
+          request,
+          "identityResolutionRequest",
+        ),
+        contextPreparationSemanticScope: createContextPreparationSemanticScope(
+          Reflect.get(request, "contextPreparationSemanticScope"),
+        ),
+        knowledgeRetrievalRequest: Reflect.get(
+          request,
+          "knowledgeRetrievalRequest",
+        ),
+      });
+    } catch (error: unknown) {
+      if (error instanceof InvalidContextPreparationScopeError) {
+        throw new InvalidContextInputError();
+      }
+      if (isContextFailure(error)) throw error;
+      throw new InvalidContextInputError();
+    }
+  }
+
+  private validateStructuredKnowledgeFragment(
+    value: unknown,
+  ): StructuredKnowledgeContextFragment {
+    if (
+      !isPlainRecord(value) ||
+      !hasExactFields(value, ["kind", "authoritativeOwner", "projection"])
+    ) {
+      throw new InvalidStructuredKnowledgeContextFragmentError();
+    }
+    const projection = Reflect.get(value, "projection");
+    if (!isPlainRecord(projection)) {
+      throw new InvalidStructuredKnowledgeContextFragmentError();
+    }
+    return createStructuredKnowledgeContextFragment({
+      kind: Reflect.get(value, "kind"),
+      authoritativeOwner: Reflect.get(value, "authoritativeOwner"),
+      ...projection,
+    });
+  }
+
+  private createStructuredKnowledgeFragment(
+    projection: StructuredKnowledgeProjection,
+  ): StructuredKnowledgeContextFragment {
+    const ownership = projection.correspondence.sourceOwnershipCorrespondence;
+    const sourceCurrentnessCorrespondence =
+      ownership.currentnessOwner === "knowledge-owned-currentness"
+        ? { currentnessOwner: "knowledge-owned-currentness" as const }
+        : {
+            currentnessOwner: "external-source-currentness" as const,
+            correspondence:
+              projection.correspondence.externalCurrentnessCorrespondence
+                ?.issuerVerification,
+          };
+    return createStructuredKnowledgeContextFragment({
+      kind: "structured-knowledge",
+      authoritativeOwner: "knowledge",
+      semanticValue: projection.semanticValue,
+      propositionIdentity: projection.correspondence.propositionIdentity,
+      knowledgeIdentity: projection.correspondence.knowledgeIdentity,
+      knowledgeVersion: projection.correspondence.knowledgeVersion,
+      sourceOwnershipCorrespondence: ownership,
+      sourceCurrentnessCorrespondence,
+      attribution: projection.correspondence.attribution,
+      issuance: projection.correspondence.issuance,
+      ...(projection.correspondence.underlyingSourceAuthority === undefined
+        ? {}
+        : {
+            underlyingSourceAuthority:
+              projection.correspondence.underlyingSourceAuthority,
+          }),
+    });
   }
 
   private extractKnowledgeReference(value: unknown): KnowledgeReference {
@@ -1020,5 +1324,12 @@ export class ContextEngineLifecycleError extends Error {
   public constructor() {
     super("Context Engine lifecycle does not permit this operation.");
     this.name = "ContextEngineLifecycleError";
+  }
+}
+
+export class NoApplicableStructuredKnowledgeCandidateError extends Error {
+  public constructor() {
+    super("No applicable structured Knowledge candidate is available.");
+    this.name = "NoApplicableStructuredKnowledgeCandidateError";
   }
 }

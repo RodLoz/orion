@@ -254,9 +254,13 @@ function exactKeys(value: object, fields: readonly string[]): void {
   }
 }
 function outcomeCategory(value: unknown): value is ReasoningOutcomeCategory {
-  return ["anonymous-context", "context-only"].includes(
-    value as ReasoningOutcomeCategory,
-  );
+  return [
+    "anonymous-context",
+    "context-only",
+    "knowledge-grounded-success",
+    "knowledge-not-applicable",
+    "knowledge-insufficient",
+  ].includes(value as ReasoningOutcomeCategory);
 }
 function nextAction(value: unknown): value is CandidateNextAction {
   return value === "none" || value === "request-more-context";
@@ -265,9 +269,13 @@ function identityState(value: unknown): value is "anonymous" | "authenticated" {
   return value === "anonymous" || value === "authenticated";
 }
 function reasoningRule(value: unknown): value is ReasoningRuleCategory {
-  return ["anonymous-identity", "authenticated-context-only"].includes(
-    value as ReasoningRuleCategory,
-  );
+  return [
+    "anonymous-identity",
+    "authenticated-context-only",
+    "authenticated-knowledge-applicable-sufficient",
+    "authenticated-knowledge-not-applicable",
+    "authenticated-knowledge-applicable-insufficient",
+  ].includes(value as ReasoningRuleCategory);
 }
 function planCategory(value: unknown): value is CandidatePlanCategory {
   return value === "respond" || value === "request-more-context";
@@ -301,6 +309,26 @@ function validReasoningCorrespondence(value: ReasoningCorrespondence): boolean {
         value.identityState === "authenticated" &&
         value.reasoningRuleCategory === "authenticated-context-only"
       );
+    case "knowledge-grounded-success":
+      return (
+        value.candidateNextAction === "none" &&
+        value.identityState === "authenticated" &&
+        value.reasoningRuleCategory ===
+          "authenticated-knowledge-applicable-sufficient"
+      );
+    case "knowledge-not-applicable":
+      return (
+        value.candidateNextAction === "request-more-context" &&
+        value.identityState === "authenticated" &&
+        value.reasoningRuleCategory === "authenticated-knowledge-not-applicable"
+      );
+    case "knowledge-insufficient":
+      return (
+        value.candidateNextAction === "request-more-context" &&
+        value.identityState === "authenticated" &&
+        value.reasoningRuleCategory ===
+          "authenticated-knowledge-applicable-insufficient"
+      );
     default:
       return false;
   }
@@ -317,8 +345,12 @@ function validPlanningCorrespondence(
   const validReasoningAction =
     (action === "request-more-context" &&
       (reasoningCategory === "anonymous-context" ||
-        reasoningCategory === "context-only")) ||
-    (action === "none" && reasoningCategory === "context-only");
+        reasoningCategory === "context-only" ||
+        reasoningCategory === "knowledge-not-applicable" ||
+        reasoningCategory === "knowledge-insufficient")) ||
+    (action === "none" &&
+      (reasoningCategory === "context-only" ||
+        reasoningCategory === "knowledge-grounded-success"));
   return (
     validReasoningAction &&
     category === (expectsResponse ? "respond" : "request-more-context") &&

@@ -1,7 +1,7 @@
 import { runDiagnosticRuntime } from "./run.js";
 
 try {
-  runDiagnosticRuntime({ environment: process.env });
+  await runDiagnosticRuntime({ environment: process.env });
 } catch (error: unknown) {
   const message =
     error instanceof Error ? error.message : "Unknown bootstrap failure";

@@ -226,7 +226,9 @@ function validateConsumedContext(value: unknown): void {
       (sourceFragment.kind === "knowledge" &&
         sourceFragment.authoritativeOwner === "knowledge") ||
       (sourceFragment.kind === "memory" &&
-        sourceFragment.authoritativeOwner === "memory")
+        sourceFragment.authoritativeOwner === "memory") ||
+      (sourceFragment.kind === "structured-knowledge" &&
+        sourceFragment.authoritativeOwner === "knowledge")
     ))
       throw new Error();
   }

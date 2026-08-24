@@ -19,6 +19,7 @@ import {
   type ContextLifecycleState,
   type PrepareContextRevisionRequest,
   type PrepareContextRevisionWithKnowledgeRequest,
+  type PrepareContextRevisionWithStructuredKnowledgeRequest,
   type PrepareContextRevisionWithMemoryRequest,
   type VerifyActiveContextRevisionAuthorityRequest,
 } from "../src/index.js";
@@ -101,6 +102,33 @@ describe("Context domain Contracts", () => {
     >();
     expectTypeOf<keyof ComposeContextRevisionWithMemoryRequest>().toEqualTypeOf<
       "target" | "currentIdentity" | "memoryReference"
+    >();
+  });
+
+  it("adds structured Profile B preparation without changing legacy requests", () => {
+    const request = {
+      target: { kind: "new-lineage" },
+      identityResolutionRequest: {},
+      contextPreparationSemanticScope: {
+        subjectKey: "person" as never,
+        predicateKey: "occupation" as never,
+      },
+      knowledgeRetrievalRequest: { knowledgeIdentity: "knowledge-1" },
+    } satisfies PrepareContextRevisionWithStructuredKnowledgeRequest;
+
+    expect(Object.keys(request)).toEqual([
+      "target",
+      "identityResolutionRequest",
+      "contextPreparationSemanticScope",
+      "knowledgeRetrievalRequest",
+    ]);
+    expectTypeOf<
+      keyof PrepareContextRevisionWithStructuredKnowledgeRequest
+    >().toEqualTypeOf<
+      | "target"
+      | "identityResolutionRequest"
+      | "contextPreparationSemanticScope"
+      | "knowledgeRetrievalRequest"
     >();
   });
 

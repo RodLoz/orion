@@ -13,6 +13,7 @@
     "@orion/planning": "workspace:*",
     "@orion/reasoning": "workspace:*",
     "@orion/security": "workspace:*",
-    "@orion/skill": "workspace:*"
+    "@orion/skill": "workspace:*",
+    "pg": "8.23.0"
   }
 }

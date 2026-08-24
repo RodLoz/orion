@@ -6,14 +6,18 @@ import type {
   ComposeContextRevision,
   ComposeContextRevisionWithKnowledge,
   ComposeContextRevisionWithMemory,
+  ComposeContextRevisionWithStructuredKnowledge,
   GetActiveContextRevision,
   GetKnowledge,
   GetMemory,
+  ProjectStructuredKnowledge,
   PrepareContextRevision,
   PrepareContextRevisionWithKnowledge,
   PrepareContextRevisionWithMemory,
+  PrepareContextRevisionWithStructuredKnowledge,
   ResolveCurrentIdentity,
   VerifyActiveContextRevisionAuthority,
+  VerifyStructuredKnowledgeProjectionAuthority,
 } from "@orion/core";
 
 import { DeterministicContextConstructionValues } from "./deterministic-context-construction-values.js";
@@ -29,6 +33,11 @@ export interface ContextCapabilityComposition {
 export interface KnowledgeAwareContextCapabilityComposition extends ContextCapabilityComposition {
   readonly composeContextRevisionWithKnowledge: ComposeContextRevisionWithKnowledge;
   readonly prepareContextRevisionWithKnowledge: PrepareContextRevisionWithKnowledge;
+}
+
+export interface StructuredKnowledgeAwareContextCapabilityComposition extends KnowledgeAwareContextCapabilityComposition {
+  readonly composeContextRevisionWithStructuredKnowledge: ComposeContextRevisionWithStructuredKnowledge;
+  readonly prepareContextRevisionWithStructuredKnowledge: PrepareContextRevisionWithStructuredKnowledge;
 }
 
 export interface MemoryAwareContextCapabilityComposition extends ContextCapabilityComposition {
@@ -71,6 +80,34 @@ export function composeKnowledgeAwareContextCapability(
     getActiveContextRevision: engine,
     prepareContextRevision: engine,
     prepareContextRevisionWithKnowledge: engine,
+    engineState: engine.engineState,
+    verifyActiveContextRevisionAuthority: engine,
+  });
+}
+
+export function composeStructuredKnowledgeAwareContextCapability(
+  currentIdentityResolver: ResolveCurrentIdentity,
+  knowledgeResolver: GetKnowledge,
+  structuredKnowledgeResolver: ProjectStructuredKnowledge &
+    VerifyStructuredKnowledgeProjectionAuthority,
+): StructuredKnowledgeAwareContextCapabilityComposition {
+  const engine = new ContextEngine(
+    new DeterministicContextConstructionValues(),
+    currentIdentityResolver,
+    knowledgeResolver,
+    undefined,
+    structuredKnowledgeResolver,
+  );
+  engine.initialize();
+  engine.start();
+  return Object.freeze({
+    composeContextRevision: engine,
+    composeContextRevisionWithKnowledge: engine,
+    composeContextRevisionWithStructuredKnowledge: engine,
+    getActiveContextRevision: engine,
+    prepareContextRevision: engine,
+    prepareContextRevisionWithKnowledge: engine,
+    prepareContextRevisionWithStructuredKnowledge: engine,
     engineState: engine.engineState,
     verifyActiveContextRevisionAuthority: engine,
   });

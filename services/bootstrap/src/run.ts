@@ -20,9 +20,9 @@ export interface DiagnosticRuntimeOptions {
   readonly diagnosticResultSink?: DiagnosticResultSink;
 }
 
-export function runDiagnosticRuntime(
+export async function runDiagnosticRuntime(
   options: DiagnosticRuntimeOptions,
-): DiagnosticResult {
+): Promise<DiagnosticResult> {
   const configuration = loadBootstrapConfiguration(options.environment);
   const logger = new ConsoleStructuredLogger(
     configuration.logLevel,
@@ -36,7 +36,7 @@ export function runDiagnosticRuntime(
     correlationId: configuration.correlationId,
   });
 
-  const result = composeDiagnosticRuntime();
+  const result = await composeDiagnosticRuntime(configuration);
   emitDiagnosticResult(
     result,
     configuration.correlationId,

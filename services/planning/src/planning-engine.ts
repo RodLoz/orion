@@ -9,6 +9,7 @@ import {
   createReasoningConsumptionReference,
   createReasoningOutcome,
   type CandidatePlan,
+  type CandidateNextAction,
   type CreateCandidatePlan,
   type ReasoningOutcome,
   type VerifyCandidatePlanAuthority,
@@ -109,8 +110,10 @@ export class PlanningEngine
     try {
       const expected = correspondence[outcome.category];
       if (
-        outcome.conclusion !== expected.conclusion ||
-        outcome.response !== expected.response ||
+        (expected.conclusion !== undefined &&
+          outcome.conclusion !== expected.conclusion) ||
+        (expected.response !== undefined &&
+          outcome.response !== expected.response) ||
         outcome.nextAction !== expected.nextAction ||
         outcome.explainability.identityState !== expected.identityState ||
         outcome.explainability.ruleCategory !== expected.ruleCategory
@@ -234,7 +237,16 @@ function exactInputRecord(
   return copy;
 }
 
-const correspondence = {
+const correspondence: Record<
+  ReasoningOutcome["category"],
+  {
+    readonly conclusion?: string;
+    readonly response?: string;
+    readonly nextAction: CandidateNextAction;
+    readonly identityState: "anonymous" | "authenticated";
+    readonly ruleCategory: ReasoningOutcome["explainability"]["ruleCategory"];
+  }
+> = {
   "anonymous-context": {
     conclusion: "The active context identifies an anonymous actor.",
     response:
@@ -251,4 +263,19 @@ const correspondence = {
     identityState: "authenticated",
     ruleCategory: "authenticated-context-only",
   },
-} as const;
+  "knowledge-grounded-success": {
+    nextAction: "none",
+    identityState: "authenticated",
+    ruleCategory: "authenticated-knowledge-applicable-sufficient",
+  },
+  "knowledge-not-applicable": {
+    nextAction: "request-more-context",
+    identityState: "authenticated",
+    ruleCategory: "authenticated-knowledge-not-applicable",
+  },
+  "knowledge-insufficient": {
+    nextAction: "request-more-context",
+    identityState: "authenticated",
+    ruleCategory: "authenticated-knowledge-applicable-insufficient",
+  },
+};

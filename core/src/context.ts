@@ -5,6 +5,7 @@ import type {
   KnowledgeVersion,
 } from "./knowledge.js";
 import type { MemoryIdentity } from "./memory.js";
+import type { StructuredKnowledgeContextFragment } from "./context-applicability.js";
 
 export type ContextLineageIdentity = string & {
   readonly __contextLineageIdentity: unique symbol;
@@ -70,7 +71,10 @@ export interface MemoryContextFragment {
 }
 
 export type ContextFragment =
-  IdentityContextFragment | KnowledgeContextFragment | MemoryContextFragment;
+  | IdentityContextFragment
+  | KnowledgeContextFragment
+  | StructuredKnowledgeContextFragment
+  | MemoryContextFragment;
 
 export interface IdentityContextRevisionCreationMetadata {
   readonly createdAt: ContextCreatedAt;
@@ -116,6 +120,14 @@ export interface KnowledgeAwareContextRevision extends ContextRevisionBase {
   ];
 }
 
+export interface StructuredKnowledgeAwareContextRevision extends ContextRevisionBase {
+  readonly creationMetadata: KnowledgeAwareContextRevisionCreationMetadata;
+  readonly fragments: readonly [
+    IdentityContextFragment,
+    StructuredKnowledgeContextFragment,
+  ];
+}
+
 export interface MemoryAwareContextRevision extends ContextRevisionBase {
   readonly creationMetadata: MemoryAwareContextRevisionCreationMetadata;
   readonly fragments: readonly [IdentityContextFragment, MemoryContextFragment];
@@ -124,6 +136,7 @@ export interface MemoryAwareContextRevision extends ContextRevisionBase {
 export type ContextRevision =
   | IdentityContextRevision
   | KnowledgeAwareContextRevision
+  | StructuredKnowledgeAwareContextRevision
   | MemoryAwareContextRevision;
 
 export type ActiveContextRevision = ContextRevision;
