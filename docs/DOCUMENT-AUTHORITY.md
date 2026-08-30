@@ -3,10 +3,10 @@
 | Field | Value |
 |--------|--------|
 | **Status** | Active |
-| **Version** | 2.1.0 |
+| **Version** | 2.2.0 |
 | **Owner** | Project Maintainers |
 | **Created** | 2026-07-10 |
-| **Updated** | 2026-08-10 |
+| **Updated** | 2026-08-30 |
 | **Applies To** | All Project Documentation |
 
 ---
@@ -144,7 +144,7 @@ A canonical architectural Contract Specification is a normative specification of
 Contract Specifications:
 
 - formalize shared semantics, guarantees, invariants, obligations, failures, and compatibility within their accepted scope;
-- are governed in authorship and evolution by [OES-0004 — Contracts](engineering/OES-0004-Contracts.md);
+- are governed in authorship and evolution by [OES-0004 - Contracts](engineering/OES-0004-Contracts.md);
 - retain the applicable capability or domain as Semantic Owner;
 - retain Core custody of shared Contract language where that custody applies;
 - remain distinct from executable TypeScript or runtime Contract surfaces.
@@ -177,7 +177,7 @@ They must comply with applicable ADRs, Architecture Specifications, authoritativ
 
 # 7. Engine Specifications
 
-Engine Specifications define one Engine’s responsibilities, contracts, lifecycle, state, events, failures, security boundaries, and observability requirements.
+Engine Specifications define one Engine's responsibilities, contracts, lifecycle, state, events, failures, security boundaries, and observability requirements.
 
 An Engine Specification may describe how its capability participates in or implements applicable Contract semantics and may specialize implementation-facing behavior within already accepted architecture. It must not contradict higher-authority ADRs, Architecture Specifications, authoritative Concept Specifications within overlapping scope, Engineering Standards, or an applicable Active Contract Specification within the Contract boundary.
 
@@ -238,7 +238,7 @@ They must remain consistent with authoritative ADRs, Specifications, and Enginee
 
 README.md introduces the project.
 
-MANIFESTO.md expresses the project’s purpose and long-term beliefs.
+MANIFESTO.md expresses the project's purpose and long-term beliefs.
 
 These documents are important but non-normative.
 
@@ -310,7 +310,7 @@ Executable surfaces MUST conform to applicable Active Contract Specifications an
 When conflicting documentation is discovered:
 
 1. Identify every conflicting document.
-2. Determine each document’s type and status.
+2. Determine each document's type and status.
 3. Apply the authority hierarchy.
 4. Identify the authoritative source.
 5. Correct the lower-authority document.
@@ -369,6 +369,55 @@ OES-0004 governs how Contract Specifications are authored and evolved. This docu
 
 ---
 
+# Review Independence and Single-Maintainer Governance
+
+Independent review is preferred when a qualified independent reviewer is
+available and is mandatory when a higher-authority governing document
+explicitly requires independence without an applicable repository-governance
+exception.
+
+A repository that is maintained by a single human maintainer MUST NOT fabricate
+an independent reviewer, approval, or review record. The absence of a second
+maintainer does not by itself prohibit governed work from advancing.
+
+When no qualified independent reviewer exists, a review requirement MAY be
+satisfied by a documented single-maintainer review only when all of the
+following are true:
+
+1. the repository is genuinely maintained by one human maintainer at the time
+   of review;
+2. the maintainer explicitly records that independent review is unavailable;
+3. all mandatory automated, conformance, validation, migration, security,
+   durability, recovery, or other applicable technical gates have passed;
+4. no failed mandatory gate is waived, reclassified, or converted to PASS by
+   maintainer review;
+5. the review records the evidence examined, decision, rationale, reviewer,
+   and timestamp;
+6. the resulting decision does not authorize an action that another governing
+   authority explicitly prohibits.
+
+Under this exception, the review record MUST distinguish:
+
+- `INDEPENDENT_REVIEW: NOT_APPLICABLE_SINGLE_MAINTAINER`
+- `MAINTAINER_REVIEW: PASS` or `FAIL`
+
+`MAINTAINER_REVIEW: PASS` means that the maintainer has reviewed the required
+evidence and found the governed change eligible to advance. It does not mean
+that independent review occurred.
+
+AI agents, automated tools, test runners, and the author acting under another
+label MUST NOT be represented as independent human reviewers.
+
+If an independent reviewer later becomes available before an irreversible or
+production-authorizing decision, any higher-authority requirement for
+independent review remains applicable unless that authority explicitly permits
+the single-maintainer exception.
+
+This policy defines repository review governance only. It does not lower
+technical acceptance criteria, alter architectural authority, or grant
+production authority.
+
+---
 # Source-of-Truth Rule
 
 Every normative topic must identify exactly one source of truth.
@@ -402,6 +451,7 @@ Examples:
 
 | Version | Date       | Description |
 | ------- | ---------- | ----------- |
+| 2.2.0 | 2026-08-30 | Added governed single-maintainer review semantics for repositories where no qualified independent human reviewer is available, without weakening mandatory technical gates or architectural authority. |
 | 2.1.0   | 2026-08-10 | Added canonical architectural Contract Specifications to the document taxonomy, authority hierarchy, status rules, ownership distinctions, and deterministic conflict-resolution process. |
 
 ---
@@ -413,5 +463,5 @@ Normative documents should use relative Markdown links to related authoritative 
 Example:
 
 ```markdown
-- [OES-0004 — Contracts](engineering/OES-0004-Contracts.md)
+- [OES-0004 - Contracts](engineering/OES-0004-Contracts.md)
 ```

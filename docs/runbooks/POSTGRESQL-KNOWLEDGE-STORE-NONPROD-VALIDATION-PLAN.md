@@ -207,11 +207,11 @@ connection string. Validate:
 
 ```text
 configuration
-→ Pool
-→ PostgreSQLKnowledgeStore
-→ KnowledgeEngine
-→ initialize
-→ READY
+Ã¢â€ â€™ Pool
+Ã¢â€ â€™ PostgreSQLKnowledgeStore
+Ã¢â€ â€™ KnowledgeEngine
+Ã¢â€ â€™ initialize
+Ã¢â€ â€™ READY
 ```
 
 Initialization failure must leave the service unhealthy, close the Pool, and
@@ -236,13 +236,13 @@ Execute:
 
 ```text
 Instance A / Pool A
-→ durable operations
-→ orderly Knowledge shutdown
-→ Pool A closed
-→ fresh Instance B / Pool B
-→ same PostgreSQL database
-→ Knowledge initialize/reconstruct
-→ READY
+Ã¢â€ â€™ durable operations
+Ã¢â€ â€™ orderly Knowledge shutdown
+Ã¢â€ â€™ Pool A closed
+Ã¢â€ â€™ fresh Instance B / Pool B
+Ã¢â€ â€™ same PostgreSQL database
+Ã¢â€ â€™ Knowledge initialize/reconstruct
+Ã¢â€ â€™ READY
 ```
 
 Evidence must prove Pool A closure, Pool B identity and fresh database session,
@@ -259,15 +259,15 @@ The operational evidence sequence is:
 
 ```text
 source validation database
-→ authoritative validation data
-→ backup
-→ separate restore target
-→ restore
-→ migration/current-state verification
-→ fresh runtime Pool
-→ fresh Knowledge Engine
-→ initialize/reconstruct
-→ verify durable Knowledge state
+Ã¢â€ â€™ authoritative validation data
+Ã¢â€ â€™ backup
+Ã¢â€ â€™ separate restore target
+Ã¢â€ â€™ restore
+Ã¢â€ â€™ migration/current-state verification
+Ã¢â€ â€™ fresh runtime Pool
+Ã¢â€ â€™ fresh Knowledge Engine
+Ã¢â€ â€™ initialize/reconstruct
+Ã¢â€ â€™ verify durable Knowledge state
 ```
 
 The existing restart test is not restore evidence.
@@ -333,7 +333,7 @@ Retain one secret-free package containing:
 - PostgreSQL mode and startup/READY;
 - functional smoke;
 - restart reconstruction;
-- backup→restore→fresh-engine reconstruction;
+- backupÃ¢â€ â€™restoreÃ¢â€ â€™fresh-engine reconstruction;
 - multi-instance result or governed N/A evidence;
 - monitoring and cleanup results;
 - operator, reviewer, timestamps, and change/ticket references.
@@ -353,7 +353,9 @@ close F02.
 ## Production gate preservation
 
 ```text
-KSTORE_DEPLOY_PLAN_F02: OPEN_PENDING_BACKUP_RESTORE_EVIDENCE
+KSTORE_DEPLOY_PLAN_F02: PASS
+F02_REVIEW_MODE: SINGLE_MAINTAINER
+F02_MAINTAINER_REVIEW: PASS
 POSTGRESQL_PRODUCTION_PROVISIONING_READY: NO
 POSTGRESQL_MIGRATION_READY: NO
 POSTGRESQL_ACTIVATION_READY: NO
@@ -370,7 +372,7 @@ PRODUCTION_CHANGE: NONE
 ## Current plan state
 
 ```text
-NONPROD_PLAN_INITIAL_STATUS: DRAFT
+NONPROD_PLAN_INITIAL_STATUS: COMPLETED
 POSTGRESQL_NONPROD_VALIDATION_EXECUTION_READY: YES
 ```
 
