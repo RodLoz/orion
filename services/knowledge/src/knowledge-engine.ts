@@ -9,6 +9,7 @@ import {
   InvalidKnowledgeProjectionRequestError,
   InvalidKnowledgeProjectionVerificationRequestError,
   InvalidSupersessionError,
+  KNOWLEDGE_PROJECTION_FAILURE_IDENTITIES,
   KNOWLEDGE_VERSION_MAX,
   KnowledgeNotFoundError,
   KnowledgeProjectionAuthorityVerificationError,
@@ -53,6 +54,9 @@ import {
   type KnowledgeOwnedSourceCurrentnessDetermination,
   type KnowledgeProvenance,
   type KnowledgeProjectionRequest,
+  type ExistingPublicKnowledgeProjectionFailureIdentity,
+  type KnowledgeProjectionDiagnosticObservation,
+  type KnowledgeProjectionDiagnosticObserver,
   type KnowledgeRecord,
   type KnowledgeReference,
   type KnowledgeStore,
@@ -124,6 +128,7 @@ export class KnowledgeEngineRuntime
     private readonly store: KnowledgeStore,
     private readonly construction: KnowledgeConstructionValues,
     private readonly settlementCoordinator: KnowledgeSettlementCoordinator = createKnowledgeSettlementCoordinator(),
+    private readonly projectionDiagnosticObserver?: KnowledgeProjectionDiagnosticObserver,
   ) {}
 
   public get engineState(): KnowledgeEngineLifecycleState {
@@ -401,6 +406,25 @@ export class KnowledgeEngineRuntime
   public projectStructuredKnowledge(
     request: unknown,
   ): StructuredKnowledgeProjection {
+    try {
+      const projection =
+        this.projectStructuredKnowledgeAuthoritatively(request);
+      this.observeProjectionDiagnostic(
+        Object.freeze({
+          operation: "knowledge-executable-projection",
+          outcome: "succeeded",
+        }),
+      );
+      return projection;
+    } catch (error: unknown) {
+      this.observeProjectionFailure(error);
+      throw error;
+    }
+  }
+
+  private projectStructuredKnowledgeAuthoritatively(
+    request: unknown,
+  ): StructuredKnowledgeProjection {
     this.requireReady();
     let projectionRequest: KnowledgeProjectionRequest;
     try {
@@ -520,17 +544,22 @@ export class KnowledgeEngineRuntime
   public verifyStructuredKnowledgeProjectionAuthority(
     request: unknown,
   ): StructuredKnowledgeProjection {
-    this.requireReady();
     try {
-      return this.#projectionAuthority.verify(request);
-    } catch (error) {
-      if (
-        error instanceof InvalidKnowledgeProjectionVerificationRequestError ||
-        error instanceof KnowledgeProjectionAuthorityVerificationError
-      ) {
-        throw error;
+      this.requireReady();
+      try {
+        return this.#projectionAuthority.verify(request);
+      } catch (error) {
+        if (
+          error instanceof InvalidKnowledgeProjectionVerificationRequestError ||
+          error instanceof KnowledgeProjectionAuthorityVerificationError
+        ) {
+          throw error;
+        }
+        throw new KnowledgeProjectionAuthorityVerificationError();
       }
-      throw new KnowledgeProjectionAuthorityVerificationError();
+    } catch (error: unknown) {
+      this.observeProjectionFailure(error);
+      throw error;
     }
   }
 
@@ -961,6 +990,31 @@ export class KnowledgeEngineRuntime
     if (this.#engineState !== "ready") throw new InvalidKnowledgeStateError();
   }
 
+  private observeProjectionFailure(error: unknown): void {
+    const failureIdentity = projectionFailureIdentity(error);
+    if (failureIdentity === undefined) return;
+    this.observeProjectionDiagnostic(
+      Object.freeze({
+        operation: "knowledge-executable-projection",
+        outcome: "failed",
+        failureIdentity,
+      }),
+    );
+  }
+
+  private observeProjectionDiagnostic(
+    observation: KnowledgeProjectionDiagnosticObservation,
+  ): void {
+    if (this.projectionDiagnosticObserver === undefined) return;
+    try {
+      Reflect.apply(this.projectionDiagnosticObserver, undefined, [
+        observation,
+      ]);
+    } catch {
+      // Diagnostic observation has no authority over Knowledge semantics.
+    }
+  }
+
   private publishReconstructedState(state: ReconstructedRuntimeState): void {
     this.#confirmed = state.confirmed;
     this.#current = state.current;
@@ -1055,6 +1109,15 @@ function isPublicFailure(error: unknown): boolean {
     error instanceof InvalidSupersessionError ||
     error instanceof KnowledgeStoreUnavailableError ||
     error instanceof InvalidKnowledgeStateError
+  );
+}
+
+function projectionFailureIdentity(
+  error: unknown,
+): ExistingPublicKnowledgeProjectionFailureIdentity | undefined {
+  if (!(error instanceof Error)) return undefined;
+  return KNOWLEDGE_PROJECTION_FAILURE_IDENTITIES.find(
+    (identity) => identity === error.name,
   );
 }
 

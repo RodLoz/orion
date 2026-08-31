@@ -84,6 +84,42 @@ export interface KnowledgeProjectionAuthority
     CaptureStructuredKnowledgeProjectionAuthority,
     VerifyStructuredKnowledgeProjectionAuthority {}
 
+export const KNOWLEDGE_PROJECTION_FAILURE_IDENTITIES = Object.freeze([
+  "InvalidKnowledgeProjectionRequestError",
+  "KnowledgeNotFoundError",
+  "KnowledgeProjectionVersionMismatchError",
+  "KnowledgeProjectionIneligibleError",
+  "KnowledgeProjectionPreparationMismatchError",
+  "KnowledgeSourceCurrentnessUnableToDetermineError",
+  "KnowledgeProjectionConstructionError",
+  "KnowledgeProjectionIssuanceError",
+  "InvalidKnowledgeProjectionVerificationRequestError",
+  "KnowledgeProjectionAuthorityVerificationError",
+  "InvalidKnowledgeStateError",
+] as const);
+
+export type ExistingPublicKnowledgeProjectionFailureIdentity =
+  (typeof KNOWLEDGE_PROJECTION_FAILURE_IDENTITIES)[number];
+
+export interface KnowledgeProjectionDiagnosticSuccessObservation {
+  readonly operation: "knowledge-executable-projection";
+  readonly outcome: "succeeded";
+}
+
+export interface KnowledgeProjectionDiagnosticFailureObservation {
+  readonly operation: "knowledge-executable-projection";
+  readonly outcome: "failed";
+  readonly failureIdentity: ExistingPublicKnowledgeProjectionFailureIdentity;
+}
+
+export type KnowledgeProjectionDiagnosticObservation =
+  | KnowledgeProjectionDiagnosticSuccessObservation
+  | KnowledgeProjectionDiagnosticFailureObservation;
+
+export type KnowledgeProjectionDiagnosticObserver = (
+  observation: KnowledgeProjectionDiagnosticObservation,
+) => void;
+
 export interface ListKnowledgeReferencesRequest {
   readonly limit?: unknown;
 }

@@ -48,9 +48,14 @@ export class KnowledgeProjectionAuthority {
         throw new Error();
       }
       candidate = value.candidate as StructuredKnowledgeProjection;
-      validateProjectionShape(candidate);
     } catch {
       throw new InvalidKnowledgeProjectionVerificationRequestError();
+    }
+
+    try {
+      validateProjectionShape(candidate);
+    } catch {
+      throw new KnowledgeProjectionAuthorityVerificationError();
     }
 
     const captured = this.#captured.get(candidate);

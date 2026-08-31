@@ -21,6 +21,8 @@ import {
   type SupersedeCurrentKnowledgeRequest,
   type SupersedeCurrentKnowledgeResult,
   type KnowledgeLifecycleSnapshotResult,
+  type KnowledgeProjectionDiagnosticObservation,
+  type KnowledgeProjectionDiagnosticObserver,
 } from "@orion/core";
 import { describe, expect, it } from "vitest";
 
@@ -134,12 +136,39 @@ class TestStore implements KnowledgeStore {
 async function running(
   store = new TestStore(),
   construction: KnowledgeConstructionValues = new TestConstruction(),
+  observer?: KnowledgeProjectionDiagnosticObserver,
 ) {
-  const engine = new KnowledgeEngine(store, construction);
+  const engine = new KnowledgeEngine(store, construction, observer);
   await engine.initialize();
   engine.start();
   return { engine, store, construction };
 }
+
+const prohibitedDiagnosticFields = [
+  "candidateClaim",
+  "knowledgeRecord",
+  "subjectKey",
+  "predicateKey",
+  "textualScalar",
+  "candidatePreparationAssociation",
+  "knowledgeIdentity",
+  "expectedKnowledgeVersion",
+  "provenance",
+  "sourceEvidence",
+  "storeMetadata",
+  "acceptanceEvidence",
+  "credentials",
+  "rawCurrentnessEvidence",
+  "verifierInternals",
+  "authorityCaptureInternals",
+  "confidence",
+  "ranking",
+  "privateTraces",
+  "projectionAuthorityCorrespondence",
+  "underlyingSourceAuthorityEvidence",
+  "authority",
+  "token",
+] as const;
 
 function evidence(decision: "accept" | "reject" = "accept") {
   return {
@@ -341,6 +370,16 @@ describe("Knowledge 1.3 projection currentness and targeting", async () => {
     expect(projection.correspondence.candidatePreparationAssociation).toBe(
       "prep-a",
     );
+    expect(Array.isArray(projection)).toBe(false);
+    expect(Reflect.ownKeys(projection)).toEqual([
+      "semanticValue",
+      "correspondence",
+    ]);
+    expect(Reflect.ownKeys(projection.semanticValue)).toEqual([
+      "subjectKey",
+      "predicateKey",
+      "textualScalar",
+    ]);
     expect(projection).not.toHaveProperty("claim");
     expect(projection).not.toHaveProperty("provenance");
     expect(projection).not.toHaveProperty("record");
@@ -500,6 +539,19 @@ describe("Knowledge 1.3 projection authority", async () => {
         candidate: clone,
       }),
     ).toThrow(KnowledgeProjectionAuthorityVerificationError);
+    const correspondenceMismatch = Object.freeze({
+      ...projection,
+      correspondence: Object.freeze({
+        ...projection.correspondence,
+        candidatePreparationAssociation: "prep-b",
+      }),
+    });
+    expect(() =>
+      setup.engine.verifyStructuredKnowledgeProjectionAuthority({
+        intent: "verify-knowledge-projection-authority",
+        candidate: correspondenceMismatch,
+      }),
+    ).toThrow(KnowledgeProjectionAuthorityVerificationError);
     const foreignEngine = (await running()).engine;
     expect(() =>
       foreignEngine.verifyStructuredKnowledgeProjectionAuthority({
@@ -523,6 +575,12 @@ describe("Knowledge 1.3 projection authority", async () => {
         candidate: {},
       }),
     ).toThrow(InvalidKnowledgeProjectionVerificationRequestError);
+    expect(() =>
+      setup.engine.verifyStructuredKnowledgeProjectionAuthority({
+        intent: "verify-knowledge-projection-authority",
+        candidate: {},
+      }),
+    ).toThrow(KnowledgeProjectionAuthorityVerificationError);
   });
 
   it("preserves GetKnowledge and reference behavior", async () => {
@@ -535,6 +593,192 @@ describe("Knowledge 1.3 projection authority", async () => {
     ).toEqual(result.record);
     expect(setup.engine.listKnowledgeReferences({})).toEqual([
       result.reference,
+    ]);
+  });
+});
+
+describe("Knowledge projection diagnostic observer", async () => {
+  it("emits one exact frozen success record synchronously after authoritative projection", async () => {
+    const observations: KnowledgeProjectionDiagnosticObservation[] = [];
+    let operationReturned = false;
+    let observedBeforeReturn = false;
+    const setup = await running(
+      new TestStore(),
+      new TestConstruction(),
+      (observation) => {
+        observedBeforeReturn = !operationReturned;
+        observations.push(observation);
+      },
+    );
+    const acceptedResult = await accepted(setup.engine, "knowledge");
+
+    const projection = setup.engine.projectStructuredKnowledge(
+      knowledgeProjectionRequest(acceptedResult.record.knowledgeIdentity),
+    );
+    operationReturned = true;
+
+    expect(projection.semanticValue).toEqual(tuple());
+    expect(observedBeforeReturn).toBe(true);
+    expect(observations).toHaveLength(1);
+    expect(observations[0]).toEqual({
+      operation: "knowledge-executable-projection",
+      outcome: "succeeded",
+    });
+    expect(Reflect.ownKeys(observations[0] as object)).toEqual([
+      "operation",
+      "outcome",
+    ]);
+    expect(Object.isFrozen(observations[0])).toBe(true);
+    for (const field of prohibitedDiagnosticFields) {
+      expect(observations[0]).not.toHaveProperty(field);
+    }
+  });
+
+  it("preserves exact governed failure identities in closed minimized records", async () => {
+    const observations: KnowledgeProjectionDiagnosticObservation[] = [];
+    const setup = await running(
+      new TestStore(),
+      new TestConstruction(),
+      (observation) => observations.push(observation),
+    );
+
+    expect(() => setup.engine.projectStructuredKnowledge({})).toThrow(
+      InvalidKnowledgeProjectionRequestError,
+    );
+    expect(() =>
+      setup.engine.projectStructuredKnowledge(
+        knowledgeProjectionRequest("missing"),
+      ),
+    ).toThrow(KnowledgeNotFoundError);
+
+    const acceptedResult = await accepted(setup.engine, "knowledge");
+    expect(() =>
+      setup.engine.projectStructuredKnowledge(
+        knowledgeProjectionRequest(acceptedResult.record.knowledgeIdentity, 2),
+      ),
+    ).toThrow(KnowledgeProjectionVersionMismatchError);
+    expect(() =>
+      setup.engine.projectStructuredKnowledge(
+        externalProjectionRequest(acceptedResult.record.knowledgeIdentity),
+      ),
+    ).toThrow(KnowledgeProjectionPreparationMismatchError);
+    const legacy = await setup.engine.evaluateKnowledgeClaim({
+      intent: "evaluate",
+      claim: "Legacy diagnostic fixture.",
+      acceptanceEvidence: evidence(),
+      provenance: provenance(),
+    });
+    if (legacy.outcome !== "accepted") throw new Error("setup failed");
+    expect(() =>
+      setup.engine.projectStructuredKnowledge(
+        knowledgeProjectionRequest(legacy.record.knowledgeIdentity),
+      ),
+    ).toThrow(KnowledgeProjectionIneligibleError);
+    expect(() =>
+      setup.engine.verifyStructuredKnowledgeProjectionAuthority({}),
+    ).toThrow(InvalidKnowledgeProjectionVerificationRequestError);
+
+    const projection = setup.engine.projectStructuredKnowledge(
+      knowledgeProjectionRequest(acceptedResult.record.knowledgeIdentity),
+    );
+    const clone = Object.freeze({
+      ...projection,
+      correspondence: Object.freeze({ ...projection.correspondence }),
+    });
+    expect(() =>
+      setup.engine.verifyStructuredKnowledgeProjectionAuthority({
+        intent: "verify-knowledge-projection-authority",
+        candidate: clone,
+      }),
+    ).toThrow(KnowledgeProjectionAuthorityVerificationError);
+
+    const failureObservations = observations.filter(
+      (observation) => observation.outcome === "failed",
+    );
+    expect(
+      failureObservations.map(({ failureIdentity }) => failureIdentity),
+    ).toEqual([
+      "InvalidKnowledgeProjectionRequestError",
+      "KnowledgeNotFoundError",
+      "KnowledgeProjectionVersionMismatchError",
+      "KnowledgeProjectionPreparationMismatchError",
+      "KnowledgeProjectionIneligibleError",
+      "InvalidKnowledgeProjectionVerificationRequestError",
+      "KnowledgeProjectionAuthorityVerificationError",
+    ]);
+    for (const observation of failureObservations) {
+      expect(Reflect.ownKeys(observation)).toEqual([
+        "operation",
+        "outcome",
+        "failureIdentity",
+      ]);
+      expect(Object.isFrozen(observation)).toBe(true);
+      for (const field of prohibitedDiagnosticFields) {
+        expect(observation).not.toHaveProperty(field);
+      }
+    }
+  });
+
+  it("keeps projection functional with absent and no-op observers", async () => {
+    const absent = await running();
+    const absentResult = await accepted(absent.engine, "knowledge");
+    expect(
+      absent.engine.projectStructuredKnowledge(
+        knowledgeProjectionRequest(absentResult.record.knowledgeIdentity),
+      ).semanticValue,
+    ).toEqual(tuple());
+
+    const noOp = await running(
+      new TestStore(),
+      new TestConstruction(),
+      () => undefined,
+    );
+    const noOpResult = await accepted(noOp.engine, "knowledge");
+    expect(
+      noOp.engine.projectStructuredKnowledge(
+        knowledgeProjectionRequest(noOpResult.record.knowledgeIdentity),
+      ).semanticValue,
+    ).toEqual(tuple());
+  });
+
+  it("contains observer throws without changing success or governed failure", async () => {
+    const throwingObserver: KnowledgeProjectionDiagnosticObserver = () => {
+      throw new Error("private observer failure");
+    };
+    const setup = await running(
+      new TestStore(),
+      new TestConstruction(),
+      throwingObserver,
+    );
+    const acceptedResult = await accepted(setup.engine, "knowledge");
+
+    expect(
+      setup.engine.projectStructuredKnowledge(
+        knowledgeProjectionRequest(acceptedResult.record.knowledgeIdentity),
+      ).semanticValue,
+    ).toEqual(tuple());
+    expect(() => setup.engine.projectStructuredKnowledge({})).toThrow(
+      InvalidKnowledgeProjectionRequestError,
+    );
+  });
+
+  it("observes invalid Knowledge state without replacing its public identity", () => {
+    const observations: KnowledgeProjectionDiagnosticObservation[] = [];
+    const engine = new KnowledgeEngine(
+      new TestStore(),
+      new TestConstruction(),
+      (observation) => observations.push(observation),
+    );
+
+    expect(() => engine.projectStructuredKnowledge({})).toThrow(
+      InvalidKnowledgeStateError,
+    );
+    expect(observations).toEqual([
+      {
+        operation: "knowledge-executable-projection",
+        outcome: "failed",
+        failureIdentity: "InvalidKnowledgeStateError",
+      },
     ]);
   });
 });

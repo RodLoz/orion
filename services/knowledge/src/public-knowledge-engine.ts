@@ -4,6 +4,7 @@ import {
   type KnowledgeAcceptanceDecision,
   type KnowledgeConstructionValues,
   type KnowledgeProjectionRequest,
+  type KnowledgeProjectionDiagnosticObserver,
   type KnowledgeRecord,
   type KnowledgeReference,
   type KnowledgeStore,
@@ -34,8 +35,14 @@ export class KnowledgeEngine
   public constructor(
     store: KnowledgeStore,
     construction: KnowledgeConstructionValues,
+    observer?: KnowledgeProjectionDiagnosticObserver,
   ) {
-    this.#runtime = new KnowledgeEngineRuntime(store, construction);
+    this.#runtime = new KnowledgeEngineRuntime(
+      store,
+      construction,
+      undefined,
+      observer,
+    );
   }
 
   public get engineState(): KnowledgeEngineLifecycleState {

@@ -1,22 +1,22 @@
 # Knowledge Engine Executable Projection Operation
 
-| Field                         | Value                                                                                                  |
-| ----------------------------- | ------------------------------------------------------------------------------------------------------ |
-| **Status**                    | Draft                                                                                                  |
-| **Document Version**          | 1.0.1                                                                                                  |
-| **Engine**                    | ENGINE-0005 — Knowledge Engine                                                                         |
-| **Governing Engine Revision** | Active Knowledge Engine 3.0.0 |
-| **Owner**                     | Project Maintainers                                                                                    |
-| **Created**                   | 2026-08-17                                                                                             |
-| **Updated**                   | 2026-08-30                                                                                             |
-| **Applies To** | Knowledge Engine 3.0.0 structured textual projection operation and preparation-cycle Source Currentness input |
+| Field                         | Value                                                                                                         |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| **Status**                    | Draft                                                                                                         |
+| **Document Version**          | 1.1.3                                                                                                         |
+| **Engine**                    | ENGINE-0005 — Knowledge Engine                                                                                |
+| **Governing Engine Revision** | Active Knowledge Engine 3.0.0                                                                                 |
+| **Owner**                     | Project Maintainers                                                                                           |
+| **Created**                   | 2026-08-17                                                                                                    |
+| **Updated**                   | 2026-08-31                                                                                                    |
+| **Applies To**                | Knowledge Engine 3.0.0 structured textual projection operation and preparation-cycle Source Currentness input |
 
 ---
 
 ## Document Authority and Lifecycle
 
 This document is a subordinate executable semantic refinement of the Active
-Knowledge Engine 3.0.0 revision. `1.0.0` is this document's version; it is not
+Knowledge Engine 3.0.0 revision. `1.1.3` is this document's version; it is not
 an ENGINE-0005 Engine revision.
 
 This document:
@@ -41,8 +41,8 @@ Knowledge Engine 3.0.0:
    correspondence participates in projection eligibility.
 
 It does not define Core syntax, runtime classes, persistence, Context
-implementation, diagnostics, tests, serialization, or production Profile B
-reachability.
+implementation, diagnostic implementation, tests, serialization, or
+production Profile B reachability.
 
 ## Scope
 
@@ -51,8 +51,10 @@ This specification defines only:
 - one distinct Knowledge-owned projection operation;
 - its exact target and preparation-prerequisite semantics;
 - its successful result and governed failure boundary;
-- Knowledge projection-authority issuance; and
-- the Knowledge-owned verifier request and proof boundary.
+- Knowledge projection-authority issuance;
+- the Knowledge-owned verifier request and proof boundary; and
+- one Knowledge-owned, privacy-minimal projection diagnostic observer
+  boundary.
 
 All Knowledge Engine 3.0.0 structured-acceptance, tuple-validity, proposition-identity,
 projection-eligibility, privacy, ownership, and failure semantics remain
@@ -602,6 +604,135 @@ Bootstrap owns wiring only. It does not own projection eligibility,
 currentness, source authority, Contextual Applicability, or verification
 semantics.
 
+Bootstrap MAY select and inject a projection diagnostic observer, compose no
+observer, or compose a no-op observer. It MAY adapt an already-minimized
+Knowledge projection observation to an operational transport. Bootstrap MUST
+NOT decide when Knowledge emits an observation, define or reinterpret its
+closed vocabulary, inspect protected projection state for diagnostic purposes,
+or acquire Knowledge diagnostic semantic authority through composition.
+
+## Projection Diagnostic Observer Boundary
+
+Knowledge owns projection diagnostic semantics, the closed observation
+vocabulary, emission timing, failure-identity preservation, and construction
+of each privacy-minimal observation. Core MAY custody the future executable
+observation record and observer function or interface signature without
+acquiring Knowledge semantic authority. Bootstrap MAY inject an observer or
+transport adapter without acquiring Knowledge diagnostic semantics.
+
+The observer is synchronous, operational, optional, non-authoritative, and
+non-persistent by semantic definition. It is not required for projection
+correctness and is not a semantic Event, audit record, authority artifact,
+projection result, reusable capability, or bearer token. Knowledge projection
+MUST remain fully functional when no observer is composed. An absent or no-op
+observer is permitted.
+
+### Closed Observation Vocabulary and Record
+
+The closed semantic record is exactly one of:
+
+```text
+{
+  operation: "knowledge-executable-projection",
+  outcome: "succeeded"
+}
+
+{
+  operation: "knowledge-executable-projection",
+  outcome: "failed",
+  failureIdentity: ExistingPublicKnowledgeProjectionFailureIdentity
+}
+```
+
+`ExistingPublicKnowledgeProjectionFailureIdentity` is not an arbitrary string
+or a second failure taxonomy. It is the closed set of existing public
+Knowledge error identities applicable to the projection and verifier failure
+semantics in this specification:
+
+- `InvalidKnowledgeProjectionRequestError`;
+- `KnowledgeNotFoundError`;
+- `KnowledgeProjectionVersionMismatchError`;
+- `KnowledgeProjectionIneligibleError`;
+- `KnowledgeProjectionPreparationMismatchError`;
+- `KnowledgeSourceCurrentnessUnableToDetermineError`;
+- `KnowledgeProjectionConstructionError`;
+- `KnowledgeProjectionIssuanceError`;
+- `InvalidKnowledgeProjectionVerificationRequestError`;
+- `KnowledgeProjectionAuthorityVerificationError`; and
+- `InvalidKnowledgeStateError`.
+
+The success observation states only that authoritative projection completion
+occurred. A failure observation preserves the exact applicable public
+Knowledge failure identity. It MUST NOT carry an exception object, native
+message, cause, stack, verifier state, authority state, or normalized duplicate
+failure category. External-source-originating failures retain their originating
+identity and opacity; Knowledge MUST NOT relabel them as Knowledge-owned
+failures or manufacture an unavailable external producer for diagnostic use.
+
+The record has no correlation field, arbitrary attributes, or free-form
+semantic message. Knowledge identity, expected Knowledge version, and the
+projected tuple are omitted.
+
+### Diagnostic Privacy and Minimization
+
+Knowledge MUST enforce privacy and minimization while constructing the closed
+observation, before observer invocation, Bootstrap handling,
+`StructuredLogger` adaptation, transport, or aggregation. Transport filtering
+is not the authoritative privacy boundary. Bootstrap MUST NOT receive protected
+material and then remove it.
+
+The diagnostic record MUST NOT expose:
+
+- CandidateClaim or KnowledgeRecord;
+- `subjectKey`, `predicateKey`, or `textualScalar`;
+- raw provenance, Store metadata, or acceptance evidence;
+- credentials or raw currentness evidence;
+- verifier internals or authority-capture internals;
+- confidence, ranking, or private traces;
+- reusable authority material or projection-authority correspondence;
+- underlying-source authority evidence or raw source evidence; or
+- CandidatePreparationAssociation.
+
+CandidatePreparationAssociation remains opaque Context-owned preparation
+correspondence. It MUST NOT be repurposed as a diagnostic correlation
+identifier. This specification defines no replacement correlation identifier.
+
+### Diagnostic Emission and Failure Containment
+
+Knowledge emits the success observation only after authoritative projection
+completion. When the projection or its Knowledge-owned verifier boundary
+terminates with an applicable governed public Knowledge failure identity,
+Knowledge emits the corresponding failure observation only after that
+authoritative failure determination.
+
+Observation MUST NOT precede or alter the authoritative semantic
+determination, create or alter projection authority, alter result cardinality
+or failure ownership, replace the returned projection or governed failure, or
+trigger retry, fallback, latest lookup, version substitution, retrieval,
+reconstruction, or reverification.
+
+Observer failure is operational and contained. It MUST NOT change successful
+projection into failure, replace a governed Knowledge failure, change failure
+identity, alter projection authority or currentness, alter Contextual
+Applicability, cause retry or fallback, or escape as the authoritative
+operation result. No recovery subsystem, queue, or persistent observer history
+is defined.
+
+### Operational Transport and Aggregation
+
+`StructuredLogger` is not the Knowledge semantic diagnostic boundary and is
+not required as a Knowledge runtime dependency. A Bootstrap-owned adapter MAY
+translate an already-minimized closed Knowledge observation into a
+`StructuredLogger` record. Translation MUST preserve the closed observation
+semantics and MUST NOT add protected Knowledge material, reconstruct omitted
+fields, reinterpret failure identity, or acquire semantic authority.
+
+`DiagnosticResult` is not the per-operation projection diagnostic boundary.
+Bootstrap MAY later aggregate conformance or readiness evidence derived from a
+governed diagnostic demonstration, but aggregation does not transfer
+projection diagnostic semantics to Bootstrap and does not authorize redesign
+of `DiagnosticResult` through this specification.
+
 ## Privacy Classification
 
 | Classification                 | Material                                                                                                                                                                                                                              | Treatment                                                                     |
@@ -632,13 +763,20 @@ Future Core language must provide semantic representations for:
   object projection-authority capture;
 - one Knowledge projection-verification request containing intent and exact
   candidate;
-- the verified exact projection result; and
-- the closed Knowledge-owned and externally originating failure categories.
+- the verified exact projection result;
+- the closed Knowledge-owned and externally originating failure categories;
+- one exact closed projection diagnostic observation record; and
+- one optional synchronous projection diagnostic observer signature.
 
 Core custody of this language does not transfer Knowledge, source-currentness,
 Context, or verifier ownership to Core. TypeScript syntax, serialization,
 method names, classes, tokens, and storage representations remain deferred to
 implementation mechanics.
+
+Core custody of diagnostic language does not transfer projection success or
+failure meaning, failure identity, emission semantics, or Knowledge privacy
+policy to Core. This specification governs a future executable representation;
+it does not create Core types.
 
 ## Additive Compatibility
 
@@ -686,7 +824,8 @@ The dependency-ordered implementation sequence is:
 2. additive structured acceptance and persistence;
 3. exact-target projection runtime and eligibility;
 4. Knowledge projection authority and verifier;
-5. Knowledge and CONTRACT-0001 conformance plus privacy-safe diagnostics; and
+5. Knowledge and CONTRACT-0001 conformance plus the closed privacy-safe
+   projection diagnostic observer boundary; and
 6. later Context runtime incorporation and end-to-end source-currentness
    production.
 
@@ -697,15 +836,103 @@ implementation and review.
 
 - `K13-IMPL-F01 SPECIFICATION BLOCKER RESOLVED`
 - `K13-IMPL-F02 SPECIFICATION BLOCKER RESOLVED`
-- `K13-IMPL-F03 OPEN`
-- `K13-IMPL-F04 OPEN`
-- `K13-IMPL-F05 OPEN`
-- `K13-IMPL-F06 OPEN`
-- `K13-IMPL-F07 OPEN`
+- `K13-IMPL-F03 PASS`
+- `K13-IMPL-F04 PASS`
+- `K13-IMPL-F05 PASS`
+- `K13-IMPL-F06 PASS`
+- `K13-IMPL-F07 PASS`
 - `K13-IMPL-F08 OPEN`
 
 The open findings are implementation, integration, conformance, or diagnostic
 work. This specification claims no runtime completion.
+
+`K13-IMPL-F03` is PASS. Executable Core evidence provides the exact Knowledge
+identity and expected-version target, structured textual proposition and
+projection representations, opaque CandidatePreparationAssociation, closed
+preparation and currentness correspondence, projection candidate and result,
+verifier request, and governed public failure identities. Exact-field
+factories, immutable and deeply frozen results, exact-one cardinality, type
+boundaries, and prohibited dependency-direction checks passed.
+
+`K13-IMPL-F04` is PASS. Executable evidence demonstrates additive structured
+acceptance with legacy claim-only compatibility, PropositionIdentity allocation
+only after successful validation, closed Knowledge-owned and external-source
+ownership correspondence, exactly one immutable accepted structured
+proposition, invalid-state rejection, and Store round-trip and reconstruction
+through governed Core factories without semantic authority transfer. In-memory
+and PostgreSQL adapter conformance passed. The latest Store suites passed 21
+tests while 13 environment-dependent PostgreSQL integration tests were skipped;
+the governed REVIEW-0002 nonproduction evidence separately establishes durable
+write and read, restart reconstruction, rollback, supersession, and restore.
+Production PostgreSQL activation is not required for this gate.
+
+`K13-IMPL-F05` is PASS. Runtime evidence demonstrates exact Knowledge identity
+and expected-version targeting, missing-target and version-mismatch failures,
+no latest lookup, substitution, supersession traversal, or fallback, Accepted
+structured-proposition eligibility, superseded and claim-only ineligibility,
+closed Knowledge-owned and external currentness handling, one exact projection,
+exact `subjectKey`, `predicateKey`, and `textualScalar` preservation, exact
+CandidatePreparationAssociation preservation, privacy minimization, and
+governed request, eligibility, currentness, and preparation failures. No
+external Source Currentness production producer is claimed.
+
+`K13-IMPL-F06` is PASS. Executable authority and verifier evidence demonstrates
+Knowledge-owned issuance, private process-local state, immutable issuance
+correspondence, exact-object authority and verification, rejection of structural
+clones, reconstruction, correspondence mismatch, and cross-instance use,
+distinct malformed-request and unauthorized-candidate failures, no public
+capture capability, no bearer or reusable authority token, no authority
+persistence, and fail-closed invalid lifecycle behavior. No corrupt internal
+authority state was fabricated for coverage.
+
+The combined reconciliation passed 71 focused tests across four Core,
+Knowledge Store, K13, and lifecycle files and 616 full Core and Knowledge tests
+across 25 files. Build, Core and Knowledge test typechecks, lint, dependency
+analysis across 64 modules and 126 dependencies, dependency-prohibition checks,
+formatting, and whitespace validation passed with no dependency violations.
+
+`K13-IMPL-F07` is PASS. Executable evidence demonstrates:
+
+- the exact closed observation record;
+- successful projection observation;
+- an applicable governed Knowledge failure observation;
+- preservation of the exact public Knowledge failure identity;
+- absence of every protected field and CandidatePreparationAssociation;
+- absence of reusable authority material;
+- synchronous observer invocation;
+- optional, absent, and no-op observer behavior;
+- observer failure containment;
+- privacy-preserving `StructuredLogger` adaptation when such adaptation is
+  used; and
+- Bootstrap wiring without acquisition of Knowledge diagnostic semantics.
+
+The evidence includes exact closed success and failure records, successful and
+governed-failure observations, exact existing public failure-identity
+preservation, protected-field and CandidatePreparationAssociation absence, no
+reusable authority material, synchronous invocation, absent and no-op
+compatibility, and observer-failure containment. It also demonstrates Core
+custody only, Knowledge-owned semantics and minimization, and the Bootstrap
+wiring-only boundary. Eight failure identities reachable through public
+executable fixtures have runtime evidence; three additional canonical public
+identities remain in the canonical contract and were not artificially forced
+through unsafe or non-public fixtures.
+
+Focused projection conformance passed with 44 tests across two files, and the
+full Core and Knowledge suites passed with 616 tests across 25 files. Build,
+Core and Knowledge test typechecks, lint, dependency analysis and prohibition
+checks, formatting, and whitespace validation also passed.
+
+`StructuredLogger` adaptation is `NOT_APPLICABLE` because no adapter is part of
+this implementation; the adaptation requirement applies only when such an
+adapter is used. Knowledge has no direct `StructuredLogger` dependency.
+Production Bootstrap was not modified: the approved absent, no-op, and later
+composition paths provide the required wiring-only boundary without claiming
+production observer composition.
+
+`K13-IMPL-F08` remains separately open and dependent on an external Source
+Currentness producer, Context integration, Bootstrap and end-to-end
+composition, and governed production Profile B reachability or activation.
+Closing F03 through F07 does not advance or change F08.
 
 ## Implementation Readiness
 
@@ -728,15 +955,36 @@ This specification does not define or implement:
 - Context runtime or Contextual Applicability;
 - source-currentness producer implementations;
 - Bootstrap composition;
-- diagnostics, tests, or conformance fixtures;
+- diagnostic observer types, implementations, adapters, transports, tests, or
+  conformance fixtures;
 - production Profile B reachability;
 - Reasoning, Planning, Brain, or Skill behavior; or
 - activation of this executable projection specification.
 
+The diagnostic refinement fills an executable detail explicitly deferred by
+the reviewed semantic specification. It does not alter the semantic
+architecture approved by REVIEW-0003, and it does not claim that REVIEW-0003
+reviewed this diagnostic detail. REVIEW-0005 reviewed and approved the focused
+diagnostic observer boundary through the governed repository review path. That
+approval did not itself provide executable evidence. Subsequent governed
+implementation-conformance evidence satisfies K13-IMPL-F07. K13-IMPL-F08
+remains OPEN.
+
+## Diagnostic Non-Goals
+
+This specification does not define persistent diagnostic Events, audit
+logging, production telemetry architecture, distributed tracing,
+correlation-identifier architecture, metrics architecture, alerting,
+dashboards, log retention, transport selection, vendor-specific observability,
+or asynchronous diagnostic queues. It does not change Context, Reasoning,
+CONTRACT-0001, Active Knowledge Engine 3.0.0, or production activation.
+
 ## Related Documents
 
 - [Knowledge Engine 3.0.0](ENGINE-0005-Knowledge-Engine-Revision-3.0.0.md)
+- [REVIEW-0002 - PostgreSQL Knowledge Store Nonproduction Validation](../../../docs/architecture-review/REVIEW-0002-PostgreSQL-Knowledge-Store-Nonproduction-Validation.md)
 - [REVIEW-0003 - Knowledge Engine Executable Projection Operation](../../../docs/architecture-review/REVIEW-0003-Knowledge-Engine-Executable-Projection-Operation.md)
+- [REVIEW-0005 - Knowledge Engine Projection Diagnostic Observer Boundary](../../../docs/architecture-review/REVIEW-0005-Knowledge-Engine-Projection-Diagnostic-Observer-Boundary.md)
 - [Knowledge Engine 1.2.0](ENGINE-0005-Knowledge-Engine-Revision-1.2.0.md)
 - [Context Engine 5.0.1](../context/ENGINE-0003-Context-Engine-Revision-5.0.1.md)
 - [Reasoning Engine 3.0.0 Draft](../reasoning/ENGINE-0006-Reasoning-Engine-Revision-3.0.0.md)
@@ -744,18 +992,30 @@ This specification does not define or implement:
 - [ADR-0008 — Context Collaboration, Source Ownership, and Reference Authority](../../../docs/adr/ADR-0008-Context-Collaboration-Source-Ownership-and-Reference-Authority.md)
 - [ADR-0011 — Source Currentness, Contextual Currentness, and Currentness Change](../../../docs/adr/ADR-0011-Source-Currentness-Contextual-Currentness-and-Currentness-Change.md)
 - [ADR-0013 — Failure Ownership, Propagation, and Candidate Context Revision Consequences](../../../docs/adr/ADR-0013-Failure-Ownership-Propagation-and-Candidate-Context-Revision-Consequences.md)
+- [ADR-0014 — Bootstrap Composition Responsibility and Ownership and Authority Preservation](../../../docs/adr/ADR-0014-Bootstrap-Composition-Responsibility-and-Ownership-and-Authority-Preservation.md)
 - [ADR-0020 — Knowledge Evidence Boundary for Source-Aware Reasoning](../../../docs/adr/ADR-0020-Knowledge-Evidence-Boundary-for-Source-Aware-Reasoning.md)
 - [ADR-0021 — Knowledge Source Currentness and Projection Attribution](../../../docs/adr/ADR-0021-Knowledge-Source-Currentness-and-Projection-Attribution.md)
+- [ADR-0022 — Context Preparation Semantic Scope and Applicability Policy](../../../docs/adr/ADR-0022-Context-Preparation-Semantic-Scope-and-Applicability-Policy.md)
 - [CONTRACT-0001 — Context Source Retrieval](../../../docs/contracts/CONTRACT-0001-Context-Source-Retrieval.md)
+- [ARCH-0001 — Core Architecture](../../architecture/ARCH-0001-Core-Architecture.md)
+- [Brain Engine](../ENGINE-0001-Brain-Engine.md)
+- [Skill Engine Protected Invocation and Execution](../skill/ENGINE-0010-Skill-Engine-Protected-Invocation-and-Execution.md)
+- [OES-0002 — Engine Design](../../../docs/engineering/OES-0002-Engine-Design.md)
+- [OES-0004 — Contracts](../../../docs/engineering/OES-0004-Contracts.md)
 - [OES-0008 — Documentation Standards](../../../docs/engineering/OES-0008-Documentation-Standards.md)
+- [OES-0009 — Security Standards](../../../docs/engineering/OES-0009-Security-Standards.md)
 - [OES-0010 — Versioning Standards](../../../docs/engineering/OES-0010-Versioning-Standards.md)
 
 ## Change History
 
-| Version | Date       | Description                                                                                                                                                                                          |
-| ------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1.0.1   | 2026-08-30 | Aligned governing authority with Active Knowledge Engine 3.0.0 and recorded successful governed semantic architecture review in REVIEW-0003. |
-| 1.0.0   | 2026-08-17 | Drafted the distinct Knowledge projection operation and synchronized preparation-bound lifecycle currentness, Knowledge capability attribution, and single-capture issuance authority with ADR-0021. |
+| Version | Date       | Description                                                                                                                                                                                                                               |
+| ------- | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1.1.3   | 2026-08-31 | Synchronized K13-IMPL-F03 through F06 to PASS after executable evidence satisfied the projection semantics approved by REVIEW-0003; F07 remains PASS, F08 remains OPEN, and Draft and Active Knowledge Engine 3.0.0 status are preserved. |
+| 1.1.2   | 2026-08-31 | Synchronized K13-IMPL-F07 to PASS after executable diagnostic observer evidence satisfied the governed criteria approved by REVIEW-0005; the specification remains Draft and F08 remains OPEN.                                            |
+| 1.1.1   | 2026-08-31 | Recorded focused governed approval of the projection diagnostic observer boundary through REVIEW-0005; the specification remains Draft, F07 remains OPEN pending executable evidence, and F08 remains OPEN and unchanged.                 |
+| 1.1.0   | 2026-08-31 | Added the Knowledge-owned, Core-custodied projection diagnostic observer boundary and F07 conformance requirements without changing reviewed projection semantics or F08.                                                                 |
+| 1.0.1   | 2026-08-30 | Aligned governing authority with Active Knowledge Engine 3.0.0 and recorded successful governed semantic architecture review in REVIEW-0003.                                                                                              |
+| 1.0.0   | 2026-08-17 | Drafted the distinct Knowledge projection operation and synchronized preparation-bound lifecycle currentness, Knowledge capability attribution, and single-capture issuance authority with ADR-0021.                                      |
 
 ---
 

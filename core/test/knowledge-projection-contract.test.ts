@@ -12,6 +12,7 @@ import {
   InvalidKnowledgeSubjectKeyValueError,
   InvalidKnowledgeTextualScalarValueError,
   KnowledgeProjectionPreparationMismatchValueError,
+  KNOWLEDGE_PROJECTION_FAILURE_IDENTITIES,
   candidatePreparationAssociation,
   createExternalSourceCurrentnessCorrespondence,
   createAcceptedStructuredKnowledgeSourceOwnershipCorrespondence,
@@ -36,10 +37,52 @@ import {
   type KnowledgeProjectionRequest,
   type KnowledgeProjectionIssuanceCorrespondence,
   type KnowledgeProjectionAuthority,
+  type KnowledgeProjectionDiagnosticFailureObservation,
+  type KnowledgeProjectionDiagnosticObservation,
+  type KnowledgeProjectionDiagnosticObserver,
+  type KnowledgeProjectionDiagnosticSuccessObservation,
   type StructuredKnowledgeProjection,
   type StructuredKnowledgeProjectionCandidate,
   type VerifyStructuredKnowledgeProjectionAuthorityRequest,
 } from "../src/index.js";
+
+describe("Knowledge projection diagnostic observer Core custody", () => {
+  it("defines only the governed closed observation records and public failure identities", () => {
+    expect(KNOWLEDGE_PROJECTION_FAILURE_IDENTITIES).toEqual([
+      "InvalidKnowledgeProjectionRequestError",
+      "KnowledgeNotFoundError",
+      "KnowledgeProjectionVersionMismatchError",
+      "KnowledgeProjectionIneligibleError",
+      "KnowledgeProjectionPreparationMismatchError",
+      "KnowledgeSourceCurrentnessUnableToDetermineError",
+      "KnowledgeProjectionConstructionError",
+      "KnowledgeProjectionIssuanceError",
+      "InvalidKnowledgeProjectionVerificationRequestError",
+      "KnowledgeProjectionAuthorityVerificationError",
+      "InvalidKnowledgeStateError",
+    ]);
+    expect(Object.isFrozen(KNOWLEDGE_PROJECTION_FAILURE_IDENTITIES)).toBe(true);
+
+    expectTypeOf<KnowledgeProjectionDiagnosticSuccessObservation>().toEqualTypeOf<
+      Readonly<{
+        operation: "knowledge-executable-projection";
+        outcome: "succeeded";
+      }>
+    >();
+    expectTypeOf<KnowledgeProjectionDiagnosticFailureObservation>().toMatchTypeOf<
+      Readonly<{
+        operation: "knowledge-executable-projection";
+        outcome: "failed";
+        failureIdentity: string;
+      }>
+    >();
+    expectTypeOf<KnowledgeProjectionDiagnosticObservation>().toEqualTypeOf<
+      | KnowledgeProjectionDiagnosticSuccessObservation
+      | KnowledgeProjectionDiagnosticFailureObservation
+    >();
+    expectTypeOf<KnowledgeProjectionDiagnosticObserver>().toBeFunction();
+  });
+});
 
 const tuple = () => ({
   subjectKey: "orion.subject",
@@ -627,6 +670,13 @@ describe("Knowledge 1.3 structured projection Core language", () => {
       "provenance",
       "acceptanceEvidence",
       "storeMetadata",
+      "credentials",
+      "rawCurrentnessEvidence",
+      "verifierInternals",
+      "authorityCaptureInternals",
+      "confidence",
+      "ranking",
+      "privateTraces",
     ]) {
       expect(projection).not.toHaveProperty(prohibited);
       expect(projection.semanticValue).not.toHaveProperty(prohibited);

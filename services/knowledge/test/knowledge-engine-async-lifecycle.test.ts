@@ -7,6 +7,7 @@ import {
   type KnowledgeConstructionValues,
   type KnowledgeIdentity,
   type KnowledgeLifecycleSnapshotResult,
+  type KnowledgeProjectionDiagnosticObserver,
   type KnowledgeRecord,
   type KnowledgeStore,
   type KnowledgeStoreGetResult,
@@ -16,7 +17,7 @@ import {
   type SupersedeCurrentKnowledgeRequest,
   type SupersedeCurrentKnowledgeResult,
 } from "@orion/core";
-import { describe, expect, it } from "vitest";
+import { describe, expect, expectTypeOf, it } from "vitest";
 
 import * as publicKnowledge from "../src/index.js";
 import {
@@ -204,21 +205,16 @@ async function ready(
 }
 
 describe("Knowledge Engine 3 async lifecycle", () => {
-  it("keeps public construction limited to Store and construction values", () => {
+  it("keeps public construction limited to Store, construction values, and optional diagnostics", () => {
     type PublicConstructorParameters = ConstructorParameters<
       typeof PublicKnowledgeEngine
     >;
     type ExpectedConstructorParameters = [
       store: KnowledgeStore,
       construction: KnowledgeConstructionValues,
+      observer?: KnowledgeProjectionDiagnosticObserver,
     ];
-    const constructorShapeMatches: PublicConstructorParameters extends ExpectedConstructorParameters
-      ? ExpectedConstructorParameters extends PublicConstructorParameters
-        ? true
-        : false
-      : false = true;
-
-    expect(constructorShapeMatches).toBe(true);
+    expectTypeOf<PublicConstructorParameters>().toEqualTypeOf<ExpectedConstructorParameters>();
     expect(publicKnowledge).not.toHaveProperty(
       "createKnowledgeSettlementCoordinator",
     );
