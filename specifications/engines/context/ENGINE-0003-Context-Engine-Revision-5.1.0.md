@@ -1,14 +1,15 @@
 # ENGINE-0003 — Context Engine Revision
 
-| Field          | Value                                                      |
-| -------------- | ---------------------------------------------------------- |
-| **Status**     | Active                                                     |
-| **Supersedes** | 5.0.1                                                      |
-| **Version**    | 5.1.0                                                      |
-| **Owner**      | Context Engine                                             |
-| **Created**    | 2026-08-18                                                 |
-| **Updated**    | 2026-08-18                                                 |
-| **Applies To** | Context preparation and Profile B contextual applicability |
+| Field                | Value                                                      |
+| -------------------- | ---------------------------------------------------------- |
+| **Status**           | Active                                                     |
+| **Supersedes**       | 5.0.1                                                      |
+| **Document Version** | 5.1.1                                                      |
+| **Engine Revision**  | Context Engine 5.1.0                                       |
+| **Owner**            | Context Engine                                             |
+| **Created**          | 2026-08-18                                                 |
+| **Updated**          | 2026-08-31                                                 |
+| **Applies To**       | Context preparation and Profile B contextual applicability |
 
 ---
 
@@ -198,7 +199,7 @@ The structured K13 Profile B fragment is additive. The legacy
 `KnowledgeContextProjection`/KnowledgeReference boundary remains supported
 unchanged for existing revisions and consumers; the structured fragment is
 used only by a later governed structured Profile B path. No legacy fragment is
-migrated, rewritten, or made production-reachable by this Draft.
+migrated, rewritten, or made production-reachable by this specification.
 
 Correspondence supplied with the candidate is opaque Context material. Context
 may check only its required presence, structural admissibility, and exact
@@ -321,7 +322,7 @@ activated or changed.
 ## Contracts and ADRs
 
 ADR-0022 Active 1.0.0 governs the ContextPreparationSemanticScope and exact S2
-predicate in this Draft. It complements ADR-0020 and ADR-0021 and does not
+predicate in this Active specification. It complements ADR-0020 and ADR-0021 and does not
 supersede either. No Contract change is required: `CONTRACT_0001_SUFFICIENT`
 because caller-to-Context scope input is outside the Context-to-source
 collaboration and the scope is not sent to Knowledge or sources.
@@ -330,15 +331,16 @@ selection, query transport, or authority exchange is introduced.
 
 ## Compatibility and lifecycle
 
-This Draft preserves Profile A, Profile C, identity-only Context, legacy
+This Active specification preserves Profile A, Profile C, identity-only Context, legacy
 KnowledgeReference Profile B, existing revisions, Context authority, Reasoning
 2, Planning 2.1.0, and Brain 2.0.3. It does not make production Profile B
 reachable and requires no migration.
 
 Version `5.1.0` is classified `MINOR_REQUIRED`: the closed two-state executable
 Contextual Applicability decision is a new backward-compatible normative
-capability, not merely editorial clarification or source correspondence. The
-Draft remains non-authoritative until independently reviewed and activated.
+capability, not merely editorial clarification or source correspondence. This
+specification is Active and authoritative; its activation does not make
+production Profile B reachable.
 
 ## Related sources
 
@@ -353,6 +355,7 @@ Draft remains non-authoritative until independently reviewed and activated.
 
 ## Change history
 
-| Version | Date       | Description                                                                                                                                                                                                        |
-| ------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 5.1.0   | 2026-08-18 | Draft successor synchronized with Active ADR-0022: ContextPreparationSemanticScope origin/ownership, exact S2 applicability predicate, prerequisite boundary, preparation binding, and stable-reuse clarification. |
+| Version | Date       | Description                                                                                                                                                                                                            |
+| ------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 5.1.1   | 2026-08-31 | Corrected stale Draft/non-authoritative lifecycle wording while preserving Active Context Engine 5.1.0 status with no semantic or authority change.                                                                    |
+| 5.1.0   | 2026-08-18 | Activated successor synchronized with Active ADR-0022: ContextPreparationSemanticScope origin/ownership, exact S2 applicability predicate, prerequisite boundary, preparation binding, and stable-reuse clarification. |
