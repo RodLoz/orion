@@ -2,7 +2,6 @@ import {
   InvalidMemorySourceCurrentnessRequestError,
   InvalidMemorySourceRelationshipError,
   MemorySourceAuthorityVerificationFailureError,
-  MemorySourceCurrentnessUnableToDetermineError,
   candidatePreparationAssociation,
   createMemoryReference,
   createMemorySourceCurrentnessRequest,
@@ -307,19 +306,16 @@ describe("Memory Source Currentness authority verification", () => {
     }
   });
 
-  it("uses unable-to-determine only for an exact request lacking conclusive lifecycle evidence", () => {
+  it("uses governed invalidation for an exact request after successful Forget", () => {
     const { engine, record, currentnessRequest } = createCurrentnessSetup();
     engine.forgetMemory({
       intent: "forget",
       memoryIdentity: record.memoryIdentity,
     });
 
-    expect(() =>
+    expect(
       engine.verifyMemorySourceAuthority(verifierRequest(currentnessRequest)),
-    ).toThrow(MemorySourceCurrentnessUnableToDetermineError);
-    expect(() =>
-      engine.verifyMemorySourceAuthority(verifierRequest(currentnessRequest)),
-    ).not.toThrow(MemorySourceAuthorityVerificationFailureError);
+    ).toEqual({ determination: "NEGATIVE" });
   });
 
   it("does not consult Store presence, absence, or availability for authority", () => {

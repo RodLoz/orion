@@ -4,10 +4,10 @@
 | -------------------- | ----------------------------------------------------------------------------------------------------- |
 | **Status**           | Draft                                                                                                 |
 | **Engine Revision**  | Memory Engine 1.2.0                                                                                   |
-| **Document Version** | 1.2.4                                                                                                 |
+| **Document Version** | 1.2.6                                                                                                 |
 | **Owner**            | Project Maintainers                                                                                   |
 | **Created**          | 2026-08-31                                                                                            |
-| **Updated**          | 2026-08-31                                                                                            |
+| **Updated**          | 2026-09-01                                                                                            |
 | **Applies To**       | Memory-issued structured-proposition relationships and preparation-specific Memory Source Currentness |
 
 ---
@@ -31,8 +31,8 @@ backward-compatible Memory source-relationship, Source Currentness, and
 authority-verification capabilities. Existing Memory 1.1.0 operations and
 semantics remain unchanged unless this Draft explicitly adds a new boundary.
 
-Document version 1.2.4 records governed executable-evidence synchronization
-only. It does not create Memory Engine revision 1.2.4 or alter the proposed
+Document version 1.2.6 records governed executable-evidence synchronization
+only. It does not create Memory Engine revision 1.2.6 or alter the proposed
 Memory Engine 1.2.0 semantics.
 
 ## Purpose and Compatibility
@@ -540,10 +540,10 @@ evidence is separately validated and synchronized here.
 | M12-IMPL-F01 | Closed Memory source-relationship representation and exact Memory attribution                                                      | PASS   |
 | M12-IMPL-F02 | Exact Memory Reference and exact structured-tuple relationship binding                                                             | PASS   |
 | M12-IMPL-F03 | Opaque CandidatePreparationAssociation binding without semantic interpretation                                                     | PASS   |
-| M12-IMPL-F04 | Preparation-specific positive, negative, and unable-to-determine behavior                                                          | OPEN   |
-| M12-IMPL-F05 | Memory-owned issuance and authority verification with fail-closed mismatch handling                                                | OPEN   |
-| M12-IMPL-F06 | Rejection of fabricated, substituted, cloned, or reconstructed authority where semantically applicable                             | OPEN   |
-| M12-IMPL-F07 | Prospective lifecycle invalidation through successful Forget Memory                                                                | OPEN   |
+| M12-IMPL-F04 | Preparation-specific positive, negative, and unable-to-determine behavior                                                          | PASS   |
+| M12-IMPL-F05 | Memory-owned issuance and authority verification with fail-closed mismatch handling                                                | PASS   |
+| M12-IMPL-F06 | Rejection of fabricated, substituted, cloned, or reconstructed authority where semantically applicable                             | PASS   |
+| M12-IMPL-F07 | Prospective lifecycle invalidation through successful Forget Memory                                                                | PASS   |
 | M12-IMPL-F08 | Historical Context preservation after later Memory invalidation                                                                    | OPEN   |
 | M12-IMPL-F09 | Privacy minimization and prohibited-field absence                                                                                  | OPEN   |
 | M12-IMPL-F10 | Non-bearer authority and absence of reusable authority persistence                                                                 | OPEN   |
@@ -581,10 +581,9 @@ and `git diff --check` also passed.
 
 This evidence closes only the representation and exact Memory-attribution
 scope of M12-IMPL-F01. Subsequent separately validated Memory evidence for
-M12-IMPL-F02 and M12-IMPL-F03 is recorded below. Currentness result semantics
-remain M12-IMPL-F04 work; runtime authority and currentness behavior remain
-M12-IMPL-F05 and later work; and runtime/public failure behavior beyond Core
-identity custody remains M12-IMPL-F11 work. Those later gates remain `OPEN`.
+M12-IMPL-F02 through M12-IMPL-F05 and M12-IMPL-F07 is recorded below.
+Subsequent separately validated Memory evidence for M12-IMPL-F06 is recorded
+below. M12-IMPL-F08 through M12-IMPL-F13 and K13-IMPL-F08 remain `OPEN`.
 
 ### M12-IMPL-F02 Executable Evidence
 
@@ -629,8 +628,11 @@ preparation-binding evidence for M12-IMPL-F03 is recorded below. It does not
 close Source Currentness outcomes or determination, the public verifier, the
 full fabrication/substitution/reconstruction verification matrix,
 forgetting-driven currentness invalidation, or any later privacy, lifecycle,
-ownership, integration, or end-to-end gate. M12-IMPL-F04 through
-M12-IMPL-F13 remain `OPEN`, and K13-IMPL-F08 remains `OPEN`.
+ownership, integration, or end-to-end gate. Subsequent separately validated
+evidence for M12-IMPL-F03 through M12-IMPL-F05 and M12-IMPL-F07 is recorded
+below. Subsequent separately validated evidence for M12-IMPL-F06 is also
+recorded below. M12-IMPL-F08 through M12-IMPL-F13 and K13-IMPL-F08 remain
+`OPEN`.
 
 ### M12-IMPL-F03 Executable Evidence
 
@@ -687,8 +689,174 @@ unable-to-determine runtime behavior, positive currentness correspondence,
 Source Currentness determination, lifecycle or forgetting currentness
 evaluation, the public verifier, the complete authority-verification matrix,
 Knowledge or Context integration, Bootstrap composition, end-to-end
-conformance, or production Profile B reachability. M12-IMPL-F04 through
-M12-IMPL-F13 remain `OPEN`, and K13-IMPL-F08 remains `OPEN`.
+conformance, or production Profile B reachability. Subsequent separately
+validated evidence for M12-IMPL-F04, M12-IMPL-F05, and M12-IMPL-F07 is
+recorded below. Subsequent separately validated evidence for M12-IMPL-F06 is
+also recorded below. M12-IMPL-F08 through M12-IMPL-F13 and K13-IMPL-F08
+remain `OPEN`.
+
+### M12-IMPL-F04 Executable Evidence
+
+Subsequent to REVIEW-0006 architectural approval, validated Memory executable
+evidence now satisfies M12-IMPL-F04. The public verifier determines Source
+Currentness anew for one exact preparation-bound request and implements all
+three governed semantic dispositions:
+
+- `POSITIVE` is a completed frozen result for an exact recognized F03 request
+  with an intact F02/F03 authority chain, the applicable Memory instance,
+  authoritative retained standing, and no exact governed invalidation;
+- `NEGATIVE` is a completed frozen result only when that exact recognized
+  request and intact authority chain correspond to an exact relationship in
+  private successful-Forget invalidation evidence; and
+- insufficient positive standing without exact invalidation fails as
+  `MemorySourceCurrentnessUnableToDetermineError`. Unable to determine remains
+  a Memory-owned failure rather than a result-union variant.
+
+The closed result union remains exactly `POSITIVE` and `NEGATIVE`. The caller
+cannot select a determination or supply authority proof. Store absence,
+not-found state, unavailability, and missing retained standing alone do not
+establish `NEGATIVE`. Positive and negative results are exact-shape, minimized,
+and frozen; only positive carries minimized preparation-bound correspondence.
+
+### M12-IMPL-F05 Executable Evidence
+
+Subsequent to REVIEW-0006 architectural approval, validated Memory executable
+evidence now satisfies M12-IMPL-F05. Memory validates the exact verifier
+wrapper, recognizes the exact F03-issued request, follows its private binding
+to the exact F02-issued relationship, and verifies closed source attribution,
+exact Memory Reference, exact structured tuple, relationship identity, exact
+opaque CandidatePreparationAssociation, and the applicable Memory instance
+before evaluating lifecycle standing or currentness.
+
+Fabricated or cloned requests; reconstructed or substituted relationships,
+references, tuples, relationship identities, or preparation associations; and
+cross-instance or restarted authority fail closed as
+`MemorySourceAuthorityVerificationFailureError`. Malformed wrapper or
+association input fails as `InvalidMemorySourceCurrentnessRequestError`, and a
+malformed nested relationship retains
+`InvalidMemorySourceRelationshipError`. An exact recognized request lacking
+both sufficient retained standing and exact invalidation evidence fails as
+`MemorySourceCurrentnessUnableToDetermineError`; exact governed invalidation
+produces `NEGATIVE`. Existing Store failures retain originating Memory/Store
+ownership.
+
+After complete authority verification, Memory checks exact private F07
+relationship invalidation before retained-standing sufficiency, preserving the
+authoritative `POSITIVE`, `NEGATIVE`, and unable-to-determine distinction. The
+positive result carries only `sourceAttribution`, `relationshipIdentity`,
+`candidatePreparationAssociation`, `determination`, and fresh opaque
+`issuerVerification`. The correspondence is frozen, minimized, non-bearer,
+and exposes no private capture. Possession or copying does not establish
+authority. Verification performs no Store lookup and exposes no Memory
+content, private provenance, Store metadata, credentials, lifecycle evidence,
+Knowledge PropositionIdentity, ranking, confidence, trace, or reusable
+authority material. Governed reconciliation found no applicable M12-IMPL-F05
+criterion blocked.
+
+### M12-IMPL-F06 Executable Evidence
+
+Subsequent to REVIEW-0006 architectural approval, validated Memory executable
+evidence now satisfies M12-IMPL-F06. Memory recognizes exact privately captured
+F03 requests and follows their exact F03/F02 capture chain rather than treating
+structural equivalence as authority. Fabricated, cloned, reconstructed, and
+same-field requests fail closed. Relationship, source-attribution, Memory
+Reference, structured-tuple, relationship-identity, and exact opaque
+CandidatePreparationAssociation substitutions also fail closed where
+semantically applicable.
+
+The applicable Memory instance owns the private process-local authority state.
+Cross-instance and restarted or reconstructed-instance verification fails, and
+no Store presence, absence, reconstruction, deletion state, metadata, or public
+record recreates that authority. Verification performs public wrapper and shape
+validation, exact F03 request recognition, complete F03/F02 captured-chain
+verification, and mismatch rejection before consulting exact F07 invalidation
+or retained standing. Consequently, material resembling an invalidated
+relationship cannot acquire `NEGATIVE` after an authority mismatch.
+
+Possession or copying of `MemorySourceRelationshipIdentity`,
+`issuerVerification`, positive correspondence, or another public result is not
+bearer authority and cannot independently establish `POSITIVE`, `NEGATIVE`,
+relationship issuance, preparation binding, or verification. Authority remains
+private, process-local, non-persistent, minimized, and unavailable through a
+public capture identifier, reusable token, serialization, logging, or
+diagnostic output. Public results expose no Memory content, provenance, Store
+metadata, credentials, lifecycle or capture internals, Knowledge
+PropositionIdentity, ranking, confidence, or private trace.
+
+Executable failure evidence preserves the governed distinctions: malformed
+wrapper, intent, currentness request, or association fails as
+`InvalidMemorySourceCurrentnessRequestError`; malformed nested relationship
+state fails as `InvalidMemorySourceRelationshipError`; structurally valid but
+fabricated, cloned, reconstructed, substituted, wrong-instance, or
+restart-invalid authority fails as
+`MemorySourceAuthorityVerificationFailureError`; and an exact recognized
+request lacking sufficient retained-standing and invalidation evidence fails as
+`MemorySourceCurrentnessUnableToDetermineError`. Exact governed F07
+invalidation produces `NEGATIVE`, while originating Store and Memory failures
+retain their existing identities. Authority mismatch does not collapse into
+unable to determine or negative.
+
+Executable traceability includes the focused F02/F03/F05/F07/negative and
+existing Memory suites (6 files, 89 tests), the Core suite (23 files, 565
+tests), the Memory suite (6 files, 89 tests), and the combined Core and Memory
+suites (29 files, 654 tests). Full repository evidence reused from identical
+implementation and test hashes comprised 109 files passed, 2 skipped, 1,944
+tests passed, and 51 skipped. Memory production and test typechecks, all
+repository test TypeScript projects, repository build, ESLint,
+repository-pinned Prettier, Dependency Cruiser (152 modules, 289 dependencies,
+no violations), the forbidden Core and Memory dependency checks, and
+`git diff --check` passed.
+
+This evidence closes only rejection and fail-closed Memory authority behavior
+where semantically applicable. It does not close M12-IMPL-F08 through
+M12-IMPL-F13 or K13-IMPL-F08, activate Memory 1.2.0, authorize deployment or
+production readiness, or make Profile B reachable.
+
+### M12-IMPL-F07 Executable Evidence
+
+Subsequent to REVIEW-0006 architectural approval, validated Memory executable
+evidence now satisfies M12-IMPL-F07. Successful governed Forget first validates
+the request, exact retained identity, Store deletion, and exact deletion
+response; only after completing the Memory-owned transition does it transfer
+all exact process-local F02 relationships issued before Forget for that source
+into private relationship-scoped invalidation evidence.
+
+For the same exact preparation-bound request, executable behavior is
+`POSITIVE` before successful Forget and `NEGATIVE` afterward. All exact
+pre-Forget relationships for the forgotten source become negative on a future
+valid determination. Unrelated retained relationships remain positive.
+Relationships issued after Forget do not inherit the earlier transition and,
+without retained standing or applicable invalidation, remain unable to
+determine.
+
+Malformed Forget input, invalid or non-retained identity, Store not-found or
+unavailability, Store exception, and malformed or contradictory deletion
+responses create no invalidation evidence. Store absence and the public Forget
+result do not establish negative currentness. Invalidation evidence remains
+private, process-local, non-persistent, non-bearer, and unavailable to another
+or restarted Memory instance. Previously returned positive results and
+correspondence remain frozen and unchanged. This evidence does not close
+M12-IMPL-F08 historical Context preservation.
+
+Executable traceability for M12-IMPL-F04, M12-IMPL-F05, and M12-IMPL-F07
+includes the focused F02/F03/F05/F07/negative and existing Memory suites (6
+files, 89 tests), the Core suite (23 files, 565 tests), the Memory suite (6
+files, 89 tests), and the combined Core and Memory suites (29 files, 654
+tests). Full repository evidence reused from identical implementation and test
+hashes comprised 109 files passed, 2 skipped, 1,944 tests passed, and 51
+skipped. Memory production and test typechecks, all repository test TypeScript
+projects, repository build, full ESLint, repository-pinned Prettier, Dependency
+Cruiser (152 modules, 289 dependencies, no violations), the forbidden Core and
+Memory dependency checks, and `git diff --check` passed.
+
+REVIEW-0006 approved the semantic architecture and executable boundary but did
+not itself close these implementation gates. Subsequent executable evidence
+and governed reconciliation established closure readiness, and this direct
+specification synchronization records that evidence. A subsequent separate
+governed reconciliation established M12-IMPL-F06 closure readiness, and direct
+specification synchronization records that evidence without a review addendum
+or new review. M12-IMPL-F08 through M12-IMPL-F13 and K13-IMPL-F08 remain
+`OPEN`; no later-gate PASS may be inferred.
 
 ## Conformance Requirements
 
@@ -738,7 +906,7 @@ approved the Memory Engine 1.2.0 semantic architecture and executable
 boundaries through the governed repository review path. Memory 1.2.0 remains
 Draft and Active Memory 1.1.0 remains authoritative. REVIEW-0006 did not close
 an implementation gate; subsequent validated executable evidence now satisfies
-M12-IMPL-F01 through M12-IMPL-F03. M12-IMPL-F04 through M12-IMPL-F13 and
+M12-IMPL-F01 through M12-IMPL-F07. M12-IMPL-F08 through M12-IMPL-F13 and
 K13-IMPL-F08 remain OPEN. No review addendum or new review was required for
 these direct evidence synchronizations.
 
@@ -800,13 +968,15 @@ governed and are not advanced by this Draft.
 
 ## Change History
 
-| Document Version | Date       | Description                                                                                                                                                                                                                                                                                                     |
-| ---------------- | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1.2.0            | 2026-08-31 | Drafted additive Memory-issued source-proposition relationship, preparation-specific Source Currentness, Memory authority verification, prospective forgetting invalidation, privacy, failure, ownership, and open conformance gates; Memory 1.1.0 remains Active.                                              |
-| 1.2.1            | 2026-08-31 | Recorded focused governed approval through REVIEW-0006 while preserving Draft status, Active Memory 1.1.0, all M12 gates OPEN, K13-IMPL-F08 OPEN, and no implementation or activation authority.                                                                                                                |
-| 1.2.2            | 2026-08-31 | Synchronized M12-IMPL-F01 to PASS from validated executable Core custody evidence under REVIEW-0006 architectural approval; M12-IMPL-F02 through F13 and K13-IMPL-F08 remain OPEN, Draft status and Active Memory 1.1.0 are preserved, and no later implementation is claimed.                                  |
-| 1.2.3            | 2026-08-31 | Synchronized M12-IMPL-F02 to PASS from validated Memory relationship-issuance and exact reference/tuple binding evidence under REVIEW-0006 architectural approval; F01 remains PASS, F03 through F13 and K13-IMPL-F08 remain OPEN, Draft status and Active Memory 1.1.0 are preserved.                          |
-| 1.2.4            | 2026-08-31 | Synchronized M12-IMPL-F03 to PASS from validated opaque preparation-binding evidence under REVIEW-0006 architectural approval; F01 and F02 remain PASS, F04 through F13 and K13-IMPL-F08 remain OPEN, Draft status and Active Memory 1.1.0 are preserved, and no activation or production authority is granted. |
+| Document Version | Date       | Description                                                                                                                                                                                                                                                                                                                                                                     |
+| ---------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1.2.0            | 2026-08-31 | Drafted additive Memory-issued source-proposition relationship, preparation-specific Source Currentness, Memory authority verification, prospective forgetting invalidation, privacy, failure, ownership, and open conformance gates; Memory 1.1.0 remains Active.                                                                                                              |
+| 1.2.1            | 2026-08-31 | Recorded focused governed approval through REVIEW-0006 while preserving Draft status, Active Memory 1.1.0, all M12 gates OPEN, K13-IMPL-F08 OPEN, and no implementation or activation authority.                                                                                                                                                                                |
+| 1.2.2            | 2026-08-31 | Synchronized M12-IMPL-F01 to PASS from validated executable Core custody evidence under REVIEW-0006 architectural approval; M12-IMPL-F02 through F13 and K13-IMPL-F08 remain OPEN, Draft status and Active Memory 1.1.0 are preserved, and no later implementation is claimed.                                                                                                  |
+| 1.2.3            | 2026-08-31 | Synchronized M12-IMPL-F02 to PASS from validated Memory relationship-issuance and exact reference/tuple binding evidence under REVIEW-0006 architectural approval; F01 remains PASS, F03 through F13 and K13-IMPL-F08 remain OPEN, Draft status and Active Memory 1.1.0 are preserved.                                                                                          |
+| 1.2.4            | 2026-08-31 | Synchronized M12-IMPL-F03 to PASS from validated opaque preparation-binding evidence under REVIEW-0006 architectural approval; F01 and F02 remain PASS, F04 through F13 and K13-IMPL-F08 remain OPEN, Draft status and Active Memory 1.1.0 are preserved, and no activation or production authority is granted.                                                                 |
+| 1.2.5            | 2026-09-01 | Synchronized M12-IMPL-F04, M12-IMPL-F05, and M12-IMPL-F07 to PASS from validated three-outcome behavior, exact Memory authority verification, and successful-Forget prospective invalidation evidence while preserving REVIEW-0006 approval; F06 and F08-F13 remain OPEN, K13-IMPL-F08 remains OPEN, Memory 1.2.0 remains Draft, and Active Memory 1.1.0 remains authoritative. |
+| 1.2.6            | 2026-09-01 | Synchronized M12-IMPL-F06 from OPEN to PASS from reconciled exact-authority and fail-closed executable evidence; F01-F05 and F07 remain PASS, F08-F13 and K13-IMPL-F08 remain OPEN, Memory 1.2.0 remains Draft, Active Memory 1.1.0 remains authoritative, and no activation, deployment, production-readiness, or Profile B authority is granted.                              |
 
 ## Engineering Motto
 

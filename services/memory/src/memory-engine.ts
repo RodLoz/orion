@@ -127,6 +127,12 @@ export class MemoryEngine
     MemorySourceRelationship,
     CapturedMemorySourceRelationship
   >();
+  readonly #forgettableSourceRelationships = new Map<
+    MemoryIdentity,
+    Set<MemorySourceRelationship>
+  >();
+  readonly #invalidatedSourceRelationships =
+    new WeakSet<MemorySourceRelationship>();
   readonly #issuedSourcePreparationBindings = new WeakMap<
     MemorySourceCurrentnessRequest,
     CapturedMemorySourcePreparationBinding
@@ -297,6 +303,14 @@ export class MemoryEngine
       const result = this.callStore(() => this.store.delete(identity));
       this.validateDeleteResult(result, identity);
       this.#retainedIdentities.delete(identity);
+      const affectedRelationships =
+        this.#forgettableSourceRelationships.get(identity);
+      if (affectedRelationships !== undefined) {
+        for (const relationship of affectedRelationships) {
+          this.#invalidatedSourceRelationships.add(relationship);
+        }
+        this.#forgettableSourceRelationships.delete(identity);
+      }
       this.#latestReceipts.delete(identity);
       return Object.freeze({
         outcome: "deleted",
@@ -360,6 +374,19 @@ export class MemoryEngine
           relationshipIdentity: relationship.relationshipIdentity,
         }),
       );
+      if (this.#retainedIdentities.has(memoryReference.memoryIdentity)) {
+        let relationships = this.#forgettableSourceRelationships.get(
+          memoryReference.memoryIdentity,
+        );
+        if (relationships === undefined) {
+          relationships = new Set<MemorySourceRelationship>();
+          this.#forgettableSourceRelationships.set(
+            memoryReference.memoryIdentity,
+            relationships,
+          );
+        }
+        relationships.add(relationship);
+      }
       return relationship;
     } catch (error: unknown) {
       if (error instanceof MemorySourceAuthorityVerificationFailureError) {
@@ -437,6 +464,13 @@ export class MemoryEngine
       currentnessRequest,
       preparationBinding,
     );
+    if (
+      this.#invalidatedSourceRelationships.has(preparationBinding.relationship)
+    ) {
+      return createMemorySourceCurrentnessResult({
+        determination: "NEGATIVE",
+      });
+    }
     if (
       !this.#retainedIdentities.has(
         relationshipBinding.memoryReference.memoryIdentity,
