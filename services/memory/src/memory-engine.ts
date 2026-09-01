@@ -1,5 +1,6 @@
 import {
   DuplicateMemoryIdentityError,
+  InvalidMemorySourceCurrentnessRequestError,
   InvalidMemoryIdentityError,
   InvalidMemoryInputError,
   InvalidMemorySourceRelationshipError,
@@ -8,12 +9,14 @@ import {
   MemoryNotFoundError,
   MemorySourceAuthorityVerificationFailureError,
   MemoryStoreUnavailableError,
+  candidatePreparationAssociation,
   createMemoryProvenance,
   createMemoryRecord,
   createMemoryReference,
   createMemoryRetentionIntent,
   createMemoryRetrievalReceipt,
   createMemorySourceAttribution,
+  createMemorySourceCurrentnessRequest,
   createMemorySourcePropositionTuple,
   createMemorySourceRelationship,
   memoryContent,
@@ -24,6 +27,7 @@ import {
   memorySourceRelationshipIdentity,
   memorySourceReference,
   memoryTimestamp,
+  type CandidatePreparationAssociation,
   type ForgetMemory,
   type ForgetMemoryResult,
   type GetMemory,
@@ -35,6 +39,7 @@ import {
   type MemoryRecord,
   type MemoryReference,
   type MemoryRetrievalReceipt,
+  type MemorySourceCurrentnessRequest,
   type MemorySourcePropositionTuple,
   type MemorySourceRelationship,
   type MemorySourceRelationshipIdentity,
@@ -58,6 +63,11 @@ interface CapturedMemorySourceRelationship {
   readonly memoryReference: MemoryReference;
   readonly semanticValue: MemorySourcePropositionTuple;
   readonly relationshipIdentity: MemorySourceRelationshipIdentity;
+}
+
+interface CapturedMemorySourcePreparationBinding {
+  readonly relationship: MemorySourceRelationship;
+  readonly candidatePreparationAssociation: CandidatePreparationAssociation;
 }
 
 function isPublicFailure(value: unknown): value is Error {
@@ -97,6 +107,10 @@ export class MemoryEngine
   readonly #issuedSourceRelationships = new WeakMap<
     MemorySourceRelationship,
     CapturedMemorySourceRelationship
+  >();
+  readonly #issuedSourcePreparationBindings = new WeakMap<
+    MemorySourceCurrentnessRequest,
+    CapturedMemorySourcePreparationBinding
   >();
   #nextSourceRelationshipSequence = 1;
   #engineState: MemoryEngineLifecycleState = "initialize";
@@ -328,6 +342,52 @@ export class MemoryEngine
         throw error;
       }
       throw new InvalidMemorySourceRelationshipError();
+    }
+  }
+
+  public bindMemorySourceRelationshipToPreparation(
+    request: unknown,
+  ): MemorySourceCurrentnessRequest {
+    this.requireRunning();
+    try {
+      if (
+        !isPlainRecord(request) ||
+        !hasExactFields(request, [
+          "relationship",
+          "candidatePreparationAssociation",
+        ])
+      ) {
+        throw new InvalidMemorySourceCurrentnessRequestError();
+      }
+
+      const association = candidatePreparationAssociation(
+        request.candidatePreparationAssociation,
+      );
+      createMemorySourceRelationship(request.relationship);
+      const relationship =
+        request.relationship as unknown as MemorySourceRelationship;
+
+      if (!this.#issuedSourceRelationships.has(relationship)) {
+        throw new MemorySourceAuthorityVerificationFailureError();
+      }
+
+      const currentnessRequest = createMemorySourceCurrentnessRequest({
+        relationship,
+        candidatePreparationAssociation: association,
+      });
+      this.#issuedSourcePreparationBindings.set(
+        currentnessRequest,
+        Object.freeze({
+          relationship,
+          candidatePreparationAssociation: association,
+        }),
+      );
+      return currentnessRequest;
+    } catch (error: unknown) {
+      if (error instanceof MemorySourceAuthorityVerificationFailureError) {
+        throw error;
+      }
+      throw new InvalidMemorySourceCurrentnessRequestError();
     }
   }
 
