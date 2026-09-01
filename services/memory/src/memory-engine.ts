@@ -2,20 +2,26 @@ import {
   DuplicateMemoryIdentityError,
   InvalidMemoryIdentityError,
   InvalidMemoryInputError,
+  InvalidMemorySourceRelationshipError,
   InvalidMemoryStateError,
   InvalidRetentionIntentError,
   MemoryNotFoundError,
+  MemorySourceAuthorityVerificationFailureError,
   MemoryStoreUnavailableError,
   createMemoryProvenance,
   createMemoryRecord,
   createMemoryReference,
   createMemoryRetentionIntent,
   createMemoryRetrievalReceipt,
+  createMemorySourceAttribution,
+  createMemorySourcePropositionTuple,
+  createMemorySourceRelationship,
   memoryContent,
   memoryIdentity,
   memoryOriginatingCapability,
   memoryRetentionReason,
   memoryRetrievalPurpose,
+  memorySourceRelationshipIdentity,
   memorySourceReference,
   memoryTimestamp,
   type ForgetMemory,
@@ -29,6 +35,9 @@ import {
   type MemoryRecord,
   type MemoryReference,
   type MemoryRetrievalReceipt,
+  type MemorySourcePropositionTuple,
+  type MemorySourceRelationship,
+  type MemorySourceRelationshipIdentity,
   type MemorySourceType,
   type MemoryStore,
   type RetainMemory,
@@ -44,6 +53,12 @@ const PUBLIC_FAILURES = [
   MemoryStoreUnavailableError,
   InvalidMemoryStateError,
 ] as const;
+
+interface CapturedMemorySourceRelationship {
+  readonly memoryReference: MemoryReference;
+  readonly semanticValue: MemorySourcePropositionTuple;
+  readonly relationshipIdentity: MemorySourceRelationshipIdentity;
+}
 
 function isPublicFailure(value: unknown): value is Error {
   return PUBLIC_FAILURES.some((Failure) => value instanceof Failure);
@@ -78,6 +93,12 @@ export class MemoryEngine
 {
   readonly #retainedIdentities = new Set<MemoryIdentity>();
   readonly #latestReceipts = new Map<MemoryIdentity, MemoryRetrievalReceipt>();
+  readonly #issuedReferences = new WeakSet<MemoryReference>();
+  readonly #issuedSourceRelationships = new WeakMap<
+    MemorySourceRelationship,
+    CapturedMemorySourceRelationship
+  >();
+  #nextSourceRelationshipSequence = 1;
   #engineState: MemoryEngineLifecycleState = "initialize";
 
   public constructor(
@@ -176,10 +197,11 @@ export class MemoryEngine
       const result = this.callStore(() => this.store.get(identity));
       const record = this.validateGetResult(result, identity);
       const receipt = createMemoryRetrievalReceipt({
-        memoryReference: createMemoryReference(record.memoryIdentity),
+        memoryReference: this.issueMemoryReference(record.memoryIdentity),
         retrievedAt: this.nextRetrievedAt(),
         purpose,
       });
+      this.#issuedReferences.add(receipt.memoryReference);
       this.validateReceipt(receipt, record.memoryIdentity);
       this.#latestReceipts.set(identity, receipt);
       return Object.freeze({ memory: record, receipt });
@@ -210,6 +232,9 @@ export class MemoryEngine
       const references = this.validateListResult(result, limitValue).filter(
         (reference) => this.#retainedIdentities.has(reference.memoryIdentity),
       );
+      for (const reference of references) {
+        this.#issuedReferences.add(reference);
+      }
       return Object.freeze(references);
     } catch (error: unknown) {
       if (isPublicFailure(error)) throw error;
@@ -237,7 +262,7 @@ export class MemoryEngine
       this.#latestReceipts.delete(identity);
       return Object.freeze({
         outcome: "deleted",
-        memoryReference: createMemoryReference(identity),
+        memoryReference: this.issueMemoryReference(identity),
       });
     } catch (error: unknown) {
       if (isPublicFailure(error)) throw error;
@@ -249,6 +274,61 @@ export class MemoryEngine
     this.requireRunning();
     const identity = this.callerIdentity(value);
     return this.#latestReceipts.get(identity)?.retrievedAt;
+  }
+
+  public issueMemorySourceRelationship(
+    request: unknown,
+  ): MemorySourceRelationship {
+    this.requireRunning();
+    try {
+      if (
+        !isPlainRecord(request) ||
+        !hasExactFields(request, [
+          "sourceAttribution",
+          "memoryReference",
+          "semanticValue",
+        ])
+      ) {
+        throw new InvalidMemorySourceRelationshipError();
+      }
+
+      const sourceAttribution = createMemorySourceAttribution(
+        request.sourceAttribution,
+      );
+      const memoryReference = this.validateRelationshipReference(
+        request.memoryReference,
+      );
+      const semanticValue = createMemorySourcePropositionTuple(
+        request.semanticValue,
+      );
+
+      if (!this.#issuedReferences.has(memoryReference)) {
+        throw new MemorySourceAuthorityVerificationFailureError();
+      }
+
+      const relationshipIdentity = this.nextSourceRelationshipIdentity();
+      const relationship = createMemorySourceRelationship({
+        sourceAttribution,
+        memoryReference,
+        semanticValue,
+        relationshipIdentity,
+      });
+      this.#issuedReferences.add(relationship.memoryReference);
+      this.#issuedSourceRelationships.set(
+        relationship,
+        Object.freeze({
+          memoryReference,
+          semanticValue: relationship.semanticValue,
+          relationshipIdentity: relationship.relationshipIdentity,
+        }),
+      );
+      return relationship;
+    } catch (error: unknown) {
+      if (error instanceof MemorySourceAuthorityVerificationFailureError) {
+        throw error;
+      }
+      throw new InvalidMemorySourceRelationshipError();
+    }
   }
 
   private validateRetainRequest(request: unknown) {
@@ -504,6 +584,37 @@ export class MemoryEngine
       receipt.memoryReference.memoryIdentity !== identity
     )
       throw new InvalidMemoryStateError();
+  }
+
+  private validateRelationshipReference(value: unknown): MemoryReference {
+    if (
+      !isPlainRecord(value) ||
+      !hasExactFields(value, [
+        "memoryIdentity",
+        "kind",
+        "authoritativeCapability",
+        "lifecycleState",
+      ]) ||
+      value.kind !== "episodic" ||
+      value.authoritativeCapability !== "memory" ||
+      value.lifecycleState !== "stored"
+    ) {
+      throw new InvalidMemorySourceRelationshipError();
+    }
+    memoryIdentity(value.memoryIdentity);
+    return value as unknown as MemoryReference;
+  }
+
+  private issueMemoryReference(identity: MemoryIdentity): MemoryReference {
+    const reference = createMemoryReference(identity);
+    this.#issuedReferences.add(reference);
+    return reference;
+  }
+
+  private nextSourceRelationshipIdentity(): MemorySourceRelationshipIdentity {
+    return memorySourceRelationshipIdentity(
+      `memory-source-relationship-${this.#nextSourceRelationshipSequence++}`,
+    );
   }
 
   private callerIdentity(value: unknown): MemoryIdentity {

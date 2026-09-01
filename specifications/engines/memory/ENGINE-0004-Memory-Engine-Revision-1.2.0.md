@@ -4,7 +4,7 @@
 | -------------------- | ----------------------------------------------------------------------------------------------------- |
 | **Status**           | Draft                                                                                                 |
 | **Engine Revision**  | Memory Engine 1.2.0                                                                                   |
-| **Document Version** | 1.2.2                                                                                                 |
+| **Document Version** | 1.2.3                                                                                                 |
 | **Owner**            | Project Maintainers                                                                                   |
 | **Created**          | 2026-08-31                                                                                            |
 | **Updated**          | 2026-08-31                                                                                            |
@@ -31,8 +31,8 @@ backward-compatible Memory source-relationship, Source Currentness, and
 authority-verification capabilities. Existing Memory 1.1.0 operations and
 semantics remain unchanged unless this Draft explicitly adds a new boundary.
 
-Document version 1.2.2 records governed executable-evidence synchronization
-only. It does not create Memory Engine revision 1.2.2 or alter the proposed
+Document version 1.2.3 records governed executable-evidence synchronization
+only. It does not create Memory Engine revision 1.2.3 or alter the proposed
 Memory Engine 1.2.0 semantics.
 
 ## Purpose and Compatibility
@@ -538,7 +538,7 @@ evidence is separately validated and synchronized here.
 | Gate         | Requirement                                                                                                                        | Status |
 | ------------ | ---------------------------------------------------------------------------------------------------------------------------------- | ------ |
 | M12-IMPL-F01 | Closed Memory source-relationship representation and exact Memory attribution                                                      | PASS   |
-| M12-IMPL-F02 | Exact Memory Reference and exact structured-tuple relationship binding                                                             | OPEN   |
+| M12-IMPL-F02 | Exact Memory Reference and exact structured-tuple relationship binding                                                             | PASS   |
 | M12-IMPL-F03 | Opaque CandidatePreparationAssociation binding without semantic interpretation                                                     | OPEN   |
 | M12-IMPL-F04 | Preparation-specific positive, negative, and unable-to-determine behavior                                                          | OPEN   |
 | M12-IMPL-F05 | Memory-owned issuance and authority verification with fail-closed mismatch handling                                                | OPEN   |
@@ -580,12 +580,57 @@ modules, 94 dependencies, no violations), the forbidden Core dependency check,
 and `git diff --check` also passed.
 
 This evidence closes only the representation and exact Memory-attribution
-scope of M12-IMPL-F01. Exact authority-issued Memory Reference and tuple
-relationship proof remains M12-IMPL-F02 work. Preparation-specific request
-binding remains M12-IMPL-F03 work; currentness result semantics remain
-M12-IMPL-F04 work; runtime authority and currentness behavior remain
-M12-IMPL-F05 and later work; and runtime/public failure behavior beyond Core
-identity custody remains M12-IMPL-F11 work. Those gates remain `OPEN`.
+scope of M12-IMPL-F01. Subsequent separately validated Memory evidence for
+M12-IMPL-F02 is recorded below. Preparation-specific request binding remains
+M12-IMPL-F03 work; currentness result semantics remain M12-IMPL-F04 work;
+runtime authority and currentness behavior remain M12-IMPL-F05 and later work;
+and runtime/public failure behavior beyond Core identity custody remains
+M12-IMPL-F11 work. Those later gates remain `OPEN`.
+
+### M12-IMPL-F02 Executable Evidence
+
+Subsequent to REVIEW-0006 architectural approval, validated Memory executable
+evidence now satisfies M12-IMPL-F02. The Memory-owned producer establishes one
+exact relationship between closed Memory attribution, an exact
+Memory-issued Memory Reference, one explicit exact
+`subjectKey`/`predicateKey`/`textualScalar` tuple, and a Memory-generated opaque
+relationship identity. It preserves all tuple values exactly and performs no
+content derivation, normalization, inference, ranking, similarity, latest
+selection, replacement, or fallback.
+
+Private process-local issuance and relationship-binding evidence distinguishes
+Memory-issued references from caller-created, cloned, or Store-reconstructed
+structural equivalents. Structural equality, relationship-identity possession,
+Store presence, persistence, timestamps, tuple contents, and caller input do
+not establish authority. No authority evidence is persisted or reconstructed
+across restart, and no private producer state, public authority token, bearer
+proof, or authority-capture identifier leaves Memory.
+
+The returned frozen relationship remains minimized and excludes Memory content,
+private provenance, CandidatePreparationAssociation, Knowledge
+PropositionIdentity, Store metadata, and authority/verifier internals. The
+producer preserves the F02-relevant failure distinction: malformed or open
+relationship issuance input fails as `InvalidMemorySourceRelationshipError`,
+while a structurally valid but non-issued Memory Reference fails as
+`MemorySourceAuthorityVerificationFailureError`. Existing Store failures retain
+their originating identities.
+
+Executable traceability includes the focused F02 and existing Memory tests (2
+files, 48 tests), the Core and Memory suites (25 files, 613 tests), and the full
+repository evidence from unchanged implementation hashes (105 files passed, 2
+skipped; 1,903 tests passed, 51 skipped). Memory production and test
+typechecks, repository build, Memory ESLint, Prettier, Dependency Cruiser (63
+modules, 124 dependencies, no violations), the forbidden Core and Memory
+dependency checks, and `git diff --check` also passed.
+
+This evidence closes only exact Memory-issued reference/tuple relationship
+binding, Memory-owned relationship issuance, and the producer-side authority
+evidence necessary for that binding. It does not close preparation binding,
+Source Currentness outcomes or determination, the public verifier, the full
+fabrication/substitution/reconstruction verification matrix, forgetting-driven
+currentness invalidation, or any later privacy, lifecycle, ownership,
+integration, or end-to-end gate. M12-IMPL-F03 through M12-IMPL-F13 remain
+`OPEN`, and K13-IMPL-F08 remains `OPEN`.
 
 ## Conformance Requirements
 
@@ -634,9 +679,10 @@ issuance, or authority reconstruction is authorized here.
 approved the Memory Engine 1.2.0 semantic architecture and executable
 boundaries through the governed repository review path. Memory 1.2.0 remains
 Draft and Active Memory 1.1.0 remains authoritative. REVIEW-0006 did not close
-an implementation gate; subsequent validated executable Core evidence now
-satisfies M12-IMPL-F01. M12-IMPL-F02 through M12-IMPL-F13 and K13-IMPL-F08
-remain OPEN.
+an implementation gate; subsequent validated executable evidence now satisfies
+M12-IMPL-F01 and M12-IMPL-F02. M12-IMPL-F03 through M12-IMPL-F13 and
+K13-IMPL-F08 remain OPEN. No review addendum or new review was required for
+these direct evidence synchronizations.
 
 REVIEW-0006 does not by itself activate Memory 1.2.0, authorize implementation
 or production composition, establish runtime or implementation completeness,
@@ -696,11 +742,12 @@ governed and are not advanced by this Draft.
 
 ## Change History
 
-| Document Version | Date       | Description                                                                                                                                                                                                                                                                    |
-| ---------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 1.2.0            | 2026-08-31 | Drafted additive Memory-issued source-proposition relationship, preparation-specific Source Currentness, Memory authority verification, prospective forgetting invalidation, privacy, failure, ownership, and open conformance gates; Memory 1.1.0 remains Active.             |
-| 1.2.1            | 2026-08-31 | Recorded focused governed approval through REVIEW-0006 while preserving Draft status, Active Memory 1.1.0, all M12 gates OPEN, K13-IMPL-F08 OPEN, and no implementation or activation authority.                                                                               |
-| 1.2.2            | 2026-08-31 | Synchronized M12-IMPL-F01 to PASS from validated executable Core custody evidence under REVIEW-0006 architectural approval; M12-IMPL-F02 through F13 and K13-IMPL-F08 remain OPEN, Draft status and Active Memory 1.1.0 are preserved, and no later implementation is claimed. |
+| Document Version | Date       | Description                                                                                                                                                                                                                                                                            |
+| ---------------- | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1.2.0            | 2026-08-31 | Drafted additive Memory-issued source-proposition relationship, preparation-specific Source Currentness, Memory authority verification, prospective forgetting invalidation, privacy, failure, ownership, and open conformance gates; Memory 1.1.0 remains Active.                     |
+| 1.2.1            | 2026-08-31 | Recorded focused governed approval through REVIEW-0006 while preserving Draft status, Active Memory 1.1.0, all M12 gates OPEN, K13-IMPL-F08 OPEN, and no implementation or activation authority.                                                                                       |
+| 1.2.2            | 2026-08-31 | Synchronized M12-IMPL-F01 to PASS from validated executable Core custody evidence under REVIEW-0006 architectural approval; M12-IMPL-F02 through F13 and K13-IMPL-F08 remain OPEN, Draft status and Active Memory 1.1.0 are preserved, and no later implementation is claimed.         |
+| 1.2.3            | 2026-08-31 | Synchronized M12-IMPL-F02 to PASS from validated Memory relationship-issuance and exact reference/tuple binding evidence under REVIEW-0006 architectural approval; F01 remains PASS, F03 through F13 and K13-IMPL-F08 remain OPEN, Draft status and Active Memory 1.1.0 are preserved. |
 
 ## Engineering Motto
 
