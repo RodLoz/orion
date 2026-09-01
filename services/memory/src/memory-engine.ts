@@ -8,6 +8,7 @@ import {
   InvalidRetentionIntentError,
   MemoryNotFoundError,
   MemorySourceAuthorityVerificationFailureError,
+  MemorySourceCurrentnessUnableToDetermineError,
   MemoryStoreUnavailableError,
   candidatePreparationAssociation,
   createMemoryProvenance,
@@ -17,14 +18,17 @@ import {
   createMemoryRetrievalReceipt,
   createMemorySourceAttribution,
   createMemorySourceCurrentnessRequest,
+  createMemorySourceCurrentnessResult,
   createMemorySourcePropositionTuple,
   createMemorySourceRelationship,
+  createPositiveMemorySourceCurrentnessCorrespondence,
   memoryContent,
   memoryIdentity,
   memoryOriginatingCapability,
   memoryRetentionReason,
   memoryRetrievalPurpose,
   memorySourceRelationshipIdentity,
+  memorySourceIssuerVerificationCorrespondence,
   memorySourceReference,
   memoryTimestamp,
   type CandidatePreparationAssociation,
@@ -40,13 +44,18 @@ import {
   type MemoryReference,
   type MemoryRetrievalReceipt,
   type MemorySourceCurrentnessRequest,
+  type MemorySourceCurrentnessResult,
+  type MemorySourceIssuerVerificationCorrespondence,
   type MemorySourcePropositionTuple,
   type MemorySourceRelationship,
   type MemorySourceRelationshipIdentity,
   type MemorySourceType,
   type MemoryStore,
+  type PositiveMemorySourceCurrentnessCorrespondence,
   type RetainMemory,
   type RetrievedMemory,
+  type VerifyMemorySourceAuthority,
+  type VerifyMemorySourceAuthorityRequest,
 } from "@orion/core";
 
 const PUBLIC_FAILURES = [
@@ -68,6 +77,11 @@ interface CapturedMemorySourceRelationship {
 interface CapturedMemorySourcePreparationBinding {
   readonly relationship: MemorySourceRelationship;
   readonly candidatePreparationAssociation: CandidatePreparationAssociation;
+}
+
+interface CapturedPositiveMemorySourceVerification {
+  readonly currentnessRequest: MemorySourceCurrentnessRequest;
+  readonly issuerVerification: MemorySourceIssuerVerificationCorrespondence;
 }
 
 function isPublicFailure(value: unknown): value is Error {
@@ -99,7 +113,12 @@ function hasExactFields(
 }
 
 export class MemoryEngine
-  implements RetainMemory, GetMemory, ListRetainedMemoryReferences, ForgetMemory
+  implements
+    RetainMemory,
+    GetMemory,
+    ListRetainedMemoryReferences,
+    ForgetMemory,
+    VerifyMemorySourceAuthority
 {
   readonly #retainedIdentities = new Set<MemoryIdentity>();
   readonly #latestReceipts = new Map<MemoryIdentity, MemoryRetrievalReceipt>();
@@ -112,7 +131,12 @@ export class MemoryEngine
     MemorySourceCurrentnessRequest,
     CapturedMemorySourcePreparationBinding
   >();
+  readonly #issuedPositiveSourceVerifications = new WeakMap<
+    PositiveMemorySourceCurrentnessCorrespondence,
+    CapturedPositiveMemorySourceVerification
+  >();
   #nextSourceRelationshipSequence = 1;
+  #nextSourceVerificationSequence = 1;
   #engineState: MemoryEngineLifecycleState = "initialize";
 
   public constructor(
@@ -389,6 +413,156 @@ export class MemoryEngine
       }
       throw new InvalidMemorySourceCurrentnessRequestError();
     }
+  }
+
+  public verifyMemorySourceAuthority(
+    request: VerifyMemorySourceAuthorityRequest,
+  ): MemorySourceCurrentnessResult;
+  public verifyMemorySourceAuthority(
+    request: unknown,
+  ): MemorySourceCurrentnessResult;
+  public verifyMemorySourceAuthority(
+    request: unknown,
+  ): MemorySourceCurrentnessResult {
+    this.requireRunning();
+    const currentnessRequest =
+      this.validateSourceAuthorityVerificationRequest(request);
+    const preparationBinding =
+      this.#issuedSourcePreparationBindings.get(currentnessRequest);
+    if (preparationBinding === undefined) {
+      throw new MemorySourceAuthorityVerificationFailureError();
+    }
+
+    const relationshipBinding = this.verifySourceAuthorityCaptureChain(
+      currentnessRequest,
+      preparationBinding,
+    );
+    if (
+      !this.#retainedIdentities.has(
+        relationshipBinding.memoryReference.memoryIdentity,
+      )
+    ) {
+      throw new MemorySourceCurrentnessUnableToDetermineError();
+    }
+
+    const issuerVerification = memorySourceIssuerVerificationCorrespondence(
+      `memory-source-verification-${this.#nextSourceVerificationSequence++}`,
+    );
+    const result = createMemorySourceCurrentnessResult({
+      determination: "POSITIVE",
+      correspondence: createPositiveMemorySourceCurrentnessCorrespondence({
+        sourceAttribution: currentnessRequest.relationship.sourceAttribution,
+        relationshipIdentity:
+          currentnessRequest.relationship.relationshipIdentity,
+        candidatePreparationAssociation:
+          currentnessRequest.candidatePreparationAssociation,
+        determination: "POSITIVE",
+        issuerVerification,
+      }),
+    });
+    if (result.determination !== "POSITIVE") {
+      throw new MemorySourceAuthorityVerificationFailureError();
+    }
+    this.#issuedPositiveSourceVerifications.set(
+      result.correspondence,
+      Object.freeze({ currentnessRequest, issuerVerification }),
+    );
+    return result;
+  }
+
+  private validateSourceAuthorityVerificationRequest(
+    request: unknown,
+  ): MemorySourceCurrentnessRequest {
+    if (
+      !isPlainRecord(request) ||
+      !hasExactFields(request, ["intent", "currentnessRequest"]) ||
+      request.intent !== "verify-memory-source-authority"
+    ) {
+      throw new InvalidMemorySourceCurrentnessRequestError();
+    }
+    const currentnessRequest = request.currentnessRequest;
+    if (
+      !isPlainRecord(currentnessRequest) ||
+      !hasExactFields(currentnessRequest, [
+        "relationship",
+        "candidatePreparationAssociation",
+      ])
+    ) {
+      throw new InvalidMemorySourceCurrentnessRequestError();
+    }
+    try {
+      candidatePreparationAssociation(
+        currentnessRequest.candidatePreparationAssociation,
+      );
+    } catch {
+      throw new InvalidMemorySourceCurrentnessRequestError();
+    }
+    createMemorySourceRelationship(currentnessRequest.relationship);
+    return currentnessRequest as unknown as MemorySourceCurrentnessRequest;
+  }
+
+  private verifySourceAuthorityCaptureChain(
+    currentnessRequest: MemorySourceCurrentnessRequest,
+    preparationBinding: CapturedMemorySourcePreparationBinding,
+  ): CapturedMemorySourceRelationship {
+    const relationship = preparationBinding.relationship;
+    const relationshipBinding =
+      this.#issuedSourceRelationships.get(relationship);
+    if (
+      relationshipBinding === undefined ||
+      !this.#issuedReferences.has(relationshipBinding.memoryReference) ||
+      currentnessRequest.candidatePreparationAssociation !==
+        preparationBinding.candidatePreparationAssociation ||
+      currentnessRequest.relationship.sourceAttribution
+        .authoritativeCapability !== "memory" ||
+      relationship.sourceAttribution.authoritativeCapability !== "memory" ||
+      currentnessRequest.relationship.relationshipIdentity !==
+        relationship.relationshipIdentity ||
+      relationship.relationshipIdentity !==
+        relationshipBinding.relationshipIdentity ||
+      !this.sameMemoryReference(
+        currentnessRequest.relationship.memoryReference,
+        relationship.memoryReference,
+      ) ||
+      !this.sameMemoryReference(
+        relationship.memoryReference,
+        relationshipBinding.memoryReference,
+      ) ||
+      !this.sameMemorySourceTuple(
+        currentnessRequest.relationship.semanticValue,
+        relationship.semanticValue,
+      ) ||
+      !this.sameMemorySourceTuple(
+        relationship.semanticValue,
+        relationshipBinding.semanticValue,
+      )
+    ) {
+      throw new MemorySourceAuthorityVerificationFailureError();
+    }
+    return relationshipBinding;
+  }
+
+  private sameMemoryReference(
+    left: MemoryReference,
+    right: MemoryReference,
+  ): boolean {
+    return (
+      left.memoryIdentity === right.memoryIdentity &&
+      left.kind === right.kind &&
+      left.authoritativeCapability === right.authoritativeCapability &&
+      left.lifecycleState === right.lifecycleState
+    );
+  }
+
+  private sameMemorySourceTuple(
+    left: MemorySourcePropositionTuple,
+    right: MemorySourcePropositionTuple,
+  ): boolean {
+    return (
+      left.subjectKey === right.subjectKey &&
+      left.predicateKey === right.predicateKey &&
+      left.textualScalar === right.textualScalar
+    );
   }
 
   private validateRetainRequest(request: unknown) {
