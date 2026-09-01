@@ -3,10 +3,10 @@
 | Field           | Value               |
 | --------------- | ------------------- |
 | **Status**      | Approved            |
-| **Version**     | 1.0.0               |
+| **Version**     | 1.1.0               |
 | **Owner**       | Project Maintainers |
 | **Created**     | 2026-08-31          |
-| **Updated**     | 2026-08-31          |
+| **Updated**     | 2026-09-01          |
 | **Review Type** | Architecture Review |
 
 ---
@@ -465,10 +465,331 @@ production readiness, or make production Profile B reachable.
 
 ---
 
+# Addendum A - M12-IMPL-F13 Executable Handoff
+
+## Addendum Purpose and Scope
+
+This focused addendum approves only the nonproduction executable
+Memory-to-Knowledge-to-Context handoff needed to implement and evidence
+`M12-IMPL-F13`. It resolves the executable collaboration detail intentionally
+left open by the original review while preserving the semantic architecture
+already approved by REVIEW-0006.
+
+This addendum does not itself provide executable evidence and does not close
+`M12-IMPL-F13`. It does not authorize Memory Engine 1.2.0 activation,
+production deployment or Bootstrap, Profile B reachability,
+`K13-IMPL-F08` closure, Reasoning or Brain production integration, durable
+authority, Store schema changes, or a generic cross-source currentness
+facility.
+
+## Preserved Ownership Model
+
+The approved executable handoff preserves these owners:
+
+- Memory owns `MemorySourceRelationship`, Memory Source Currentness,
+  preparation-specific authority verification, `POSITIVE`, `NEGATIVE`,
+  `UNABLE_TO_DETERMINE`, Memory failures, and successful-Forget invalidation
+  evidence.
+- Knowledge owns proposition acceptance, `PropositionIdentity`, Knowledge
+  projection, projection verification, and Knowledge failures.
+- Context owns preparation, `CandidatePreparationAssociation`, Contextual
+  Applicability, exact-one incorporation, Context Revision lifecycle and
+  historical integrity, and Context failures.
+- Bootstrap owns mechanical composition only.
+- Core may custody only the closed cross-Engine structures and operation
+  shapes needed to express the collaboration.
+- Store and Adapters remain mechanical persistence boundaries and do not
+  acquire Source Currentness authority.
+
+No aggregate semantic owner is created. Core custody, consumer participation,
+composition, persistence, and transport do not transfer an Engine's semantic
+authority.
+
+## Approved Nonproduction Execution Order
+
+The minimum approved success path is:
+
+1. Memory retains the source material.
+2. Memory issues the exact `MemorySourceRelationship` for the explicit
+   structured tuple.
+3. Knowledge accepts the corresponding structured proposition as externally
+   Memory-owned and creates a distinct Knowledge-owned `PropositionIdentity`.
+   Acceptance binds that proposition to the exact Memory relationship without
+   acquiring Memory authority.
+4. Context begins one preparation and creates the exact
+   `CandidatePreparationAssociation` for it.
+5. Context supplies that association and the exact accepted Memory
+   relationship through the approved collaboration boundary.
+6. Memory binds the relationship to that preparation.
+7. Memory verifies preparation-specific Source Currentness.
+8. For `POSITIVE`, Memory returns the existing minimized
+   `PositiveMemorySourceCurrentnessCorrespondence`.
+9. The exact correspondence reaches Knowledge without semantic
+   reinterpretation or authority recreation.
+10. Knowledge validates only the correspondence required by its consumer
+    contract and issues its own Knowledge projection.
+11. Context verifies the Knowledge projection.
+12. Context evaluates Contextual Applicability.
+13. Context incorporates exactly one qualifying proposition or result.
+14. The resulting Context Revision remains immutable.
+
+Context initiates and sequences the preparation-specific collaboration through
+injected capabilities. Each Engine makes only its owned semantic decisions.
+Bootstrap may connect those capabilities but does not execute or replace this
+semantic sequence.
+
+## Core-Custodied Handoff
+
+The approved approach is direct consumption of the closed Memory
+correspondence by Knowledge. Knowledge's external-source currentness consumer
+surface MAY gain a narrow, discriminated Memory-specific input arm whose
+payload contains the exact existing
+`PositiveMemorySourceCurrentnessCorrespondence` and the minimum accepted-source
+binding needed to compare it with the Knowledge proposition candidate.
+
+Core may custody this closed input and the narrow operation shapes used by
+Context to invoke the existing Memory and Knowledge capabilities. Core MUST
+NOT determine currentness, verify Memory authority, accept propositions,
+evaluate applicability, incorporate Context, or create semantic fallback
+behavior. No generic Currentness service, broker, proof, capture identifier, or
+public authority token is approved.
+
+The Memory correspondence MUST remain exact and opaque. A conforming
+implementation may perform only mechanical closed-shape validation and
+transport adaptation. It MUST NOT translate `POSITIVE` into independently
+determined Knowledge semantics, recreate issuer authority, or synthesize a new
+Memory correspondence. Bootstrap and Context MUST NOT perform even that
+adaptation on Knowledge's behalf.
+
+The required input correspondence preserves exactly:
+
+- Memory source attribution;
+- the exact Memory relationship identity and accepted relationship binding;
+- the exact structured tuple;
+- the exact `CandidatePreparationAssociation`;
+- the Memory `POSITIVE` determination; and
+- opaque, non-bearer Memory issuer correspondence.
+
+Knowledge validates only that these values match its accepted Memory-source
+candidate and the current preparation. It does not inspect Memory private
+captures or independently verify Memory Source Currentness.
+
+## Source and Proposition Identity Boundary
+
+`MemorySourceRelationshipIdentity` and Knowledge `PropositionIdentity` remain
+distinct:
+
+```text
+MemorySourceRelationshipIdentity != PropositionIdentity
+```
+
+Knowledge assigns its own `PropositionIdentity` when it accepts the structured
+proposition. The accepted proposition may correspond to the exact Memory
+relationship, but neither identity establishes, reconstructs, or authorizes the
+other.
+
+The minimum executable binding MUST fail closed against substitution of the
+Memory source relationship, source attribution, Memory reference, structured
+tuple, Knowledge proposition, relationship identity, or preparation
+association. Public possession or structural equality does not satisfy exact
+captured correspondence.
+
+## Context Initiation and Preparation Association
+
+Context creates `CandidatePreparationAssociation` when it begins the
+preparation. Memory treats the association as opaque and binds it exactly;
+Knowledge preserves and compares it without interpreting it; Bootstrap does
+not create or synthesize it.
+
+The exact association supplied to Memory MUST be the association carried by
+the Memory positive correspondence into Knowledge projection and preserved for
+Context verification. Replay or substitution across preparations fails closed
+where the receiving Engine owns the applicable verification.
+
+The association is preparation-scoped and non-bearer. Possession does not
+establish Memory authority, Knowledge acceptance, or Context incorporation
+authority.
+
+## Governed Consequences
+
+### Positive
+
+The approved positive consequence is:
+
+```text
+Memory POSITIVE
+-> minimized Memory positive correspondence
+-> Knowledge external-source consumer
+-> Knowledge-owned verified projection
+-> Contextual Applicability
+-> exact-one Context incorporation
+```
+
+Neither Bootstrap nor Context may manufacture a positive Memory
+correspondence. Knowledge MUST NOT independently redetermine Memory Source
+Currentness.
+
+### Negative
+
+The approved negative consequence is:
+
+```text
+Memory NEGATIVE
+-> no positive Memory correspondence
+-> no Knowledge projection for that source candidate
+-> no Context incorporation for that source candidate
+```
+
+`NEGATIVE` remains a completed Memory result. It is not converted into an
+exception, a Knowledge failure, a Context failure,
+`UNABLE_TO_DETERMINE`, or a Bootstrap classification.
+
+Context owns the candidate set and the existing exact-one/no-candidate
+consequence. A candidate lacking the required positive source prerequisite is
+excluded before Knowledge projection. If no candidate qualifies, Context
+applies its existing no-candidate consequence. That Context consequence is not
+a reclassification of the Memory `NEGATIVE` result and introduces no new
+failure identity.
+
+### Unable to Determine
+
+`MemorySourceCurrentnessUnableToDetermineError` remains the originating Memory
+failure and propagates unchanged. Knowledge issues no projection, Context
+incorporates nothing for that preparation, and no existing Context Revision is
+mutated. The failure MUST NOT be converted to `NEGATIVE` or replaced with a
+Knowledge, Context, or Bootstrap failure.
+
+## Failure Ownership
+
+The executable handoff preserves exact originating ownership:
+
+- `InvalidMemorySourceCurrentnessRequestError`,
+  `InvalidMemorySourceRelationshipError`,
+  `MemorySourceAuthorityVerificationFailureError`, and
+  `MemorySourceCurrentnessUnableToDetermineError` remain Memory failures;
+- originating Memory Store and Memory lifecycle failures retain their existing
+  identities;
+- Knowledge acceptance, projection, and verification failures remain
+  Knowledge-owned; and
+- Context preparation, applicability, incorporation, and revision failures
+  remain Context-owned.
+
+No generic cross-Engine failure normalization is approved. A receiving layer
+MUST NOT replace an originating failure merely because it crossed the approved
+handoff.
+
+## Privacy, Opacity, and Non-Bearer Authority
+
+Only the minimum governed public correspondence may cross Engine boundaries.
+The handoff MUST NOT expose or transfer:
+
+- Memory private captures or invalidation registries;
+- Store or database metadata;
+- credentials;
+- lifecycle internals;
+- reusable authority or invalidation tokens;
+- capture identifiers or private provenance;
+- Knowledge private acceptance evidence;
+- Context private preparation state; or
+- diagnostics, ranking, confidence, or traces.
+
+The Memory positive correspondence, issuer correspondence, relationship
+identity, preparation association, Knowledge projection, and copied or
+serialized public values remain non-bearer. They do not recreate private
+authority in another process or Engine instance.
+
+## Store and Persistence Boundary
+
+Store presence is not Source Currentness authority. Store absence is not
+`NEGATIVE` authority. Deletion state and Store reconstruction do not recreate
+Memory authority. The F13 handoff introduces no durable currentness authority,
+no persistence schema, and no Store query for currentness verification.
+
+Process-local, non-persistent Memory authority is sufficient for this bounded
+nonproduction evidence. Restarted or reconstructed instances retain the
+already-governed fail-closed behavior.
+
+## Bootstrap Boundary
+
+Bootstrap may expose and inject the existing Memory, Knowledge, and Context
+capabilities, connect approved Core-custodied operation shapes, and instantiate
+the nonproduction composition.
+
+Bootstrap MUST NOT:
+
+- verify Memory authority;
+- classify `POSITIVE`, `NEGATIVE`, or `UNABLE_TO_DETERMINE`;
+- synthesize Memory correspondence;
+- create `PropositionIdentity` or `CandidatePreparationAssociation`;
+- decide Contextual Applicability;
+- own or normalize failures; or
+- create semantic fallback behavior.
+
+## CONTRACT-0001 and K13 Boundary
+
+`CONTRACT_0001_CHANGE_REQUIRED: NO`
+
+The approved handoff specializes the existing qualified-source and
+candidate-only boundaries of CONTRACT-0001 without changing them. Memory
+retains source ownership, Knowledge retains proposition acceptance and
+projection ownership, and Context retains preparation and incorporation
+ownership. No layer reconstructs another layer's authority.
+
+`F13_INDEPENDENTLY_CLOSABLE_CONTRIBUTES_TO_K13_F08`
+
+Successful implementation may provide Memory producer integration, Knowledge
+external-source integration, Context integration, nonproduction Bootstrap
+composition, and nonproduction Memory-to-Knowledge-to-Context end-to-end
+evidence. `K13-IMPL-F08` remains OPEN and retains its separately governed
+production dependencies, including production composition and reachability,
+activation, and any required Reasoning or Brain integration.
+
+## Addendum Implementation Authority
+
+This addendum authorizes only the smallest nonproduction implementation and
+executable tests necessary to establish the approved handoff for
+`M12-IMPL-F13`. It does not authorize semantic changes to CONTRACT-0001,
+Memory, Knowledge, Context, Core ownership, or Store behavior.
+
+Implementation MUST stop for further governance if it requires a new semantic
+owner, a CONTRACT-0001 change, a public bearer authority artifact, a generic
+currentness broker, durable Memory authority, new Context lifecycle semantics,
+Knowledge authority over Memory currentness, Bootstrap semantic ownership,
+Store currentness authority, or production Profile B activation.
+
+`M12-IMPL-F13` remains OPEN until separately reconciled executable evidence is
+recorded. `K13-IMPL-F08` remains OPEN. Memory Engine 1.2.0 remains Draft, and
+Active Memory Engine 1.1.0 remains authoritative.
+
+## Addendum Decision
+
+| Field                       | Value                                                                                                                                                                                                                                                                                                              |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Addendum Status**         | `APPROVED`                                                                                                                                                                                                                                                                                                         |
+| **Independent Review**      | `NOT_APPLICABLE_SINGLE_MAINTAINER`                                                                                                                                                                                                                                                                                 |
+| **Independent Reviewer**    | `NONE_AVAILABLE`                                                                                                                                                                                                                                                                                                   |
+| **Maintainer Review**       | `PASS`                                                                                                                                                                                                                                                                                                             |
+| **Reviewer**                | `Project Maintainer`                                                                                                                                                                                                                                                                                               |
+| **Review Timestamp**        | `2026-09-01`                                                                                                                                                                                                                                                                                                       |
+| **Decision Rationale**      | The focused handoff preserves existing Engine ownership, direct non-bearer Memory correspondence consumption, exact preparation binding, failure provenance, privacy, Store non-authority, CONTRACT-0001 conformance, and nonproduction limits without authorizing implementation-gate closure or production work. |
+| **Change/Ticket Reference** | `M12-IMPL-F13`                                                                                                                                                                                                                                                                                                     |
+
+`INDEPENDENT_REVIEW: NOT_APPLICABLE_SINGLE_MAINTAINER`
+
+`MAINTAINER_REVIEW: PASS`
+
+This is governed maintainer approval under DOCUMENT-AUTHORITY 2.2.0. It does
+not constitute independent human review. AI-assisted analysis and automated
+checks are supporting evidence only and are not identified as human or
+independent reviewers.
+
+---
+
 # Review History
 
 | Version | Date       | Description                                                                                                                                           |
 | ------- | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1.1.0   | 2026-09-01 | Added the approved focused M12-IMPL-F13 nonproduction Memory-to-Knowledge-to-Context executable-handoff addendum; F13 and K13-IMPL-F08 remain OPEN.   |
 | 1.0.0   | 2026-08-31 | Completed governed single-maintainer architecture review of Memory Engine 1.2.0 Source Currentness and Memory reference/source-proposition authority. |
 
 ---
