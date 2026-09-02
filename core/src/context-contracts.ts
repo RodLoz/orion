@@ -14,6 +14,7 @@ import type {
   ContextPreparationSemanticScope,
   StructuredKnowledgeContextFragment,
 } from "./context-applicability.js";
+import type { MemoryKnowledgeSourceBinding } from "./knowledge-projection.js";
 
 export type ComposeContextTarget =
   | Readonly<{ kind: "new-lineage" }>
@@ -74,6 +75,7 @@ export interface PrepareContextRevisionWithStructuredKnowledgeRequest {
   readonly identityResolutionRequest: IdentityResolutionRequest;
   readonly contextPreparationSemanticScope: ContextPreparationSemanticScope;
   readonly knowledgeRetrievalRequest: GetKnowledgeRequest;
+  readonly memorySourceBinding?: MemoryKnowledgeSourceBinding;
 }
 
 export interface PrepareContextRevisionWithStructuredKnowledge {

@@ -18,6 +18,7 @@ import {
   contextualApplicabilityCardinality,
   createContextPreparationSemanticScope,
   createKnowledgeProjectionRequest,
+  createMemoryKnowledgeSourceBinding,
   createStructuredKnowledgeContextFragment,
   evaluateContextualApplicability,
   identityIdentifier,
@@ -25,6 +26,7 @@ import {
   knowledgeVersion,
   memoryIdentity,
   type ActiveContextRevision,
+  type BindMemorySourceRelationshipToPreparation,
   type ComposeContextRevision,
   type ComposeContextRevisionRequest,
   type ComposeContextRevisionWithKnowledge,
@@ -48,6 +50,7 @@ import {
   type KnowledgeReference,
   type MemoryContextFragment,
   type MemoryContextProjection,
+  type MemoryKnowledgeSourceBinding,
   type MemoryReference,
   type PrepareContextRevision,
   type PrepareContextRevisionRequest,
@@ -63,6 +66,7 @@ import {
   type StructuredKnowledgeProjection,
   type StructuredKnowledgeContextFragment,
   type VerifyActiveContextRevisionAuthorityRequest,
+  type VerifyMemorySourceAuthority,
 } from "@orion/core";
 
 import { ContextAuthority } from "./context-authority.js";
@@ -122,6 +126,7 @@ interface ValidatedStructuredKnowledgePrepareRequest extends ValidatedPrepareReq
     typeof createContextPreparationSemanticScope
   >;
   readonly knowledgeRetrievalRequest: unknown;
+  readonly memorySourceBinding?: MemoryKnowledgeSourceBinding;
 }
 
 interface ValidatedMemoryPrepareRequest extends ValidatedPrepareRequest {
@@ -238,6 +243,8 @@ export class ContextEngine
     private readonly memoryResolver?: GetMemory,
     private readonly structuredKnowledgeResolver?: ProjectStructuredKnowledge &
       VerifyStructuredKnowledgeProjectionAuthority,
+    private readonly memorySourceAuthority?: BindMemorySourceRelationshipToPreparation &
+      VerifyMemorySourceAuthority,
   ) {
     if (
       construction === undefined ||
@@ -270,7 +277,12 @@ export class ContextEngine
           (typeof this.structuredKnowledgeResolver
             .projectStructuredKnowledge !== "function" ||
             typeof this.structuredKnowledgeResolver
-              .verifyStructuredKnowledgeProjectionAuthority !== "function"))
+              .verifyStructuredKnowledgeProjectionAuthority !== "function")) ||
+        (this.memorySourceAuthority !== undefined &&
+          (typeof this.memorySourceAuthority
+            .bindMemorySourceRelationshipToPreparation !== "function" ||
+            typeof this.memorySourceAuthority.verifyMemorySourceAuthority !==
+              "function"))
       ) {
         throw new ContextEngineInitializationError();
       }
@@ -469,6 +481,35 @@ export class ContextEngine
     );
     const knowledgeReference =
       this.extractKnowledgeReference(retrievedKnowledge);
+    let preparationPrerequisites: Record<string, unknown> = {
+      currentnessOwner: "knowledge-owned-currentness",
+      candidatePreparationAssociation: association,
+    };
+    if (validatedRequest.memorySourceBinding !== undefined) {
+      if (this.memorySourceAuthority === undefined) {
+        throw new ContextEngineInitializationError();
+      }
+      const currentnessRequest =
+        this.memorySourceAuthority.bindMemorySourceRelationshipToPreparation({
+          relationship: validatedRequest.memorySourceBinding.relationship,
+          candidatePreparationAssociation: association,
+        });
+      const currentness =
+        this.memorySourceAuthority.verifyMemorySourceAuthority({
+          intent: "verify-memory-source-authority",
+          currentnessRequest,
+        });
+      if (currentness.determination === "NEGATIVE") {
+        throw new NoApplicableStructuredKnowledgeCandidateError();
+      }
+      preparationPrerequisites = {
+        currentnessOwner: "external-source-currentness",
+        externalSourceKind: "memory",
+        candidatePreparationAssociation: association,
+        memorySourceBinding: validatedRequest.memorySourceBinding,
+        externalCurrentnessCorrespondence: currentness.correspondence,
+      };
+    }
     const projection =
       this.structuredKnowledgeResolver.projectStructuredKnowledge(
         createKnowledgeProjectionRequest({
@@ -477,10 +518,7 @@ export class ContextEngine
             knowledgeIdentity: knowledgeReference.knowledgeIdentity,
             expectedKnowledgeVersion: knowledgeReference.version,
           },
-          preparationPrerequisites: {
-            currentnessOwner: "knowledge-owned-currentness",
-            candidatePreparationAssociation: association,
-          },
+          preparationPrerequisites,
         }),
       );
     const verified =
@@ -1013,15 +1051,38 @@ export class ContextEngine
     try {
       if (
         !isPlainRecord(request) ||
-        !hasExactFields(request, [
+        (!hasExactFields(request, [
           "target",
           "identityResolutionRequest",
           "contextPreparationSemanticScope",
           "knowledgeRetrievalRequest",
-        ])
+        ]) &&
+          !hasExactFields(request, [
+            "target",
+            "identityResolutionRequest",
+            "contextPreparationSemanticScope",
+            "knowledgeRetrievalRequest",
+            "memorySourceBinding",
+          ]))
       ) {
         throw new InvalidContextInputError();
       }
+      const rawMemorySourceBinding = Reflect.get(
+        request,
+        "memorySourceBinding",
+      );
+      const reconstructedMemorySourceBinding = Object.hasOwn(
+        request,
+        "memorySourceBinding",
+      )
+        ? createMemoryKnowledgeSourceBinding(rawMemorySourceBinding)
+        : undefined;
+      const memorySourceBinding =
+        reconstructedMemorySourceBinding === undefined
+          ? undefined
+          : Object.isFrozen(rawMemorySourceBinding)
+            ? (rawMemorySourceBinding as MemoryKnowledgeSourceBinding)
+            : reconstructedMemorySourceBinding;
       return Object.freeze({
         target: this.validateTarget(Reflect.get(request, "target")),
         identityResolutionRequest: Reflect.get(
@@ -1035,6 +1096,7 @@ export class ContextEngine
           request,
           "knowledgeRetrievalRequest",
         ),
+        ...(memorySourceBinding === undefined ? {} : { memorySourceBinding }),
       });
     } catch (error: unknown) {
       if (error instanceof InvalidContextPreparationScopeError) {

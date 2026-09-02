@@ -31,6 +31,7 @@ import {
   createKnowledgeCapabilityAttribution,
   createKnowledgeOwnedSourceCurrentnessDetermination,
   createKnowledgeProjectionRequest,
+  createMemoryKnowledgeSourceBinding,
   createKnowledgeProvenance,
   createKnowledgeRecord,
   createKnowledgeReference,
@@ -54,6 +55,8 @@ import {
   type KnowledgeOwnedSourceCurrentnessDetermination,
   type KnowledgeProvenance,
   type KnowledgeProjectionRequest,
+  type MemoryKnowledgeSourceBinding,
+  type MemorySourceRelationship,
   type ExistingPublicKnowledgeProjectionFailureIdentity,
   type KnowledgeProjectionDiagnosticObservation,
   type KnowledgeProjectionDiagnosticObserver,
@@ -81,6 +84,7 @@ interface ValidatedEvaluation {
   readonly evidence: KnowledgeAcceptanceEvidence;
   readonly provenance: KnowledgeProvenance;
   readonly semanticInput: KnowledgeAcceptanceSemanticInput;
+  readonly memorySourceBinding?: MemoryKnowledgeSourceBinding;
   readonly contradiction?: Readonly<{
     target: KnowledgeIdentity;
     decision: "reject-candidate" | "supersede-existing";
@@ -117,6 +121,10 @@ export class KnowledgeEngineRuntime
   #current = new Set<KnowledgeIdentity>();
   #acceptanceOrder: KnowledgeIdentity[] = [];
   #records = new Map<KnowledgeIdentity, KnowledgeRecord>();
+  #acceptedMemorySourceRelationships = new Map<
+    KnowledgeIdentity,
+    MemorySourceRelationship
+  >();
   #projectionAuthority = new KnowledgeProjectionAuthority();
   #initialization: Promise<void> | undefined;
   #recovery: Promise<void> | undefined;
@@ -353,6 +361,12 @@ export class KnowledgeEngineRuntime
       this.#current.add(identity);
       this.#acceptanceOrder.push(identity);
       this.#records.set(identity, record);
+      if (evaluation.memorySourceBinding !== undefined) {
+        this.#acceptedMemorySourceRelationships.set(
+          identity,
+          evaluation.memorySourceBinding.relationship,
+        );
+      }
       if (predecessor !== undefined) {
         this.#current.delete(predecessor.knowledgeIdentity);
       }
@@ -496,33 +510,85 @@ export class KnowledgeEngineRuntime
       if (prerequisites.currentnessOwner !== "external-source-currentness") {
         throw new KnowledgeProjectionPreparationMismatchError();
       }
-      const external = prerequisites.externalCurrentnessCorrespondence;
-      if (
-        external.applicableOwner !== ownership.applicableOwner ||
-        external.propositionSourceRelationship !==
-          ownership.propositionSourceRelationship
-      ) {
-        throw new KnowledgeProjectionPreparationMismatchError();
+      if (prerequisites.externalSourceKind === "memory") {
+        const external = prerequisites.externalCurrentnessCorrespondence;
+        const acceptedRelationship =
+          this.#acceptedMemorySourceRelationships.get(identity);
+        const suppliedRelationship =
+          prerequisites.memorySourceBinding.relationship;
+        if (
+          acceptedRelationship === undefined ||
+          suppliedRelationship !== acceptedRelationship ||
+          !sameMemoryRelationshipCandidate(
+            acceptedRelationship,
+            accepted.semanticValue,
+            ownership,
+          ) ||
+          external.sourceAttribution.authoritativeCapability !==
+            acceptedRelationship.sourceAttribution.authoritativeCapability ||
+          external.relationshipIdentity !==
+            acceptedRelationship.relationshipIdentity ||
+          external.candidatePreparationAssociation !==
+            prerequisites.candidatePreparationAssociation
+        ) {
+          throw new KnowledgeProjectionPreparationMismatchError();
+        }
+        candidateInput = {
+          semanticValue: accepted.semanticValue,
+          correspondence: {
+            candidatePreparationAssociation:
+              prerequisites.candidatePreparationAssociation,
+            propositionIdentity: accepted.propositionIdentity,
+            knowledgeIdentity: record.knowledgeIdentity,
+            knowledgeVersion: record.version,
+            validationState: "accepted",
+            attribution: createKnowledgeCapabilityAttribution({
+              authoritativeCapability: "knowledge",
+            }),
+            sourceOwnershipCorrespondence: ownership,
+            externalCurrentnessCorrespondence: {
+              applicableOwner: ownership.applicableOwner,
+              candidatePreparationAssociation:
+                prerequisites.candidatePreparationAssociation,
+              propositionSourceRelationship:
+                ownership.propositionSourceRelationship,
+              determination: "current",
+              issuerVerification: external.issuerVerification,
+            },
+            underlyingSourceAuthority: underlyingSourceAuthorityCorrespondence(
+              external.issuerVerification,
+            ),
+          },
+        };
+      } else {
+        const external = prerequisites.externalCurrentnessCorrespondence;
+        if (
+          external.applicableOwner !== ownership.applicableOwner ||
+          external.propositionSourceRelationship !==
+            ownership.propositionSourceRelationship
+        ) {
+          throw new KnowledgeProjectionPreparationMismatchError();
+        }
+        candidateInput = {
+          semanticValue: accepted.semanticValue,
+          correspondence: {
+            candidatePreparationAssociation:
+              prerequisites.candidatePreparationAssociation,
+            propositionIdentity: accepted.propositionIdentity,
+            knowledgeIdentity: record.knowledgeIdentity,
+            knowledgeVersion: record.version,
+            validationState: "accepted",
+            attribution: createKnowledgeCapabilityAttribution({
+              authoritativeCapability: "knowledge",
+            }),
+            sourceOwnershipCorrespondence: ownership,
+            externalCurrentnessCorrespondence: external,
+            underlyingSourceAuthority: underlyingSourceAuthorityCorrespondence(
+              external.issuerVerification,
+            ),
+          },
+        };
       }
-      candidateInput = {
-        semanticValue: accepted.semanticValue,
-        correspondence: {
-          candidatePreparationAssociation:
-            prerequisites.candidatePreparationAssociation,
-          propositionIdentity: accepted.propositionIdentity,
-          knowledgeIdentity: record.knowledgeIdentity,
-          knowledgeVersion: record.version,
-          validationState: "accepted",
-          attribution: createKnowledgeCapabilityAttribution({
-            authoritativeCapability: "knowledge",
-          }),
-          sourceOwnershipCorrespondence: ownership,
-          externalCurrentnessCorrespondence: external,
-          underlyingSourceAuthority: underlyingSourceAuthorityCorrespondence(
-            external.issuerVerification,
-          ),
-        },
-      };
     }
 
     try {
@@ -615,6 +681,7 @@ export class KnowledgeEngineRuntime
           "structuredProposition",
           "samePropositionDeclaration",
           "sourceOwnershipProposal",
+          "memorySourceBinding",
         ],
       ) ||
       request.intent !== "evaluate"
@@ -647,6 +714,31 @@ export class KnowledgeEngineRuntime
       throw new InvalidKnowledgeInputError();
     }
 
+    let memorySourceBinding: MemoryKnowledgeSourceBinding | undefined;
+    if (Object.hasOwn(request, "memorySourceBinding")) {
+      try {
+        memorySourceBinding = createMemoryKnowledgeSourceBinding(
+          request.memorySourceBinding,
+        );
+        const proposition = semanticInput.structuredProposition;
+        const ownership = semanticInput.sourceOwnershipProposal;
+        if (
+          proposition === undefined ||
+          ownership === undefined ||
+          ownership.currentnessOwner !== "external-source-currentness" ||
+          !sameMemoryRelationshipCandidate(
+            memorySourceBinding.relationship,
+            proposition,
+            ownership,
+          )
+        ) {
+          throw new Error();
+        }
+      } catch {
+        throw new InvalidKnowledgeInputError();
+      }
+    }
+
     let evidence;
     try {
       evidence = createKnowledgeAcceptanceEvidence(request.acceptanceEvidence);
@@ -671,7 +763,13 @@ export class KnowledgeEngineRuntime
       throw new InvalidKnowledgeInputError();
     }
     if (!hasTarget)
-      return Object.freeze({ claim, evidence, provenance, semanticInput });
+      return Object.freeze({
+        claim,
+        evidence,
+        provenance,
+        semanticInput,
+        ...(memorySourceBinding === undefined ? {} : { memorySourceBinding }),
+      });
 
     if (
       request.contradictionDecision !== "reject-candidate" &&
@@ -690,6 +788,7 @@ export class KnowledgeEngineRuntime
       evidence,
       provenance,
       semanticInput,
+      ...(memorySourceBinding === undefined ? {} : { memorySourceBinding }),
       contradiction: Object.freeze({
         target: this.callerIdentity(request.contradictsKnowledgeIdentity),
         decision: request.contradictionDecision,
@@ -1079,6 +1178,30 @@ function isPlainRecord(value: unknown): value is Record<string, unknown> {
   }
   const prototype = Object.getPrototypeOf(value) as unknown;
   return prototype === Object.prototype || prototype === null;
+}
+
+function sameMemoryRelationshipCandidate(
+  relationship: MemorySourceRelationship,
+  proposition: Readonly<{
+    subjectKey: string;
+    predicateKey: string;
+    textualScalar: string;
+  }>,
+  ownership: Readonly<{
+    currentnessOwner: "external-source-currentness";
+    applicableOwner: string;
+    propositionSourceRelationship: string;
+  }>,
+): boolean {
+  return (
+    relationship.sourceAttribution.authoritativeCapability ===
+      ownership.applicableOwner &&
+    relationship.relationshipIdentity ===
+      ownership.propositionSourceRelationship &&
+    relationship.semanticValue.subjectKey === proposition.subjectKey &&
+    relationship.semanticValue.predicateKey === proposition.predicateKey &&
+    relationship.semanticValue.textualScalar === proposition.textualScalar
+  );
 }
 
 function hasExactFields(

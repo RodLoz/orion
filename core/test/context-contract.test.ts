@@ -129,6 +129,7 @@ describe("Context domain Contracts", () => {
       | "identityResolutionRequest"
       | "contextPreparationSemanticScope"
       | "knowledgeRetrievalRequest"
+      | "memorySourceBinding"
     >();
   });
 

@@ -2,7 +2,7 @@ import { createMemoryReference, type MemoryReference } from "./memory.js";
 import {
   candidatePreparationAssociation,
   type CandidatePreparationAssociation,
-} from "./knowledge-projection.js";
+} from "./candidate-preparation-association.js";
 
 export const MEMORY_SOURCE_RELATIONSHIP_IDENTITY_MAX_CODE_POINTS = 256;
 export const MEMORY_SOURCE_PROPOSITION_KEY_MAX_CODE_POINTS = 128;
@@ -45,6 +45,29 @@ export interface MemorySourceRelationship {
 export interface MemorySourceCurrentnessRequest {
   readonly relationship: MemorySourceRelationship;
   readonly candidatePreparationAssociation: CandidatePreparationAssociation;
+}
+
+export interface IssueMemorySourceRelationshipRequest {
+  readonly sourceAttribution: MemorySourceAttribution;
+  readonly memoryReference: MemoryReference;
+  readonly semanticValue: MemorySourcePropositionTuple;
+}
+
+export interface IssueMemorySourceRelationship {
+  issueMemorySourceRelationship(
+    request: IssueMemorySourceRelationshipRequest,
+  ): MemorySourceRelationship;
+}
+
+export interface BindMemorySourceRelationshipToPreparationRequest {
+  readonly relationship: MemorySourceRelationship;
+  readonly candidatePreparationAssociation: CandidatePreparationAssociation;
+}
+
+export interface BindMemorySourceRelationshipToPreparation {
+  bindMemorySourceRelationshipToPreparation(
+    request: BindMemorySourceRelationshipToPreparationRequest,
+  ): MemorySourceCurrentnessRequest;
 }
 
 export interface PositiveMemorySourceCurrentnessCorrespondence {

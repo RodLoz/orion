@@ -4,7 +4,7 @@
 | -------------------- | ----------------------------------------------------------------------------------------------------- |
 | **Status**           | Draft                                                                                                 |
 | **Engine Revision**  | Memory Engine 1.2.0                                                                                   |
-| **Document Version** | 1.2.8                                                                                                 |
+| **Document Version** | 1.2.9                                                                                                 |
 | **Owner**            | Project Maintainers                                                                                   |
 | **Created**          | 2026-08-31                                                                                            |
 | **Updated**          | 2026-09-01                                                                                            |
@@ -31,8 +31,8 @@ backward-compatible Memory source-relationship, Source Currentness, and
 authority-verification capabilities. Existing Memory 1.1.0 operations and
 semantics remain unchanged unless this Draft explicitly adds a new boundary.
 
-Document version 1.2.8 records governed executable-evidence synchronization
-only. It does not create Memory Engine revision 1.2.8 or alter the proposed
+Document version 1.2.9 records governed executable-evidence synchronization
+only. It does not create Memory Engine revision 1.2.9 or alter the proposed
 Memory Engine 1.2.0 semantics.
 
 ## Purpose and Compatibility
@@ -549,7 +549,7 @@ evidence is separately validated and synchronized here.
 | M12-IMPL-F10 | Non-bearer authority and absence of reusable authority persistence                                                                 | PASS   |
 | M12-IMPL-F11 | Exact public failure identity and originating failure preservation                                                                 | PASS   |
 | M12-IMPL-F12 | Core custody-only, Knowledge consumer-only, Context consumer-only, Bootstrap composition-only, and Store non-authority conformance | PASS   |
-| M12-IMPL-F13 | Nonproduction end-to-end Memory-to-Knowledge-to-Context evidence                                                                   | OPEN   |
+| M12-IMPL-F13 | Nonproduction end-to-end Memory-to-Knowledge-to-Context evidence                                                                   | PASS   |
 
 ### M12-IMPL-F01 Executable Evidence
 
@@ -979,9 +979,87 @@ dependency rules verify the custody and consumer boundaries and prohibit direct
 cross-Engine implementation coupling.
 
 The complete Memory-to-Knowledge-to-Context runtime composition is not required
-to close this ownership-conformance gate. It remains separate governed work for
-M12-IMPL-F13 and K13-IMPL-F08. M12-IMPL-F13 has foundational evidence only and
-remains `OPEN`; no M12-IMPL-F13 PASS may be inferred.
+to close this ownership-conformance gate. It was completed and reconciled
+separately for M12-IMPL-F13 without closing K13-IMPL-F08.
+
+### M12-IMPL-F13 Executable Evidence
+
+Subsequent to the executable-handoff approval in REVIEW-0006 Addendum A,
+validated Slice 1 through Slice 4 evidence now satisfies M12-IMPL-F13. Slice 1
+provides neutral `CandidatePreparationAssociation` custody, narrow Memory
+capability interfaces, closed `MemoryKnowledgeSourceBinding`, the specialized
+Memory external-source prerequisite, exact closed factories, identity
+separation, privacy and non-bearer behavior, and Core custody without semantic
+ownership.
+
+Slice 2 provides Knowledge-private, process-local, non-persistent capture of
+the exact accepted Memory relationship; clone, substitution, tuple, and
+preparation-association mismatch rejection; direct consumption of the exact
+Memory `POSITIVE` correspondence; a distinct Knowledge-owned
+`PropositionIdentity`; and the existing Knowledge-owned projection without
+Memory authority reconstruction. Slice 3 provides Context-owned creation of
+the exact `CandidatePreparationAssociation`, exact relationship and binding
+preservation, Memory bind and verify invocation, positive-correspondence
+forwarding, Knowledge projection verification, Contextual Applicability,
+exact-one incorporation, immutable Context Revision creation, the existing
+no-candidate consequence for Memory `NEGATIVE`, and unchanged propagation of
+originating Memory failures.
+
+Slice 4 uses real `MemoryEngine`, `KnowledgeEngine`, and `ContextEngine`
+instances in test-local nonproduction composition with existing mechanical
+in-memory Stores. The successful executable order is Memory retain, exact
+Memory source-relationship issuance, Knowledge acceptance, Context preparation
+and exact association creation, Memory preparation binding, Memory `POSITIVE`
+verification, delivery of the exact minimized Memory correspondence, Knowledge
+projection and verification, Contextual Applicability, exact-one incorporation,
+and a frozen Context Revision. Bootstrap only instantiates, injects, delegates,
+and composes; it creates no semantic outcome, identity, association,
+correspondence, applicability decision, failure normalization, or fallback.
+
+The negative path proves that a pre-Forget exact relationship, after successful
+governed Forget and under a fresh preparation, produces the exact completed
+Memory `NEGATIVE` result with no positive correspondence, Knowledge projection
+or verification, or Context incorporation, while preserving Context's existing
+no-candidate consequence. The real post-Forget unable path preserves the
+originating `MemorySourceCurrentnessUnableToDetermineError` unchanged, with no
+projection, verification, incorporation, or conversion to `NEGATIVE`. A real
+foreign-instance relationship preserves the originating
+`MemorySourceAuthorityVerificationFailureError` unchanged and performs no
+downstream projection or incorporation.
+
+Failure ownership remains exact: invalid currentness requests, invalid
+relationships, authority-verification failures, unable-to-determine failures,
+and originating Memory Store or lifecycle failures remain Memory-owned;
+acceptance, projection, and projection-verification failures remain
+Knowledge-owned; applicability, cardinality, no-candidate, and incorporation
+failures remain Context-owned; and Bootstrap introduces no semantic failure
+taxonomy or generic cross-Engine normalization.
+
+`MemorySourceRelationshipIdentity` remains distinct from
+`PropositionIdentity`. Memory owns source-relationship authority, Knowledge
+privately captures the exact accepted relationship and allocates its own
+proposition identity, Context creates the preparation association, and
+Bootstrap creates none of them. Cross-instance authority fails closed and all
+public correspondence remains non-bearer.
+
+Executable evidence also verifies that Memory minimization occurs before the
+boundary and no public artifact exposes Memory or Knowledge private captures,
+invalidation registries, Store or database metadata, credentials, lifecycle
+internals, reusable authority tokens, capture identifiers, private Knowledge
+acceptance evidence, diagnostics, confidence, ranking, or traces. Store remains
+mechanical: no Store-derived Source Currentness, durable authority, authority
+persistence schema, or restart reconstruction is introduced.
+
+Validated quality evidence comprises the Slice 1 through Slice 4 focused suites
+(4 files, 26 tests), Core (24 files, 572 tests), Memory (6 files, 89 tests),
+Knowledge (4 files, 71 tests), Context (13 files, 177 tests), Bootstrap (22
+files passed, 1 skipped, 131 tests passed, 13 skipped), combined Core, Memory,
+Knowledge, and Context (47 files, 909 tests), and the full repository (113 files
+passed, 2 skipped, 1,970 tests passed, 51 skipped). Production build and
+typecheck, all 11 test TypeScript projects, repository ESLint,
+repository-pinned Prettier, Dependency Cruiser (154 modules, 294 dependencies,
+0 violations), forbidden Core, Memory, Knowledge, and Context dependency
+checks, and `git diff --check` passed.
 
 REVIEW-0006 approved the semantic architecture and executable boundary but did
 not itself close these implementation gates. Subsequent executable evidence
@@ -994,8 +1072,12 @@ and this direct synchronization records that evidence without a review addendum
 or new review. A later governed reconciliation established M12-IMPL-F08 and
 M12-IMPL-F12 closure readiness, and this direct synchronization records that
 evidence without a review addendum or new review. REVIEW-0006 itself closed
-none of these gates. M12-IMPL-F13 and K13-IMPL-F08 remain `OPEN`; F13 has
-foundational evidence only, and no later-gate PASS may be inferred.
+none of these gates. REVIEW-0006 Addendum A later authorized the bounded
+executable handoff but likewise did not close M12-IMPL-F13. Subsequent Slice 1
+through Slice 4 implementation and full governed reconciliation established
+M12-IMPL-F13 closure readiness, and this direct synchronization records that
+evidence without an additional review. K13-IMPL-F08 remains `OPEN`; no K13 PASS
+may be inferred.
 
 ## Conformance Requirements
 
@@ -1045,9 +1127,11 @@ approved the Memory Engine 1.2.0 semantic architecture and executable
 boundaries through the governed repository review path. Memory 1.2.0 remains
 Draft and Active Memory 1.1.0 remains authoritative. REVIEW-0006 did not close
 an implementation gate; subsequent validated executable evidence now satisfies
-M12-IMPL-F01 through M12-IMPL-F12. M12-IMPL-F13 and K13-IMPL-F08 remain OPEN.
-No review addendum or new review was required for these direct evidence
-synchronizations.
+M12-IMPL-F01 through M12-IMPL-F13. Addendum A authorized the bounded
+M12-IMPL-F13 handoff but did not itself supply executable evidence or close the
+gate. The separately reconciled Slice 1 through Slice 4 evidence established
+closure readiness. K13-IMPL-F08 remains OPEN, and no additional review was
+required for this direct evidence synchronization.
 
 REVIEW-0006 does not by itself activate Memory 1.2.0, authorize implementation
 or production composition, establish runtime or implementation completeness,
@@ -1064,14 +1148,15 @@ Memory Source Currentness ownership, three-way outcome distinction,
 preparation binding, forgetting-based invalidation principle, and authority and
 opacity allocation at the specification level.
 
-`K13-IMPL-F08` remains `OPEN`. Closure still requires, after governance:
+M12-IMPL-F13 completion contributes Memory producer integration, Knowledge
+external-source integration, Context integration, nonproduction Bootstrap
+composition, and nonproduction Memory-to-Knowledge-to-Context end-to-end
+evidence toward `K13-IMPL-F08`.
 
-- approved Memory executable contracts where required;
-- Memory relationship, currentness, and verifier implementation;
-- Knowledge external-source integration;
-- Context Profile B integration;
-- Bootstrap nonproduction composition; and
-- nonproduction end-to-end conformance evidence.
+`K13-IMPL-F08` remains `OPEN`. Its separately governed remaining dependencies
+include production composition and reachability, production Profile B
+integration, activation, and any required Reasoning or Brain production
+integration.
 
 Production Profile B reachability, deployment, and activation remain separately
 governed and are not advanced by this Draft.
@@ -1118,6 +1203,7 @@ governed and are not advanced by this Draft.
 | 1.2.6            | 2026-09-01 | Synchronized M12-IMPL-F06 from OPEN to PASS from reconciled exact-authority and fail-closed executable evidence; F01-F05 and F07 remain PASS, F08-F13 and K13-IMPL-F08 remain OPEN, Memory 1.2.0 remains Draft, Active Memory 1.1.0 remains authoritative, and no activation, deployment, production-readiness, or Profile B authority is granted.                                                                                      |
 | 1.2.7            | 2026-09-01 | Synchronized M12-IMPL-F09, M12-IMPL-F10, and M12-IMPL-F11 from OPEN to PASS from reconciled privacy/minimization, non-bearer non-persistent authority, and exact failure-identity evidence; F01-F07 remain PASS, F08 and F12-F13 remain OPEN, K13-IMPL-F08 remains OPEN, Memory 1.2.0 remains Draft, Active Memory 1.1.0 remains authoritative, and no activation, deployment, production-readiness, or Profile B authority is granted. |
 | 1.2.8            | 2026-09-01 | Synchronized M12-IMPL-F08 and M12-IMPL-F12 from OPEN to PASS from reconciled historical Context preservation and cross-Engine ownership-conformance evidence; F01-F12 are PASS, F13 and K13-IMPL-F08 remain OPEN, Memory 1.2.0 remains Draft, Active Memory 1.1.0 remains authoritative, and no activation, deployment, production-readiness, or Profile B authority is granted.                                                        |
+| 1.2.9            | 2026-09-01 | Synchronized M12-IMPL-F13 from OPEN to PASS from reconciled nonproduction Memory-to-Knowledge-to-Context end-to-end evidence; F01-F13 are PASS, K13-IMPL-F08 remains OPEN, Memory 1.2.0 remains Draft, Active Memory 1.1.0 remains authoritative, and no activation, deployment, production-readiness, or Profile B authority is granted.                                                                                               |
 
 ## Engineering Motto
 

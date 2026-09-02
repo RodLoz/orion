@@ -11,6 +11,7 @@ import type {
 import type {
   CaptureStructuredKnowledgeProjectionAuthorityRequest,
   KnowledgeProjectionRequest,
+  MemoryKnowledgeSourceBinding,
   StructuredKnowledgeProjection,
   VerifyStructuredKnowledgeProjectionAuthorityRequest,
 } from "./knowledge-projection.js";
@@ -46,6 +47,7 @@ export type EvaluateKnowledgeClaimRequest =
         structuredProposition: unknown;
         samePropositionDeclaration: "same-proposition";
         sourceOwnershipProposal: unknown;
+        memorySourceBinding?: MemoryKnowledgeSourceBinding;
       }
     >;
 export interface EvaluateKnowledgeClaim {

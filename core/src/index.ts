@@ -9,6 +9,11 @@ export {
   DuplicateCapabilityIdentifierError,
   type CapabilityRegistry,
 } from "./capability-registry.js";
+export {
+  candidatePreparationAssociation,
+  InvalidCandidatePreparationAssociationValueError,
+  type CandidatePreparationAssociation,
+} from "./candidate-preparation-association.js";
 export type {
   ArchitecturalDiagnosticStatus,
   ContextCapabilityDiagnostic,
@@ -155,6 +160,10 @@ export {
   memorySourceRelationshipIdentity,
   MemorySourceAuthorityVerificationFailureError,
   MemorySourceCurrentnessUnableToDetermineError,
+  type BindMemorySourceRelationshipToPreparation,
+  type BindMemorySourceRelationshipToPreparationRequest,
+  type IssueMemorySourceRelationship,
+  type IssueMemorySourceRelationshipRequest,
   type MemorySourceAttribution,
   type MemorySourceCurrentnessRequest,
   type MemorySourceCurrentnessResult,
@@ -350,7 +359,6 @@ export {
   type SupersedeCurrentKnowledgeResult,
 } from "./knowledge-contracts.js";
 export {
-  candidatePreparationAssociation,
   createExternalSourceCurrentnessCorrespondence,
   createKnowledgeAcceptanceSemanticInput,
   createKnowledgeCapabilityAttribution,
@@ -358,8 +366,8 @@ export {
   createKnowledgeProjectionPreparationPrerequisites,
   createKnowledgeProjectionRequest,
   createKnowledgeProjectionTarget,
+  createMemoryKnowledgeSourceBinding,
   createStructuredKnowledgeProjectionCandidate,
-  InvalidCandidatePreparationAssociationValueError,
   InvalidExternalSourceCurrentnessCorrespondenceValueError,
   InvalidKnowledgeAcceptanceSemanticInputValueError,
   InvalidKnowledgeCapabilityAttributionValueError,
@@ -368,11 +376,11 @@ export {
   InvalidKnowledgeProjectionRequestValueError,
   InvalidKnowledgeProjectionTargetValueError,
   InvalidKnowledgeProjectionValueError,
+  InvalidMemoryKnowledgeSourceBindingValueError,
   KnowledgeProjectionPreparationMismatchValueError,
   sourceIssuerVerificationCorrespondence,
   underlyingSourceAuthorityCorrespondence,
   type CaptureStructuredKnowledgeProjectionAuthorityRequest,
-  type CandidatePreparationAssociation,
   type ExternalSourceCurrentnessCorrespondence,
   type KnowledgeAcceptanceSemanticInput,
   type KnowledgeCapabilityAttribution,
@@ -383,6 +391,8 @@ export {
   type KnowledgeProjectionPreparationPrerequisites,
   type KnowledgeProjectionRequest,
   type KnowledgeProjectionTarget,
+  type MemoryExternalSourceProjectionPrerequisites,
+  type MemoryKnowledgeSourceBinding,
   type PositiveKnowledgeOwnedSourceCurrentnessDetermination,
   type SamePropositionDeclaration,
   type SourceIssuerVerificationCorrespondence,

@@ -20,10 +20,17 @@ import {
   type StructuredKnowledgeSourceOwnershipProposal,
   type StructuredTextualKnowledgeProposition,
 } from "./knowledge-structured-proposition.js";
+import {
+  candidatePreparationAssociation,
+  type CandidatePreparationAssociation,
+} from "./candidate-preparation-association.js";
+import {
+  createMemorySourceRelationship,
+  createPositiveMemorySourceCurrentnessCorrespondence,
+  type MemorySourceRelationship,
+  type PositiveMemorySourceCurrentnessCorrespondence,
+} from "./memory-source-currentness.js";
 
-export type CandidatePreparationAssociation = string & {
-  readonly __candidatePreparationAssociation: unique symbol;
-};
 export type SourceIssuerVerificationCorrespondence = string & {
   readonly __sourceIssuerVerificationCorrespondence: unique symbol;
 };
@@ -97,6 +104,23 @@ export type PositiveKnowledgeOwnedSourceCurrentnessDetermination = Extract<
   Readonly<{ outcome: "positive" }>
 >;
 
+export interface MemoryKnowledgeSourceBinding {
+  readonly kind: "memory-source-relationship";
+  readonly relationship: MemorySourceRelationship;
+}
+
+export type MemoryExternalSourceProjectionPrerequisites = Readonly<{
+  currentnessOwner: "external-source-currentness";
+  externalSourceKind: "memory";
+  candidatePreparationAssociation: CandidatePreparationAssociation;
+  memorySourceBinding: MemoryKnowledgeSourceBinding;
+  externalCurrentnessCorrespondence: PositiveMemorySourceCurrentnessCorrespondence &
+    Readonly<{
+      applicableOwner?: never;
+      propositionSourceRelationship?: never;
+    }>;
+}>;
+
 export type KnowledgeProjectionPreparationPrerequisites =
   | Readonly<{
       candidatePreparationAssociation: CandidatePreparationAssociation;
@@ -107,7 +131,10 @@ export type KnowledgeProjectionPreparationPrerequisites =
       candidatePreparationAssociation: CandidatePreparationAssociation;
       currentnessOwner: "external-source-currentness";
       externalCurrentnessCorrespondence: ExternalSourceCurrentnessCorrespondence;
-    }>;
+      externalSourceKind?: never;
+      memorySourceBinding?: never;
+    }>
+  | MemoryExternalSourceProjectionPrerequisites;
 
 export interface KnowledgeProjectionRequest {
   readonly intent: "project-structured-knowledge";
@@ -174,15 +201,6 @@ export interface CaptureStructuredKnowledgeProjectionAuthorityRequest {
   readonly candidate: StructuredKnowledgeProjectionCandidate;
 }
 
-export function candidatePreparationAssociation(
-  value: unknown,
-): CandidatePreparationAssociation {
-  return opaqueCorrelationValue(
-    value,
-    new InvalidCandidatePreparationAssociationValueError(),
-  ) as CandidatePreparationAssociation;
-}
-
 export function sourceIssuerVerificationCorrespondence(
   value: unknown,
 ): SourceIssuerVerificationCorrespondence {
@@ -203,6 +221,27 @@ export function createKnowledgeCapabilityAttribution(
     throw new InvalidKnowledgeCapabilityAttributionValueError();
   }
   return Object.freeze({ authoritativeCapability: "knowledge" });
+}
+
+export function createMemoryKnowledgeSourceBinding(
+  input: unknown,
+): MemoryKnowledgeSourceBinding {
+  try {
+    if (
+      !isPlainRecord(input) ||
+      !hasExactFields(input, ["kind", "relationship"]) ||
+      input.kind !== "memory-source-relationship"
+    ) {
+      throw new Error();
+    }
+    createMemorySourceRelationship(input.relationship);
+    return Object.freeze({
+      kind: "memory-source-relationship",
+      relationship: input.relationship as MemorySourceRelationship,
+    });
+  } catch {
+    throw new InvalidMemoryKnowledgeSourceBindingValueError();
+  }
 }
 
 export function underlyingSourceAuthorityCorrespondence(
@@ -381,6 +420,40 @@ export function createKnowledgeProjectionPreparationPrerequisites(
       return Object.freeze({
         candidatePreparationAssociation: association,
         currentnessOwner: "knowledge-owned-currentness",
+      });
+    }
+    if (
+      input.currentnessOwner === "external-source-currentness" &&
+      input.externalSourceKind === "memory" &&
+      hasExactFields(input, [
+        "candidatePreparationAssociation",
+        "currentnessOwner",
+        "externalSourceKind",
+        "memorySourceBinding",
+        "externalCurrentnessCorrespondence",
+      ])
+    ) {
+      const reconstructedBinding = createMemoryKnowledgeSourceBinding(
+        input.memorySourceBinding,
+      );
+      const reconstructedCorrespondence =
+        createPositiveMemorySourceCurrentnessCorrespondence(
+          input.externalCurrentnessCorrespondence,
+        );
+      const binding = Object.isFrozen(input.memorySourceBinding)
+        ? (input.memorySourceBinding as unknown as MemoryKnowledgeSourceBinding)
+        : reconstructedBinding;
+      const correspondence = Object.isFrozen(
+        input.externalCurrentnessCorrespondence,
+      )
+        ? (input.externalCurrentnessCorrespondence as unknown as PositiveMemorySourceCurrentnessCorrespondence)
+        : reconstructedCorrespondence;
+      return Object.freeze({
+        candidatePreparationAssociation: association,
+        currentnessOwner: "external-source-currentness",
+        externalSourceKind: "memory",
+        memorySourceBinding: binding,
+        externalCurrentnessCorrespondence: correspondence,
       });
     }
     if (
@@ -611,10 +684,10 @@ function hasExactFields(
   );
 }
 
-export class InvalidCandidatePreparationAssociationValueError extends Error {
+export class InvalidMemoryKnowledgeSourceBindingValueError extends Error {
   public constructor() {
-    super("Candidate-Preparation Association value is invalid.");
-    this.name = "InvalidCandidatePreparationAssociationValueError";
+    super("Memory Knowledge source binding value is invalid.");
+    this.name = "InvalidMemoryKnowledgeSourceBindingValueError";
   }
 }
 export class InvalidKnowledgeAcceptanceSemanticInputValueError extends Error {
