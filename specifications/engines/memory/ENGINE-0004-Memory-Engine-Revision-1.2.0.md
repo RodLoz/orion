@@ -2,38 +2,39 @@
 
 | Field                | Value                                                                                                 |
 | -------------------- | ----------------------------------------------------------------------------------------------------- |
-| **Status**           | Draft                                                                                                 |
+| **Status**           | Active                                                                                                |
+| **Supersedes**       | [Memory Engine 1.1.0](ENGINE-0004-Memory-Engine-Revision-1.1.0.md)                                    |
 | **Engine Revision**  | Memory Engine 1.2.0                                                                                   |
-| **Document Version** | 1.2.9                                                                                                 |
+| **Document Version** | 1.2.10                                                                                                |
 | **Owner**            | Project Maintainers                                                                                   |
 | **Created**          | 2026-08-31                                                                                            |
-| **Updated**          | 2026-09-01                                                                                            |
+| **Updated**          | 2026-09-02                                                                                            |
 | **Applies To**       | Memory-issued structured-proposition relationships and preparation-specific Memory Source Currentness |
 
 ---
 
 ## Status and Authority
 
-This specification is a Draft additive successor to the Active
-[Memory Engine 1.1.0](ENGINE-0004-Memory-Engine-Revision-1.1.0.md). Memory
-Engine 1.1.0 remains the sole current canonical ENGINE-0004 authority until
-this Draft is separately reviewed, approved, and activated through repository
-governance.
+This specification is Active and is the sole current canonical ENGINE-0004
+revision. It supersedes
+[Memory Engine 1.1.0](ENGINE-0004-Memory-Engine-Revision-1.1.0.md), which
+remains historical and non-authoritative.
 
-This Draft does not supersede Memory Engine 1.1.0, authorize implementation,
-make a runtime path complete, make production Profile B reachable, confer
-deployment authority, or authorize production activation. If this Draft
-conflicts with applicable higher authority or the Active Memory Engine while
-it remains a Draft, the applicable higher or Active authority governs.
+Activation establishes specification authority only. It does not deploy a
+runtime, make production Profile B reachable, confer deployment authority,
+authorize production Bootstrap composition, close `K13-IMPL-F08`, or authorize
+Reasoning or Brain production integration. Applicable higher authority
+continues to govern in a conflict.
 
-Engine revision 1.2.0 is a MINOR revision under OES-0010 because it proposes additive,
+Engine revision 1.2.0 is a MINOR revision under OES-0010 because it adds
 backward-compatible Memory source-relationship, Source Currentness, and
 authority-verification capabilities. Existing Memory 1.1.0 operations and
-semantics remain unchanged unless this Draft explicitly adds a new boundary.
+semantics remain unchanged except for the additive boundaries explicitly
+defined by this revision.
 
-Document version 1.2.9 records governed executable-evidence synchronization
-only. It does not create Memory Engine revision 1.2.9 or alter the proposed
-Memory Engine 1.2.0 semantics.
+Document version 1.2.10 records lifecycle activation only. It does not create
+Memory Engine revision 1.2.10, alter Memory Engine 1.2.0 semantics, authorize
+production deployment, or close `K13-IMPL-F08`.
 
 ## Purpose and Compatibility
 
@@ -428,7 +429,7 @@ currentness ownership, lifecycle policy, verification authority, failure
 determination, or privacy ownership.
 
 No Core type or generic cross-source abstraction is created or authorized by
-this drafting pass.
+this revision.
 
 ## Knowledge Consumption Boundary
 
@@ -486,8 +487,8 @@ for a nonproduction composition. Bootstrap MUST NOT:
 - synthesize correspondence; or
 - acquire Memory, Knowledge, or Context semantic authority.
 
-No Bootstrap implementation or production composition is authorized by this
-Draft.
+No production Bootstrap implementation or composition is authorized by this
+specification.
 
 ## Security and Authority Constraints
 
@@ -531,7 +532,7 @@ This revision does not define or authorize:
 
 ## Implementation Gates
 
-All gates began `OPEN`. Drafting or review does not constitute executable
+All gates began `OPEN`. Initial drafting or review does not constitute executable
 evidence. A gate changes disposition only after its required executable
 evidence is separately validated and synchronized here.
 
@@ -1109,8 +1110,8 @@ be marked PASS solely because code or a test fixture exists.
 
 Memory 1.2.0 is additive. Existing Memory 1.1.0 requests, results, Store
 contracts, operations, and failure behavior remain supported. No existing
-MemoryReference becomes source-current merely because this revision is drafted
-or later activated.
+MemoryReference becomes source-current merely because this revision was drafted
+or activated.
 
 Existing retained Memory has no fabricated source relationship or currentness
 authority. Where required relationship evidence does not exist, an otherwise
@@ -1124,8 +1125,8 @@ issuance, or authority reconstruction is authorized here.
 
 [REVIEW-0006](../../../docs/architecture-review/REVIEW-0006-Memory-Engine-Source-Currentness-and-Reference-Authority.md)
 approved the Memory Engine 1.2.0 semantic architecture and executable
-boundaries through the governed repository review path. Memory 1.2.0 remains
-Draft and Active Memory 1.1.0 remains authoritative. REVIEW-0006 did not close
+boundaries through the governed repository review path. Memory 1.2.0 is now
+Active and supersedes Memory 1.1.0. REVIEW-0006 did not close
 an implementation gate; subsequent validated executable evidence now satisfies
 M12-IMPL-F01 through M12-IMPL-F13. Addendum A authorized the bounded
 M12-IMPL-F13 handoff but did not itself supply executable evidence or close the
@@ -1138,12 +1139,14 @@ or production composition, establish runtime or implementation completeness,
 confer deployment or production authority, make production Profile B
 reachable, or close K13-IMPL-F08.
 
-Activation requires all applicable repository lifecycle steps. Until then,
-Memory Engine 1.1.0 remains Active and authoritative.
+All applicable repository review, conformance, and lifecycle prerequisites for
+Memory 1.2.0 activation have been completed. This lifecycle activation does not
+authorize deployment, production composition, or production Profile B
+reachability.
 
 ## K13-IMPL-F08 Relationship
 
-The human decision and this Draft resolve the proposed source selection,
+The human decision and this Active revision govern the source selection,
 Memory Source Currentness ownership, three-way outcome distinction,
 preparation binding, forgetting-based invalidation principle, and authority and
 opacity allocation at the specification level.
@@ -1155,15 +1158,15 @@ evidence toward `K13-IMPL-F08`.
 
 `K13-IMPL-F08` remains `OPEN`. Its separately governed remaining dependencies
 include production composition and reachability, production Profile B
-integration, activation, and any required Reasoning or Brain production
+integration and activation, and any required Reasoning or Brain production
 integration.
 
-Production Profile B reachability, deployment, and activation remain separately
-governed and are not advanced by this Draft.
+Production Profile B reachability and deployment remain separately governed and
+are not advanced by this specification lifecycle activation.
 
 ## Related Documents
 
-- [Active Memory Engine 1.1.0](ENGINE-0004-Memory-Engine-Revision-1.1.0.md)
+- [Superseded Memory Engine 1.1.0](ENGINE-0004-Memory-Engine-Revision-1.1.0.md)
 - [Memory Engine revision history](ENGINE-0004-Memory-Engine.md)
 - [REVIEW-0006 — Memory Source Currentness and Reference Authority](../../../docs/architecture-review/REVIEW-0006-Memory-Engine-Source-Currentness-and-Reference-Authority.md)
 - [CONCEPT-0001 — Memory Model](../../concepts/CONCEPT-0001-Memory-Model.md)
@@ -1204,6 +1207,7 @@ governed and are not advanced by this Draft.
 | 1.2.7            | 2026-09-01 | Synchronized M12-IMPL-F09, M12-IMPL-F10, and M12-IMPL-F11 from OPEN to PASS from reconciled privacy/minimization, non-bearer non-persistent authority, and exact failure-identity evidence; F01-F07 remain PASS, F08 and F12-F13 remain OPEN, K13-IMPL-F08 remains OPEN, Memory 1.2.0 remains Draft, Active Memory 1.1.0 remains authoritative, and no activation, deployment, production-readiness, or Profile B authority is granted. |
 | 1.2.8            | 2026-09-01 | Synchronized M12-IMPL-F08 and M12-IMPL-F12 from OPEN to PASS from reconciled historical Context preservation and cross-Engine ownership-conformance evidence; F01-F12 are PASS, F13 and K13-IMPL-F08 remain OPEN, Memory 1.2.0 remains Draft, Active Memory 1.1.0 remains authoritative, and no activation, deployment, production-readiness, or Profile B authority is granted.                                                        |
 | 1.2.9            | 2026-09-01 | Synchronized M12-IMPL-F13 from OPEN to PASS from reconciled nonproduction Memory-to-Knowledge-to-Context end-to-end evidence; F01-F13 are PASS, K13-IMPL-F08 remains OPEN, Memory 1.2.0 remains Draft, Active Memory 1.1.0 remains authoritative, and no activation, deployment, production-readiness, or Profile B authority is granted.                                                                                               |
+| 1.2.10           | 2026-09-02 | Activated Memory Engine 1.2.0 as the sole current canonical ENGINE-0004 revision and superseded Memory 1.1.0 after REVIEW-0006 approval and M12-IMPL-F01 through F13 executable conformance; K13-IMPL-F08 remains OPEN, and no production Bootstrap, Profile B reachability, deployment, Reasoning, or Brain production authority is granted.                                                                                           |
 
 ## Engineering Motto
 

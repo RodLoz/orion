@@ -1,23 +1,25 @@
 # ENGINE-0004 — Memory Engine Revision
 
-| Field          | Value                                                                |
-| -------------- | -------------------------------------------------------------------- |
-| **Status**     | Active                                                               |
-| **Supersedes** | 1.0.0                                                                |
-| **Version**    | 1.1.0                                                                |
-| **Owner**      | Project Maintainers                                                  |
-| **Created**    | 2026-08-11                                                           |
-| **Updated**    | 2026-08-11                                                           |
-| **Applies To** | Memory lifecycle, retrieval, and CONTRACT-0001 Context participation |
+| Field             | Value                                                                |
+| ----------------- | -------------------------------------------------------------------- |
+| **Status**        | Superseded                                                           |
+| **Supersedes**    | 1.0.0                                                                |
+| **Superseded By** | [Memory Engine 1.2.0](ENGINE-0004-Memory-Engine-Revision-1.2.0.md)   |
+| **Version**       | 1.1.0                                                                |
+| **Owner**         | Project Maintainers                                                  |
+| **Created**       | 2026-08-11                                                           |
+| **Updated**       | 2026-09-02                                                           |
+| **Applies To**    | Memory lifecycle, retrieval, and CONTRACT-0001 Context participation |
 
 ---
 
 ## Status and Authority
 
-This specification is Active and is the sole current canonical ENGINE-0004
-revision. It supersedes 1.0.0, which remains historical and
-non-authoritative. This revision preserves Memory semantics and adds only the
-current qualified-source collaboration with Context.
+This specification is Superseded by
+[Memory Engine 1.2.0](ENGINE-0004-Memory-Engine-Revision-1.2.0.md) and remains
+historical and non-authoritative. It superseded Memory Engine 1.0.0 and
+preserves the historical Memory 1.1.0 semantics for qualified-source
+collaboration with Context.
 
 ## Purpose and Semantic Preservation
 
@@ -150,10 +152,11 @@ stability.
 
 ## Change History
 
-| Version | Date       | Description                                                                                   |
-| ------- | ---------- | --------------------------------------------------------------------------------------------- |
-| 1.0.0   | 2026-07-20 | Established intentional episodic retention, retrieval, listing, and forgetting.               |
-| 1.1.0   | 2026-08-11 | Added qualified CONTRACT-0001 Context participation without changing Memory source semantics. |
+| Version | Date       | Description                                                                                        |
+| ------- | ---------- | -------------------------------------------------------------------------------------------------- |
+| 1.0.0   | 2026-07-20 | Established intentional episodic retention, retrieval, listing, and forgetting.                    |
+| 1.1.0   | 2026-08-11 | Added qualified CONTRACT-0001 Context participation without changing Memory source semantics.      |
+| 1.1.0   | 2026-09-02 | Superseded by active Memory Engine 1.2.0; retained as historical, non-authoritative documentation. |
 
 ## References
 
