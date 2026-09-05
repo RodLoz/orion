@@ -3,10 +3,11 @@
 | Field | Value |
 | --- | --- |
 | **Status** | Draft |
-| **Version** | 1.0.0 |
+| **Version** | 1.0.1 |
 | **Owner** | Project Maintainers |
-| **Created** | TBD |
-| **Updated** | TBD |
+| **Created** | 2026-09-05 |
+| **Updated** | 2026-09-05 |
+| **Applies To** | Proposed bounded production implementation and evidence collection for fixed Profile B [Identity, Knowledge] under K13-IMPL-F08 |
 | **Review Type** | Architecture Review |
 
 ---
@@ -290,6 +291,20 @@ Deployment is outside REVIEW-0007 authorization.
 
 Neither Draft creation nor future approval of this review may be represented as deployment authorization.
 
+## Review Decision
+
+| Field | Value |
+| --- | --- |
+| **Independent Review** | `PENDING` |
+| **Independent Reviewer** | `PENDING` |
+| **Maintainer Review** | `PENDING` |
+| **Reviewer** | `PENDING` |
+| **Review Timestamp** | `PENDING` |
+| **Decision Rationale** | `PENDING` |
+| **Change/Ticket Reference** | `PENDING_OR_NOT_PROVIDED` |
+
+This record is pending and unperformed. No human review decision or approval is recorded. The applicable review path remains to be established under DOCUMENT-AUTHORITY; no single-maintainer exception is asserted. This pending record grants no authority.
+
 ## Review Disposition
 
 This document is Draft.
@@ -316,7 +331,8 @@ That checkpoint must reconcile executable evidence, authority preservation, and 
 
 | Version | Date | Description |
 | --- | --- | --- |
-| 1.0.0 | TBD | Initial Draft |
+| 1.0.1 | 2026-09-05 | Completed metadata and prepared a pending review-decision record; Draft status, scope, and authority remain unchanged. |
+| 1.0.0 | 2026-09-05 | Initial Draft |
 
 ## Related Documents
 
