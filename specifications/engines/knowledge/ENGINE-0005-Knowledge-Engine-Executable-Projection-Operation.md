@@ -2,30 +2,36 @@
 
 | Field                         | Value                                                                                                         |
 | ----------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| **Status**                    | Draft                                                                                                         |
-| **Document Version**          | 1.1.3                                                                                                         |
+| **Status**                    | Active                                                                                                        |
+| **Document Version**          | 1.1.4                                                                                                         |
 | **Engine**                    | ENGINE-0005 — Knowledge Engine                                                                                |
 | **Governing Engine Revision** | Active Knowledge Engine 3.0.0                                                                                 |
 | **Owner**                     | Project Maintainers                                                                                           |
 | **Created**                   | 2026-08-17                                                                                                    |
-| **Updated**                   | 2026-08-31                                                                                                    |
+| **Updated**                   | 2026-09-03                                                                                                    |
 | **Applies To**                | Knowledge Engine 3.0.0 structured textual projection operation and preparation-cycle Source Currentness input |
 
 ---
 
 ## Document Authority and Lifecycle
 
-This document is a subordinate executable semantic refinement of the Active
-Knowledge Engine 3.0.0 revision. `1.1.3` is this document's version; it is not
+This document is an Active subordinate executable semantic refinement of the
+Active Knowledge Engine 3.0.0 revision. `1.1.4` is this document's version; it is not
 an ENGINE-0005 Engine revision.
 
 This document:
 
 - has no independent Engine lifecycle or runtime authority;
 - does not supersede Knowledge Engine 3.0.0;
-- does not alter the Active status of Knowledge Engine 3.0.0 or make this projection specification implementation-complete; and
-- becomes authoritative only through the applicable repository governance and acceptance
-  lifecycle and applicable repository governance.
+- does not alter the Active status of Knowledge Engine 3.0.0; and
+- is authoritative only as a subordinate specification within the governing
+  Knowledge Engine 3.0.0 boundary.
+
+This lifecycle activation establishes specification authority only. It does
+not close `K13-IMPL-F08`, authorize production Bootstrap composition,
+production Profile B reachability or activation, deployment, Reasoning or
+Brain production integration, or convert nonproduction M12/F13 evidence into
+production evidence.
 
 If this document conflicts with the governing Knowledge Engine 3.0.0 specification,
 the governing Engine specification prevails.
@@ -569,7 +575,8 @@ that no projection is issued for this preparation invocation.
 
 ## Context Boundary
 
-Future Context preparation uses the operation semantically as follows:
+Active Context Engine 5.1.0 preparation uses the operation semantically as
+follows:
 
 ```text
 Context-owned source preparation
@@ -587,20 +594,21 @@ semantic issuer. It MUST invoke the Knowledge-owned verifier before successful
 incorporation. Context does not receive CandidateClaim, KnowledgeRecord,
 acceptance evidence, raw currentness evidence, or verifier internals.
 
-Future Context preparation establishes the candidate-preparation association
+Context preparation establishes the candidate-preparation association
 before participating-source work, supplies the same association through each
 applicable source-specialization request, and preserves it through Context
-authority where required. This is semantic correspondence only and does not
-define Context runtime control flow or close the existing Context runtime gap.
+authority where required. The implemented integration preserves this semantic
+correspondence without transferring Context runtime-control ownership to this
+specification.
 
-This specification does not implement Context and does not change Context
-5.0.1 semantics.
+This specification does not redefine or supersede Active Context Engine 5.1.0
+semantics.
 
 ## Bootstrap Boundary
 
-Bootstrap may later compose the concrete Knowledge implementation, projection
-operation, Knowledge verifier, and Context-facing source preparation adapter.
-Bootstrap owns wiring only. It does not own projection eligibility,
+Bootstrap may compose the concrete Knowledge implementation, projection
+operation, Knowledge verifier, and Context-facing source preparation boundary
+where separately governed. Bootstrap owns wiring only. It does not own projection eligibility,
 currentness, source authority, Contextual Applicability, or verification
 semantics.
 
@@ -802,19 +810,19 @@ The operation is additive because:
 Knowledge implementation depends inward on Core-custodied language and Store
 abstractions. It MUST NOT depend on Context, Reasoning, Planning, Brain,
 Bootstrap, or a concrete Store. Context depends only on the Core-custodied
-projection and verifier Contracts. Bootstrap later wires concrete
-implementations.
+projection and verifier Contracts. Bootstrap wires concrete implementations
+only within an approved composition boundary.
 
-## Upstream Currentness Producer Gap
+## Upstream Currentness Producer Status
 
-`UPSTREAM_CURRENTNESS_PRODUCER_RUNTIME_GAP_REMAINS_OPEN`
+`UPSTREAM_CURRENTNESS_PRODUCER_IMPLEMENTED_AND_EVIDENCED`
 
 This specification closes what the projection operation can accept and
-preserve. It does not establish that every qualified/original source currently
-produces the required completed preparation-cycle correspondence. Core and
-Knowledge implementation may use governed conformance fixtures for the closed
-input, including the exact candidate-preparation association, while
-source-specialization and end-to-end production work remain open.
+preserve. Active Memory Engine 1.2.0 supplies the first governed external
+Source Currentness producer, and M12-IMPL-F01 through M12-IMPL-F13 provide its
+executable conformance and nonproduction Memory-to-Knowledge-to-Context
+evidence. That evidence does not make production Profile B reachable or close
+`K13-IMPL-F08`.
 
 ## Implementation Sequencing
 
@@ -826,11 +834,12 @@ The dependency-ordered implementation sequence is:
 4. Knowledge projection authority and verifier;
 5. Knowledge and CONTRACT-0001 conformance plus the closed privacy-safe
    projection diagnostic observer boundary; and
-6. later Context runtime incorporation and end-to-end source-currentness
-   production.
+6. Context runtime incorporation and nonproduction end-to-end external-source
+   currentness evidence.
 
-Knowledge Engine 3.0.0 remains Active and this executable projection specification remains Draft throughout
-implementation and review.
+Knowledge Engine 3.0.0 remains Active, and this subordinate executable
+projection specification is Active following completed review and F03 through
+F07 implementation-conformance evidence.
 
 ## Implementation Finding Dispositions
 
@@ -843,8 +852,9 @@ implementation and review.
 - `K13-IMPL-F07 PASS`
 - `K13-IMPL-F08 OPEN`
 
-The open findings are implementation, integration, conformance, or diagnostic
-work. This specification claims no runtime completion.
+F03 through F07 have completed implementation and conformance evidence.
+`K13-IMPL-F08` remains the separate OPEN production integration gate; this
+specification's activation does not advance or close it.
 
 `K13-IMPL-F03` is PASS. Executable Core evidence provides the exact Knowledge
 identity and expected-version target, structured textual proposition and
@@ -938,28 +948,31 @@ Closing F03 through F07 does not advance or change F08.
 
 `K13_IMPLEMENTATION_READY`
 
-After this Draft is reviewed and accepted through the governed repository review path and the governing
-Knowledge Engine 3.0.0 lifecycle, Core, and Knowledge implementation remain authoritative independently of
-inventing the operation choice, target, preparation-currentness input location,
-result, verifier boundary, cardinality, or failure ownership.
+This Active specification records the projection semantics reviewed through
+REVIEW-0003, the diagnostic refinement reviewed through REVIEW-0005, and the
+completed F03 through F07 implementation-conformance evidence. The governing
+Knowledge Engine 3.0.0, Core custody, and Knowledge implementation retain their
+respective authority without inventing the operation choice, target,
+preparation-currentness input location, result, verifier boundary, cardinality,
+or failure ownership.
 
-## Deferred Scope
+## Out-of-Scope Authority
 
-This specification does not define or implement:
+This specification does not independently govern or authorize:
 
 - TypeScript types or names;
 - runtime classes or methods;
 - persistence or migration mechanics;
 - concrete authority-state storage;
 - serialization, wire formats, signatures, hashes, or tokens;
-- Context runtime or Contextual Applicability;
-- source-currentness producer implementations;
-- Bootstrap composition;
-- diagnostic observer types, implementations, adapters, transports, tests, or
-  conformance fixtures;
+- Context runtime or Contextual Applicability beyond the collaboration boundary
+  defined here;
+- source-currentness producer implementation semantics owned by Memory;
+- production Bootstrap composition;
+- diagnostic transports or adapters;
 - production Profile B reachability;
 - Reasoning, Planning, Brain, or Skill behavior; or
-- activation of this executable projection specification.
+- deployment.
 
 The diagnostic refinement fills an executable detail explicitly deferred by
 the reviewed semantic specification. It does not alter the semantic
@@ -986,7 +999,7 @@ CONTRACT-0001, Active Knowledge Engine 3.0.0, or production activation.
 - [REVIEW-0003 - Knowledge Engine Executable Projection Operation](../../../docs/architecture-review/REVIEW-0003-Knowledge-Engine-Executable-Projection-Operation.md)
 - [REVIEW-0005 - Knowledge Engine Projection Diagnostic Observer Boundary](../../../docs/architecture-review/REVIEW-0005-Knowledge-Engine-Projection-Diagnostic-Observer-Boundary.md)
 - [Knowledge Engine 1.2.0](ENGINE-0005-Knowledge-Engine-Revision-1.2.0.md)
-- [Context Engine 5.0.1](../context/ENGINE-0003-Context-Engine-Revision-5.0.1.md)
+- [Active Context Engine 5.1.0](../context/ENGINE-0003-Context-Engine-Revision-5.1.0.md)
 - [Reasoning Engine 3.0.0 Draft](../reasoning/ENGINE-0006-Reasoning-Engine-Revision-3.0.0.md)
 - [Reasoning Executable Bounded Rule Draft](../reasoning/ENGINE-0006-Reasoning-Engine-Executable-Bounded-Rule.md)
 - [ADR-0008 — Context Collaboration, Source Ownership, and Reference Authority](../../../docs/adr/ADR-0008-Context-Collaboration-Source-Ownership-and-Reference-Authority.md)
@@ -1008,14 +1021,15 @@ CONTRACT-0001, Active Knowledge Engine 3.0.0, or production activation.
 
 ## Change History
 
-| Version | Date       | Description                                                                                                                                                                                                                               |
-| ------- | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1.1.3   | 2026-08-31 | Synchronized K13-IMPL-F03 through F06 to PASS after executable evidence satisfied the projection semantics approved by REVIEW-0003; F07 remains PASS, F08 remains OPEN, and Draft and Active Knowledge Engine 3.0.0 status are preserved. |
-| 1.1.2   | 2026-08-31 | Synchronized K13-IMPL-F07 to PASS after executable diagnostic observer evidence satisfied the governed criteria approved by REVIEW-0005; the specification remains Draft and F08 remains OPEN.                                            |
-| 1.1.1   | 2026-08-31 | Recorded focused governed approval of the projection diagnostic observer boundary through REVIEW-0005; the specification remains Draft, F07 remains OPEN pending executable evidence, and F08 remains OPEN and unchanged.                 |
-| 1.1.0   | 2026-08-31 | Added the Knowledge-owned, Core-custodied projection diagnostic observer boundary and F07 conformance requirements without changing reviewed projection semantics or F08.                                                                 |
-| 1.0.1   | 2026-08-30 | Aligned governing authority with Active Knowledge Engine 3.0.0 and recorded successful governed semantic architecture review in REVIEW-0003.                                                                                              |
-| 1.0.0   | 2026-08-17 | Drafted the distinct Knowledge projection operation and synchronized preparation-bound lifecycle currentness, Knowledge capability attribution, and single-capture issuance authority with ADR-0021.                                      |
+| Version | Date       | Description                                                                                                                                                                                                                                                                           |
+| ------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1.1.4   | 2026-09-03 | Activated this subordinate executable specification within Active Knowledge Engine 3.0.0 after REVIEW-0003 and REVIEW-0005 approval and F03-F07 conformance; K13-IMPL-F08 remains OPEN, and no production Bootstrap, Profile B, deployment, Reasoning, or Brain authority is granted. |
+| 1.1.3   | 2026-08-31 | Synchronized K13-IMPL-F03 through F06 to PASS after executable evidence satisfied the projection semantics approved by REVIEW-0003; F07 remains PASS, F08 remains OPEN, and Draft and Active Knowledge Engine 3.0.0 status are preserved.                                             |
+| 1.1.2   | 2026-08-31 | Synchronized K13-IMPL-F07 to PASS after executable diagnostic observer evidence satisfied the governed criteria approved by REVIEW-0005; the specification remains Draft and F08 remains OPEN.                                                                                        |
+| 1.1.1   | 2026-08-31 | Recorded focused governed approval of the projection diagnostic observer boundary through REVIEW-0005; the specification remains Draft, F07 remains OPEN pending executable evidence, and F08 remains OPEN and unchanged.                                                             |
+| 1.1.0   | 2026-08-31 | Added the Knowledge-owned, Core-custodied projection diagnostic observer boundary and F07 conformance requirements without changing reviewed projection semantics or F08.                                                                                                             |
+| 1.0.1   | 2026-08-30 | Aligned governing authority with Active Knowledge Engine 3.0.0 and recorded successful governed semantic architecture review in REVIEW-0003.                                                                                                                                          |
+| 1.0.0   | 2026-08-17 | Drafted the distinct Knowledge projection operation and synchronized preparation-bound lifecycle currentness, Knowledge capability attribution, and single-capture issuance authority with ADR-0021.                                                                                  |
 
 ---
 
