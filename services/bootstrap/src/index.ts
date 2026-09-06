@@ -5,6 +5,7 @@ export {
 } from "./brain/brain-composition.js";
 export {
   composeContextCapability,
+  composeFixedProfileBCapability,
   composeKnowledgeAwareContextCapability,
   composeStructuredKnowledgeAwareContextCapability,
   composeMemoryAwareContextCapability,

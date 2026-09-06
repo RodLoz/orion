@@ -5,10 +5,10 @@
 | **Status**           | Active                                                                                                |
 | **Supersedes**       | [Memory Engine 1.1.0](ENGINE-0004-Memory-Engine-Revision-1.1.0.md)                                    |
 | **Engine Revision**  | Memory Engine 1.2.0                                                                                   |
-| **Document Version** | 1.2.10                                                                                                |
+| **Document Version** | 1.2.11                                                                                                |
 | **Owner**            | Project Maintainers                                                                                   |
 | **Created**          | 2026-08-31                                                                                            |
-| **Updated**          | 2026-09-02                                                                                            |
+| **Updated**          | 2026-09-06                                                                                            |
 | **Applies To**       | Memory-issued structured-proposition relationships and preparation-specific Memory Source Currentness |
 
 ---
@@ -1156,10 +1156,22 @@ external-source integration, Context integration, nonproduction Bootstrap
 composition, and nonproduction Memory-to-Knowledge-to-Context end-to-end
 evidence toward `K13-IMPL-F08`.
 
-`K13-IMPL-F08` remains `OPEN`. Its separately governed remaining dependencies
-include production composition and reachability, production Profile B
-integration and activation, and any required Reasoning or Brain production
-integration.
+`K13-IMPL-F08` is `PASS` under Rodrigo Lozano's separate human
+single-maintainer decision dated 2026-09-06, supported by REVIEW-0007 Active
+1.0.2 and its [follow-up governance checkpoint](../../../docs/architecture-review/REVIEW-0007-K13-F08-Production-Authorization-for-Fixed-Profile-B.md#follow-up-governance-checkpoint).
+The [canonical Knowledge disposition](../knowledge/ENGINE-0005-Knowledge-Engine-Executable-Projection-Operation.md#f08-human-pass-and-governed-reconciliation-2026-09-06)
+records 20 mandatory requirements passed, zero failed or unknown, no waiver,
+and no unsupported evidence reclassification. The bounded production
+composition, reachability, and authoritative Active Profile B endpoint were
+exercised in tests. Brain and Reasoning are not required for that endpoint.
+Deployment was not required, was not performed, and remains NOT AUTHORIZED.
+
+Memory specification activation did not close F08. All M12 dispositions and
+historical F13 NONPRODUCTION evidence remain unchanged. Earlier OPEN statements
+in the dated implementation evidence and history retain their checkpoint
+meaning. Document 1.2.11 applies OES-0010's editorial PATCH rule solely to this
+current cross-reference synchronization; Memory Engine 1.2.0 semantics,
+authority, and lifecycle remain unchanged.
 
 Production Profile B reachability and deployment remain separately governed and
 are not advanced by this specification lifecycle activation.
@@ -1208,6 +1220,7 @@ are not advanced by this specification lifecycle activation.
 | 1.2.8            | 2026-09-01 | Synchronized M12-IMPL-F08 and M12-IMPL-F12 from OPEN to PASS from reconciled historical Context preservation and cross-Engine ownership-conformance evidence; F01-F12 are PASS, F13 and K13-IMPL-F08 remain OPEN, Memory 1.2.0 remains Draft, Active Memory 1.1.0 remains authoritative, and no activation, deployment, production-readiness, or Profile B authority is granted.                                                        |
 | 1.2.9            | 2026-09-01 | Synchronized M12-IMPL-F13 from OPEN to PASS from reconciled nonproduction Memory-to-Knowledge-to-Context end-to-end evidence; F01-F13 are PASS, K13-IMPL-F08 remains OPEN, Memory 1.2.0 remains Draft, Active Memory 1.1.0 remains authoritative, and no activation, deployment, production-readiness, or Profile B authority is granted.                                                                                               |
 | 1.2.10           | 2026-09-02 | Activated Memory Engine 1.2.0 as the sole current canonical ENGINE-0004 revision and superseded Memory 1.1.0 after REVIEW-0006 approval and M12-IMPL-F01 through F13 executable conformance; K13-IMPL-F08 remains OPEN, and no production Bootstrap, Profile B reachability, deployment, Reasoning, or Brain production authority is granted.                                                                                           |
+| 1.2.11 | 2026-09-06 | Synchronized the current F08 cross-reference to Rodrigo Lozano's separately governed PASS; preserved all M12 dispositions, historical NONPRODUCTION evidence, Memory semantics and lifecycle, and deployment exclusion. |
 
 ## Engineering Motto
 

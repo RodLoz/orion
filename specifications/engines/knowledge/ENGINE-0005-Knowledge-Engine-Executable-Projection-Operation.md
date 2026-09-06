@@ -3,12 +3,12 @@
 | Field                         | Value                                                                                                         |
 | ----------------------------- | ------------------------------------------------------------------------------------------------------------- |
 | **Status**                    | Active                                                                                                        |
-| **Document Version**          | 1.1.4                                                                                                         |
+| **Document Version**          | 1.1.5                                                                                                         |
 | **Engine**                    | ENGINE-0005 — Knowledge Engine                                                                                |
 | **Governing Engine Revision** | Active Knowledge Engine 3.0.0                                                                                 |
 | **Owner**                     | Project Maintainers                                                                                           |
 | **Created**                   | 2026-08-17                                                                                                    |
-| **Updated**                   | 2026-09-03                                                                                                    |
+| **Updated**                   | 2026-09-06                                                                                                    |
 | **Applies To**                | Knowledge Engine 3.0.0 structured textual projection operation and preparation-cycle Source Currentness input |
 
 ---
@@ -16,7 +16,7 @@
 ## Document Authority and Lifecycle
 
 This document is an Active subordinate executable semantic refinement of the
-Active Knowledge Engine 3.0.0 revision. `1.1.4` is this document's version; it is not
+Active Knowledge Engine 3.0.0 revision. `1.1.5` is this document's version; it is not
 an ENGINE-0005 Engine revision.
 
 This document:
@@ -850,11 +850,11 @@ F07 implementation-conformance evidence.
 - `K13-IMPL-F05 PASS`
 - `K13-IMPL-F06 PASS`
 - `K13-IMPL-F07 PASS`
-- `K13-IMPL-F08 OPEN`
+- `K13-IMPL-F08 PASS`
 
 F03 through F07 have completed implementation and conformance evidence.
-`K13-IMPL-F08` remains the separate OPEN production integration gate; this
-specification's activation does not advance or close it.
+`K13-IMPL-F08` is PASS under the separate human decision recorded below.
+This specification's earlier lifecycle activation did not close that gate.
 
 `K13-IMPL-F03` is PASS. Executable Core evidence provides the exact Knowledge
 identity and expected-version target, structured textual proposition and
@@ -939,10 +939,195 @@ Production Bootstrap was not modified: the approved absent, no-op, and later
 composition paths provide the required wiring-only boundary without claiming
 production observer composition.
 
-`K13-IMPL-F08` remains separately open and dependent on an external Source
-Currentness producer, Context integration, Bootstrap and end-to-end
+At the F03-F07 checkpoint, `K13-IMPL-F08` remained separately open and dependent
+on an external Source Currentness producer, Context integration, Bootstrap and end-to-end
 composition, and governed production Profile B reachability or activation.
 Closing F03 through F07 does not advance or change F08.
+
+### F08 bounded Fixed Profile B executable evidence (2026-09-06)
+
+The following two evidence checkpoints preceded the human closure decision
+recorded later in this document; their OPEN dispositions are historical.
+
+At baseline `3ba7042a2bf3b50ca4fc8fb7afed80d59771da5b`, the five authorized
+unstaged Bootstrap production changes provide the bounded in-process
+`composeFixedProfileBCapability` path. This evidence completion exercised that
+existing production-code composition through the Bootstrap public export;
+no production-code correction was required.
+
+`services/bootstrap/test/fixed-profile-b-composition.test.ts` adds five cases
+using the actual exported composition without constructing a replacement
+Engine graph, Brain, or Reasoning. The evidence demonstrates:
+
+- Composition and subsequent governed Memory/Knowledge prerequisite setup
+  do not create an Active Context Revision. Preparation requires an explicit
+  caller invocation; the bounded capability surface exposes no dynamic
+  profile selector and performs no autonomous profile selection.
+- Retained Memory material supplies the exact Memory-issued relationship and
+  binding accepted by Knowledge. Call-through observations of public Engine
+  methods show Memory-owned authority/currentness verification, the same
+  preparation association across Memory and Knowledge, and Knowledge-owned
+  projection and projection-authority verification.
+- Context performs its own applicability evaluation: matching scope yields
+  exactly one structured Knowledge fragment, while mismatching subject or
+  predicate preserves `NoApplicableStructuredKnowledgeCandidateError` even
+  after successful Knowledge projection, with no new active lineage.
+- Context prepares and activates exactly `[Identity, Knowledge]`, represented
+  in governed order as `identity` and `structured-knowledge`. Memory remains
+  upstream source authority and is not a Profile B fragment. The complete
+  endpoint obtains the exact Active revision through
+  `getActiveContextRevision` and verifies that same authoritative object
+  through `verifyActiveContextRevisionAuthority`.
+- Forget after relationship issuance produces Memory `NEGATIVE`, prevents
+  Knowledge projection, and preserves the existing Context no-applicable
+  consequence without successful activation.
+- Returned shutdown retains Knowledge single-flight and idempotent behavior;
+  subsequent acceptance fails with `InvalidKnowledgeStateError`.
+
+`services/bootstrap/test/knowledge-composition.test.ts` adds one case proving
+default structured acceptance with two usable deterministic proposition
+identities, public projection and authority-verification capability exposure,
+and READY-to-stopped lifecycle behavior. Existing lifecycle cases remain
+unchanged. The earlier
+`services/bootstrap/test/memory-knowledge-context-currentness.e2e.test.ts`
+remains separate nonproduction F13 evidence; it was not modified or reclassified
+as production evidence.
+
+Validation completed before this tracking update:
+
+| Command | Result |
+| --- | --- |
+| `corepack pnpm exec vitest run services/bootstrap/test/fixed-profile-b-composition.test.ts services/bootstrap/test/knowledge-composition.test.ts services/bootstrap/test/memory-knowledge-context-currentness.e2e.test.ts` | PASS: 17 tests across 3 files |
+| `corepack pnpm build` | PASS |
+| `corepack pnpm typecheck` | PASS |
+| `corepack pnpm lint` | PASS |
+| `corepack pnpm architecture` | PASS: 154 modules, 297 dependencies; all dependency-prohibition checks passed |
+| `corepack pnpm format:check` | PASS |
+| `corepack pnpm test` | PASS: 1976 tests passed, 51 skipped; 114 files passed, 2 skipped |
+| `git diff --check` | PASS |
+
+The shell required the existing local executable directory on PATH and a
+temporary external-to-repository Corepack `pnpm` shim for the nested test
+script. No repository configuration was changed. `pnpm validate` was inspected
+but not run because it also invokes the CLI diagnostic. No external production
+integration or deployment was performed.
+
+`K13-IMPL-F08` remains **OPEN**, not PASS. This bounded executable evidence is
+not full production conformance and has not been reconciled for F08 closure.
+REVIEW-0007 remains Active 1.0.2 unchanged. Deployment is NOT AUTHORIZED.
+
+#### Additional production-path preservation evidence (2026-09-06)
+
+The three preservation requirements previously recorded as UNKNOWN now have
+executable evidence through the exported `composeFixedProfileBCapability` in
+`services/bootstrap/test/fixed-profile-b-composition.test.ts`. This follow-up
+adds three test cases and extends the existing positive case; it changes no
+production code and preserves the earlier assertions.
+
+- **Failure preservation:** a relationship issued after governed Forget raises
+  `MemorySourceCurrentnessUnableToDetermineError`. A relationship issued by a
+  second instance of the same production composition raises
+  `MemorySourceAuthorityVerificationFailureError`, exercising the permitted
+  equivalent foreign-source authority-verification failure. Public-method
+  call-through observations prove the caller receives the exact originating
+  exception object and type, not a Context no-applicable result. Both cases
+  prove no active lineage, projection, projection verification, or retry.
+- **Historical Context preservation:** the test explicitly prepares, obtains,
+  and verifies an Active Profile B revision before Forget. After Forget and a
+  failed existing-lineage preparation, the original snapshot, revision and
+  lineage coordinates, fragment array and Knowledge fragment identities remain
+  unchanged. The same frozen Active revision remains retrievable and passes
+  authority verification; there is no replacement or fragment change.
+- **Privacy/minimization:** the positive production path checks exact public
+  fields on Memory currentness, the Knowledge projection and correspondence,
+  and the Context revision and fragments. It explicitly excludes the existing
+  F13 prohibited fields and governed source, provenance, retention, Store,
+  credentials, and authority internals. Preparation association and semantic
+  scope are absent from the stable Context revision. Permitted semantic tuple
+  and opaque correspondence remain preserved.
+
+Validation completed before this additional tracking update:
+
+| Command | Result |
+| --- | --- |
+| `corepack pnpm exec vitest run services/bootstrap/test/fixed-profile-b-composition.test.ts` | PASS: 8 passed, 0 skipped, 0 failed |
+| `corepack pnpm format:check` | PASS |
+| `corepack pnpm build` | PASS |
+| `corepack pnpm typecheck` | PASS |
+| `corepack pnpm lint` | PASS |
+| `corepack pnpm architecture` | PASS: 154 modules, 297 dependencies; all dependency-prohibition checks passed |
+| `corepack pnpm test` | PASS: 1979 passed, 51 skipped, 0 failed; 114 files passed, 2 skipped |
+| `git diff --check` | PASS |
+
+The prior validation totals above remain historical evidence. Existing F13
+nonproduction evidence remains unchanged and is not reclassified. These new
+results are production-code-path execution in tests, not deployed production.
+No implementation defect was found. `K13-IMPL-F08` remains **OPEN**; this update
+does not perform governed closure reconciliation or claim full production
+conformance. REVIEW-0007 remains unchanged. Deployment remains NOT AUTHORIZED
+and was NOT performed.
+
+## F08 human PASS and governed reconciliation (2026-09-06)
+
+| Field | Value |
+| --- | --- |
+| Gate / current disposition | `K13-IMPL-F08 PASS` |
+| Decision maker / reviewer | Rodrigo Lozano |
+| Human decision / maintainer review | `PASS` |
+| Decision date / timestamp | 2026-09-06 (date precision; no time of day supplied) |
+| Review route | `SINGLE_MAINTAINER` |
+| Independent review | `NOT_APPLICABLE_SINGLE_MAINTAINER` |
+| Supporting authorization | REVIEW-0007 Active 1.0.2; separate follow-up checkpoint recorded in 1.0.3 |
+| Evidence baseline HEAD | `3ba7042a2bf3b50ca4fc8fb7afed80d59771da5b` with the authorized unstaged implementation/test/evidence package |
+| Mandatory requirements | 20 total / 20 PASS / 0 FAIL / 0 UNKNOWN |
+| Gate waived | NO |
+| Unknown reclassified without evidence | NO |
+| Historical nonproduction evidence relabeled as production | NO |
+| Evidence classification | `PRODUCTION_CODE_PATH_EXERCISED_IN_TEST` |
+| Production code path exercised | YES |
+| Deployed runtime required | NO |
+| Deployment performed | NO |
+| Skipped tests block F08 | NO |
+| Tracking update valid | YES |
+| Failure preservation | PASS |
+| Historical Context preservation | PASS |
+| Privacy/minimization preservation | PASS |
+
+Rodrigo Lozano personally supplied this PASS after the final reconciliation
+established `K13_F08_PRODUCTION_EVIDENCE_CLOSURE_READY` and the decision packet
+established `READY_FOR_HUMAN_F08_CLOSURE_DECISION`. The single-maintainer route
+uses the recorded sole-maintainer/no-qualified-independent-reviewer basis in
+[REVIEW-0007](../../../docs/architecture-review/REVIEW-0007-K13-F08-Production-Authorization-for-Fixed-Profile-B.md#follow-up-governance-checkpoint)
+under DOCUMENT-AUTHORITY. Codex/AI supplied supporting analysis and records the
+human decision; it did not make the decision or act as an independent reviewer.
+
+Decision rationale: The bounded production-code-path evidence satisfies all
+twenty mandatory K13-IMPL-F08 requirements with no failed or unresolved gates,
+no waived requirements, and no unsupported evidence reclassification. The
+implementation preserves the approved architecture and authority boundaries.
+Deployment remains outside REVIEW-0007 and was not performed.
+
+Evidence examined comprises the authorized Bootstrap composition and public
+export, the eight cases in
+[fixed-profile-b-composition.test.ts](../../../services/bootstrap/test/fixed-profile-b-composition.test.ts),
+the structured acceptance/projection case in
+[knowledge-composition.test.ts](../../../services/bootstrap/test/knowledge-composition.test.ts),
+the validation tables above, and the final twenty-condition authority/evidence
+reconciliation. Focused Fixed Profile B evidence passed 8/8 with no skips or
+failures. Full repository validation recorded 1979 passed, 51 skipped, zero
+failed; 114 files passed and two skipped. Build, typecheck, lint, architecture,
+format check, and diff check passed. The 51 skipped cases are 13 PostgreSQL
+Store integration/conformance cases and 38 PostgreSQL migration integration
+cases, outside this bounded in-memory path; they remain skipped, not PASS.
+These are established validation results, not new executions during recording.
+
+The existing bounded implementation is accepted as satisfying F08. This record
+does not grant deployment authority, claim unrelated production readiness,
+change another gate, introduce semantic ownership or profile-selection policy,
+or reclassify historical F13 NONPRODUCTION evidence. Earlier dated OPEN
+records remain historical. Document 1.1.5 applies OES-0010's editorial PATCH
+rule to factual disposition/evidence synchronization after the supplied human
+decision; no Knowledge semantic or Engine revision changes.
 
 ## Implementation Readiness
 
@@ -950,7 +1135,8 @@ Closing F03 through F07 does not advance or change F08.
 
 This Active specification records the projection semantics reviewed through
 REVIEW-0003, the diagnostic refinement reviewed through REVIEW-0005, and the
-completed F03 through F07 implementation-conformance evidence. The governing
+completed F03 through F07 implementation-conformance evidence, together with
+the separately governed F08 human PASS recorded above. The governing
 Knowledge Engine 3.0.0, Core custody, and Knowledge implementation retain their
 respective authority without inventing the operation choice, target,
 preparation-currentness input location, result, verifier boundary, cardinality,
@@ -980,8 +1166,8 @@ architecture approved by REVIEW-0003, and it does not claim that REVIEW-0003
 reviewed this diagnostic detail. REVIEW-0005 reviewed and approved the focused
 diagnostic observer boundary through the governed repository review path. That
 approval did not itself provide executable evidence. Subsequent governed
-implementation-conformance evidence satisfies K13-IMPL-F07. K13-IMPL-F08
-remains OPEN.
+implementation-conformance evidence satisfies K13-IMPL-F07. The separate
+K13-IMPL-F08 human PASS is recorded above; F07 approval did not close F08.
 
 ## Diagnostic Non-Goals
 
@@ -1023,6 +1209,7 @@ CONTRACT-0001, Active Knowledge Engine 3.0.0, or production activation.
 
 | Version | Date       | Description                                                                                                                                                                                                                                                                           |
 | ------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1.1.5 | 2026-09-06 | Recorded Rodrigo Lozano's separate single-maintainer F08 PASS from reconciled 20/20 bounded production-code-path evidence; synchronized current disposition without semantic changes, deployment authority, unrelated gate changes, or historical nonproduction reclassification. |
 | 1.1.4   | 2026-09-03 | Activated this subordinate executable specification within Active Knowledge Engine 3.0.0 after REVIEW-0003 and REVIEW-0005 approval and F03-F07 conformance; K13-IMPL-F08 remains OPEN, and no production Bootstrap, Profile B, deployment, Reasoning, or Brain authority is granted. |
 | 1.1.3   | 2026-08-31 | Synchronized K13-IMPL-F03 through F06 to PASS after executable evidence satisfied the projection semantics approved by REVIEW-0003; F07 remains PASS, F08 remains OPEN, and Draft and Active Knowledge Engine 3.0.0 status are preserved.                                             |
 | 1.1.2   | 2026-08-31 | Synchronized K13-IMPL-F07 to PASS after executable diagnostic observer evidence satisfied the governed criteria approved by REVIEW-0005; the specification remains Draft and F08 remains OPEN.                                                                                        |

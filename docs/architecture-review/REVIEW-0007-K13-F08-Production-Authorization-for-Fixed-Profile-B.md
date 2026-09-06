@@ -3,10 +3,10 @@
 | Field | Value |
 | --- | --- |
 | **Status** | Active |
-| **Version** | 1.0.2 |
+| **Version** | 1.0.3 |
 | **Owner** | Project Maintainers |
 | **Created** | 2026-09-05 |
-| **Updated** | 2026-09-05 |
+| **Updated** | 2026-09-06 |
 | **Applies To** | Bounded production implementation and evidence collection for fixed Profile B [Identity, Knowledge] under K13-IMPL-F08 |
 | **Review Type** | Architecture Review |
 
@@ -14,7 +14,7 @@
 
 ## Status
 
-This architecture review is Active following Rodrigo Lozano's human single-maintainer PASS decision dated 2026-09-05 on REVIEW-0007 version 1.0.1. It authorizes only the bounded implementation and production evidence scope recorded below. Deployment remains NOT AUTHORIZED and K13-IMPL-F08 remains OPEN.
+This architecture review is Active following Rodrigo Lozano's human single-maintainer PASS decision dated 2026-09-05 on REVIEW-0007 version 1.0.1. It authorizes only the bounded implementation and production evidence scope recorded below. Deployment remains NOT AUTHORIZED. K13-IMPL-F08 is PASS following the separate human decision dated 2026-09-06 recorded in the Follow-up Governance Checkpoint.
 
 Active is the authoritative lifecycle state under DOCUMENT-AUTHORITY's Document Status and Authority section and OES-0008's Document Status section. Version 1.0.2 records the human decision and synchronizes lifecycle wording without changing the reviewed scope or architectural semantics; the PATCH increment follows OES-0010's Documentation Versioning rule for editorial corrections.
 
@@ -102,7 +102,7 @@ They are not required to create the authoritative Active Profile B Context Revis
 
 Before this review's recorded human PASS, the existing architecture defined the fixed Profile B path but did not authorize bounded production implementation necessary to exercise that path. This review supplies that bounded authorization only.
 
-K13-IMPL-F08 remains OPEN and requires separate production evidence and governed reconciliation.
+At authorization approval, K13-IMPL-F08 remained OPEN pending separate production evidence and governed reconciliation. The completed follow-up checkpoint below records its subsequent PASS.
 
 ## Review Scope
 
@@ -264,7 +264,7 @@ This review does not authorize exposure of protected or internal authority mater
 
 ## K13-IMPL-F08 Disposition
 
-K13-IMPL-F08 remains OPEN after REVIEW-0007 approval.
+K13-IMPL-F08 remained OPEN after the original REVIEW-0007 approval. Its current disposition is PASS under the separate 2026-09-06 human closure decision recorded below.
 
 REVIEW-0007 approval does NOT:
 
@@ -343,7 +343,7 @@ The examination reconciled repository authority, recorded executable results, an
 
 ## Review Disposition
 
-This document is Active and records Rodrigo Lozano's human PASS. It grants only the bounded implementation and production evidence authority in Review Scope. It grants no deployment authority and does not close any implementation gate.
+This document is Active and preserves Rodrigo Lozano's original authorization PASS. That approval grants only the bounded implementation and production evidence authority in Review Scope; it grants no deployment authority and did not close any implementation gate. The separate F08 closure decision is recorded in the follow-up checkpoint below.
 
 ## Post-Review Implementation / Evidence Sequence
 
@@ -361,10 +361,78 @@ A separate governance checkpoint is required after production evidence is genera
 
 That checkpoint must reconcile executable evidence, authority preservation, and K13-IMPL-F08 acceptance requirements.
 
+### Human F08 closure decision (2026-09-06)
+
+| Field | Value |
+| --- | --- |
+| Gate | `K13-IMPL-F08` |
+| Closure decision | `PASS` |
+| Decision maker / reviewer | Rodrigo Lozano |
+| Review route | `SINGLE_MAINTAINER` |
+| Independent review | `NOT_APPLICABLE_SINGLE_MAINTAINER` |
+| Maintainer review | `PASS` |
+| Decision date / timestamp | 2026-09-06 (date precision; no time of day supplied) |
+| Supporting authorization | REVIEW-0007 Active 1.0.2 |
+| Evidence baseline HEAD | `3ba7042a2bf3b50ca4fc8fb7afed80d59771da5b` with the authorized unstaged implementation/test/evidence package |
+| Evidence counts | 20 mandatory / 20 PASS / 0 FAIL / 0 UNKNOWN |
+| Gate waived | NO |
+| Unsupported reclassification | NO |
+| Unknown reclassified without evidence | NO |
+| Historical nonproduction evidence relabeled as production | NO |
+| Evidence classification | `PRODUCTION_CODE_PATH_EXERCISED_IN_TEST` |
+| Production code path exercised | YES |
+| Deployment required | NO |
+| Deployment performed | NO |
+| Skipped tests block F08 | NO |
+| Tracking update valid | YES |
+
+Rodrigo Lozano personally supplied this closure PASS. The single-maintainer
+route relies on his recorded 2026-09-05 declaration that he is the sole human
+maintainer and no qualified independent reviewer is available, and his
+2026-09-06 decision explicitly uses that route. This is human maintainer review
+under DOCUMENT-AUTHORITY, not independent review. Codex/AI supplied supporting
+analysis and recorded the human decision; it did not choose PASS.
+
+Decision rationale: The bounded production-code-path evidence satisfies all
+twenty mandatory K13-IMPL-F08 requirements with no failed or unresolved gates,
+no waived requirements, and no unsupported evidence reclassification. The
+implementation preserves the approved architecture and authority boundaries.
+Deployment remains outside REVIEW-0007 and was not performed.
+
+Evidence examined:
+
+- the final twenty-condition reconciliation and human decision packet, with
+  `K13_F08_PRODUCTION_EVIDENCE_CLOSURE_READY` and
+  `READY_FOR_HUMAN_F08_CLOSURE_DECISION`;
+- the authorized [Bootstrap production composition](../../services/bootstrap/src/context/context-composition.ts),
+  public export, and Knowledge/Memory capability wiring;
+- [Fixed Profile B executable tests](../../services/bootstrap/test/fixed-profile-b-composition.test.ts)
+  and [Knowledge composition tests](../../services/bootstrap/test/knowledge-composition.test.ts);
+- the [canonical F08 evidence and disposition record](../../specifications/engines/knowledge/ENGINE-0005-Knowledge-Engine-Executable-Projection-Operation.md#f08-human-pass-and-governed-reconciliation-2026-09-06),
+  including failure preservation PASS, historical Context preservation PASS,
+  privacy/minimization PASS, focused 8/8 PASS, and full-suite 1979 passed,
+  51 skipped, zero failed; 114 files passed, two skipped; and
+- recorded build, typecheck, lint, architecture, format-check, and diff-check
+  PASS. The 51 skips are 13 PostgreSQL Store and 38 migration integration
+  cases outside the bounded in-memory path and remain skipped.
+
+This checkpoint records established evidence, not fresh validation runs. It
+accepts the existing bounded implementation as satisfying F08 and is not a new
+REVIEW-0007 authorization approval. The original decision and reviewed scope
+remain intact. No implementation change, deployment authority, unrelated gate
+change, semantic ownership, or profile-selection semantics result. Historical
+F13 evidence remains NONPRODUCTION. Current F08 disposition is synchronized in
+the Knowledge specification and Memory cross-reference.
+
+Version 1.0.3 applies OES-0010's editorial PATCH rule to recording the supplied
+decision and correcting current status references; no normative scope or
+architectural semantics change. The review remains Active.
+
 ## Review History
 
 | Version | Date | Description |
 | --- | --- | --- |
+| 1.0.3 | 2026-09-06 | Recorded Rodrigo Lozano's separate post-implementation F08 PASS checkpoint from reconciled 20/20 evidence; preserved original authorization approval, Active lifecycle, historical records, and deployment exclusion. |
 | 1.0.2 | 2026-09-05 | Recorded Rodrigo Lozano's human single-maintainer PASS on version 1.0.1 and synchronized Active lifecycle wording; reviewed scope and architectural semantics remain unchanged, deployment remains unauthorized, and K13-IMPL-F08 remains OPEN. |
 | 1.0.1 | 2026-09-05 | Completed metadata and prepared a pending review-decision record; Draft status, scope, and authority remain unchanged. |
 | 1.0.0 | 2026-09-05 | Initial Draft |

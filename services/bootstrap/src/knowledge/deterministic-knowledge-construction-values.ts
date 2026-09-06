@@ -1,8 +1,13 @@
-import type { KnowledgeConstructionValues } from "@orion/core";
+import {
+  propositionIdentity,
+  type KnowledgeConstructionValues,
+  type PropositionIdentity,
+} from "@orion/core";
 
 export class DeterministicKnowledgeConstructionValues implements KnowledgeConstructionValues {
   #identityIndex = 0;
   #acceptedAtIndex = 0;
+  #propositionIndex = 0;
 
   public constructor(
     private readonly identities: readonly unknown[] = [
@@ -21,5 +26,10 @@ export class DeterministicKnowledgeConstructionValues implements KnowledgeConstr
 
   public nextAcceptedAt(): unknown {
     return this.acceptedAtValues[this.#acceptedAtIndex++];
+  }
+
+  public nextPropositionIdentity(): PropositionIdentity {
+    this.#propositionIndex += 1;
+    return propositionIdentity(`orion.proposition.${this.#propositionIndex}`);
   }
 }

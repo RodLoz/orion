@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { candidatePreparationAssociation } from "@orion/core";
 import type { Pool } from "pg";
 import type { KnowledgeEngine } from "@orion/knowledge";
 
@@ -60,6 +61,79 @@ function controlledEngine(options: {
 }
 
 describe("Bootstrap Knowledge composition", () => {
+  it("accepts structured propositions with deterministic identities and exposes authoritative projection", async () => {
+    const knowledge = await composeKnowledgeCapability();
+    try {
+      expect(knowledge.engineState).toBe("ready");
+      for (const [index, textualScalar] of [
+        "Dark Theme",
+        "Light Theme",
+      ].entries()) {
+        const semanticValue = {
+          subjectKey: `preference.${index}`,
+          predicateKey: "theme",
+          textualScalar,
+        };
+        const accepted =
+          await knowledge.evaluateKnowledgeClaim.evaluateKnowledgeClaim({
+            intent: "evaluate",
+            claim: `The reviewed theme is ${textualScalar}.`,
+            structuredProposition: semanticValue,
+            samePropositionDeclaration: "same-proposition",
+            sourceOwnershipProposal: {
+              currentnessOwner: "knowledge-owned-currentness",
+            },
+            acceptanceEvidence: {
+              method: "explicit-authority-review",
+              authorityIdentifier: "orion.bootstrap.knowledge.test",
+              decision: "accept",
+              reason: "The complete structured proposition was reviewed.",
+            },
+            provenance: {
+              sourceType: "approved-internal-source",
+              originatingCapability: "bootstrap-knowledge-test",
+              observedAt: "2026-09-01T00:00:00.000Z",
+            },
+          });
+        expect(accepted.outcome).toBe("accepted");
+        if (accepted.outcome !== "accepted")
+          throw new Error("Structured acceptance failed.");
+        expect(
+          accepted.record.acceptedStructuredProposition?.propositionIdentity,
+        ).toBe(`orion.proposition.${index + 1}`);
+        const projection =
+          knowledge.projectStructuredKnowledge.projectStructuredKnowledge({
+            intent: "project-structured-knowledge",
+            target: {
+              knowledgeIdentity: accepted.record.knowledgeIdentity,
+              expectedKnowledgeVersion: accepted.record.version,
+            },
+            preparationPrerequisites: {
+              candidatePreparationAssociation: candidatePreparationAssociation(
+                `bootstrap.preparation.${index + 1}`,
+              ),
+              currentnessOwner: "knowledge-owned-currentness",
+            },
+          });
+        expect(projection.semanticValue).toEqual(semanticValue);
+        expect(projection.correspondence.propositionIdentity).toBe(
+          accepted.record.acceptedStructuredProposition?.propositionIdentity,
+        );
+        expect(
+          knowledge.verifyStructuredKnowledgeProjectionAuthority.verifyStructuredKnowledgeProjectionAuthority(
+            {
+              intent: "verify-knowledge-projection-authority",
+              candidate: projection,
+            },
+          ),
+        ).toBe(projection);
+      }
+    } finally {
+      await knowledge.shutdown();
+    }
+    expect(knowledge.engineState).toBe("stopped");
+  });
+
   it("awaits READY before exposing synchronous capabilities", async () => {
     const composition = composeKnowledgeCapability();
     expect(composition).toBeInstanceOf(Promise);

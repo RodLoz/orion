@@ -3,6 +3,8 @@ import {
   type ContextEngineLifecycleState,
 } from "@orion/context";
 import type {
+  BindMemorySourceRelationshipToPreparation,
+  VerifyMemorySourceAuthority,
   ComposeContextRevision,
   ComposeContextRevisionWithKnowledge,
   ComposeContextRevisionWithMemory,
@@ -21,6 +23,9 @@ import type {
 } from "@orion/core";
 
 import { DeterministicContextConstructionValues } from "./deterministic-context-construction-values.js";
+import { composeIdentityCapability } from "../identity/identity-composition.js";
+import { composeKnowledgeCapability } from "../knowledge/knowledge-composition.js";
+import { composeMemoryCapability } from "../memory/memory-composition.js";
 
 export interface ContextCapabilityComposition {
   readonly composeContextRevision: ComposeContextRevision;
@@ -90,6 +95,8 @@ export function composeStructuredKnowledgeAwareContextCapability(
   knowledgeResolver: GetKnowledge,
   structuredKnowledgeResolver: ProjectStructuredKnowledge &
     VerifyStructuredKnowledgeProjectionAuthority,
+  memorySourceAuthority?: BindMemorySourceRelationshipToPreparation &
+    VerifyMemorySourceAuthority,
 ): StructuredKnowledgeAwareContextCapabilityComposition {
   const engine = new ContextEngine(
     new DeterministicContextConstructionValues(),
@@ -97,6 +104,7 @@ export function composeStructuredKnowledgeAwareContextCapability(
     knowledgeResolver,
     undefined,
     structuredKnowledgeResolver,
+    memorySourceAuthority,
   );
   engine.initialize();
   engine.start();
@@ -134,4 +142,70 @@ export function composeMemoryAwareContextCapability(
     engineState: engine.engineState,
     verifyActiveContextRevisionAuthority: engine,
   });
+}
+
+/** REVIEW-0007 bounded in-process composition; preparation requires a caller request. */
+export async function composeFixedProfileBCapability() {
+  const knowledge = await composeKnowledgeCapability();
+  try {
+    const identity = composeIdentityCapability();
+    const memory = composeMemoryCapability();
+    const context = composeStructuredKnowledgeAwareContextCapability(
+      identity.resolveCurrentIdentity,
+      knowledge.getKnowledge,
+      {
+        projectStructuredKnowledge:
+          knowledge.projectStructuredKnowledge.projectStructuredKnowledge.bind(
+            knowledge.projectStructuredKnowledge,
+          ),
+        verifyStructuredKnowledgeProjectionAuthority:
+          knowledge.verifyStructuredKnowledgeProjectionAuthority.verifyStructuredKnowledgeProjectionAuthority.bind(
+            knowledge.verifyStructuredKnowledgeProjectionAuthority,
+          ),
+      },
+      {
+        bindMemorySourceRelationshipToPreparation:
+          memory.bindMemorySourceRelationshipToPreparation.bindMemorySourceRelationshipToPreparation.bind(
+            memory.bindMemorySourceRelationshipToPreparation,
+          ),
+        verifyMemorySourceAuthority:
+          memory.verifyMemorySourceAuthority.verifyMemorySourceAuthority.bind(
+            memory.verifyMemorySourceAuthority,
+          ),
+      },
+    );
+    return Object.freeze({
+      retainMemory: memory.retainMemory.retainMemory.bind(memory.retainMemory),
+      getMemory: memory.getMemory.getMemory.bind(memory.getMemory),
+      forgetMemory: memory.forgetMemory.forgetMemory.bind(memory.forgetMemory),
+      issueMemorySourceRelationship:
+        memory.issueMemorySourceRelationship.issueMemorySourceRelationship.bind(
+          memory.issueMemorySourceRelationship,
+        ),
+      evaluateKnowledgeClaim:
+        knowledge.evaluateKnowledgeClaim.evaluateKnowledgeClaim.bind(
+          knowledge.evaluateKnowledgeClaim,
+        ),
+      prepareContextRevisionWithStructuredKnowledge:
+        context.prepareContextRevisionWithStructuredKnowledge.prepareContextRevisionWithStructuredKnowledge.bind(
+          context.prepareContextRevisionWithStructuredKnowledge,
+        ),
+      getActiveContextRevision:
+        context.getActiveContextRevision.getActiveContextRevision.bind(
+          context.getActiveContextRevision,
+        ),
+      verifyActiveContextRevisionAuthority:
+        context.verifyActiveContextRevisionAuthority.verifyActiveContextRevisionAuthority.bind(
+          context.verifyActiveContextRevisionAuthority,
+        ),
+      shutdown: knowledge.shutdown,
+    });
+  } catch (error: unknown) {
+    try {
+      await knowledge.shutdown();
+    } catch {
+      // Preserve the originating assembly failure after attempting cleanup.
+    }
+    throw error;
+  }
 }

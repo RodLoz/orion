@@ -1,4 +1,7 @@
 import type {
+  BindMemorySourceRelationshipToPreparation,
+  IssueMemorySourceRelationship,
+  VerifyMemorySourceAuthority,
   ForgetMemory,
   GetMemory,
   ListRetainedMemoryReferences,
@@ -11,6 +14,9 @@ import { DeterministicMemoryConstructionValues } from "./deterministic-memory-co
 import { InMemoryMemoryStore } from "./in-memory-memory-store.js";
 
 export interface MemoryCapabilityComposition {
+  readonly issueMemorySourceRelationship: IssueMemorySourceRelationship;
+  readonly bindMemorySourceRelationshipToPreparation: BindMemorySourceRelationshipToPreparation;
+  readonly verifyMemorySourceAuthority: VerifyMemorySourceAuthority;
   readonly retainMemory: RetainMemory;
   readonly getMemory: GetMemory;
   readonly listRetainedMemoryReferences: ListRetainedMemoryReferences;
@@ -30,6 +36,9 @@ export function composeMemoryCapability(): MemoryCapabilityComposition {
   engine.initialize();
   engine.start();
   return Object.freeze({
+    issueMemorySourceRelationship: engine,
+    bindMemorySourceRelationshipToPreparation: engine,
+    verifyMemorySourceAuthority: engine,
     retainMemory: engine,
     getMemory: engine,
     listRetainedMemoryReferences: engine,

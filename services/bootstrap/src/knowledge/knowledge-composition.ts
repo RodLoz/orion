@@ -2,6 +2,8 @@ import type {
   EvaluateKnowledgeClaim,
   GetKnowledge,
   ListKnowledgeReferences,
+  ProjectStructuredKnowledge,
+  VerifyStructuredKnowledgeProjectionAuthority,
 } from "@orion/core";
 import {
   KnowledgeEngine,
@@ -15,6 +17,8 @@ import { InMemoryKnowledgeStore } from "./in-memory-knowledge-store.js";
 import { PostgreSQLKnowledgeStore } from "./postgresql-knowledge-store.js";
 
 export interface KnowledgeCapabilityComposition {
+  readonly projectStructuredKnowledge: ProjectStructuredKnowledge;
+  readonly verifyStructuredKnowledgeProjectionAuthority: VerifyStructuredKnowledgeProjectionAuthority;
   readonly evaluateKnowledgeClaim: EvaluateKnowledgeClaim;
   readonly getKnowledge: GetKnowledge;
   readonly listKnowledgeReferences: ListKnowledgeReferences;
@@ -104,6 +108,8 @@ export async function composeKnowledgeCapability(
       throw error;
     }
     return Object.freeze({
+      projectStructuredKnowledge: engine,
+      verifyStructuredKnowledgeProjectionAuthority: engine,
       evaluateKnowledgeClaim: engine,
       getKnowledge: engine,
       listKnowledgeReferences: engine,
