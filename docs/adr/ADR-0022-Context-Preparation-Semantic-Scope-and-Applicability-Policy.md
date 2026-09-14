@@ -3,10 +3,10 @@
 | Field             | Value                 |
 | ----------------- | --------------------- |
 | **Status**        | Active                |
-| **Version**       | 1.0.0                 |
+| **Version** | 1.0.2 |
 | **Owner**         | Project Maintainers   |
 | **Created**       | 2026-08-18            |
-| **Updated**       | 2026-08-18            |
+| **Updated** | 2026-09-14 |
 | **Decision Type** | Architecture Decision |
 
 ---
@@ -470,15 +470,16 @@ This ADR does not decide:
 - [ADR-0021 — Knowledge Source Currentness and Projection Attribution](ADR-0021-Knowledge-Source-Currentness-and-Projection-Attribution.md)
 - [Context Engine 5.0.1](../../specifications/engines/context/ENGINE-0003-Context-Engine-Revision-5.0.1.md)
 - [Context Engine 5.1.0 Draft](../../specifications/engines/context/ENGINE-0003-Context-Engine-Revision-5.1.0.md)
-- [Knowledge Engine 1.3.0 Draft](../../specifications/engines/knowledge/ENGINE-0005-Knowledge-Engine-Revision-1.3.0.md)
-- [Knowledge executable projection Draft](../../specifications/engines/knowledge/ENGINE-0005-Knowledge-Engine-Executable-Projection-Operation.md)
-- [Reasoning Engine 3.0.0 Draft](../../specifications/engines/reasoning/ENGINE-0006-Reasoning-Engine-Revision-3.0.0.md)
+- [Superseded Knowledge Engine 1.3.0](../../specifications/engines/knowledge/ENGINE-0005-Knowledge-Engine-Revision-1.3.0.md)
+- [Active Knowledge executable projection](../../specifications/engines/knowledge/ENGINE-0005-Knowledge-Engine-Executable-Projection-Operation.md)
+- [Active Reasoning Engine 3.0.0](../../specifications/engines/reasoning/ENGINE-0006-Reasoning-Engine-Revision-3.0.0.md)
 - [CONTRACT-0001 — Context Source Retrieval](../contracts/CONTRACT-0001-Context-Source-Retrieval.md)
 
 ## Change history
 
 | Version | Date       | Description                                                                                    |
 | ------- | ---------- | ---------------------------------------------------------------------------------------------- |
+| 1.0.2 | 2026-09-14 | Synchronized current lifecycle references with established Active authority; document-only PATCH, preserving semantic revision identities, historical checkpoints, implementation gates, and deployment separation. |
 | 1.0.0   | 2026-08-18 | Drafted ContextPreparationSemanticScope and deterministic first-slice applicability policy.    |
 | 1.0.1   | 2026-08-18 | Clarified caller-to-Context scope input origin, Context adoption, and Brain non-participation. |
 | 1.0.0   | 2026-08-18 | Approved architectural decision.                                                               |

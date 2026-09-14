@@ -76,7 +76,7 @@ A Normalized Cognitive Request is one exact immutable request with:
   intent: "orchestrate-cognitive-request",
   requestId: BrainRequestIdentifier,
   contextLineageId: ContextLineageIdentity,
-  query: ReasoningQuery,
+  query: ReasoningQuery | BoundedReasoningQuery,
   executionIntent:
     | { kind: "none" }
     | {
@@ -93,6 +93,18 @@ after successful Skill selection.
 `query` is the normalized user intent/input for M10. M10 does not introduce a
 second natural-language or intent-classification model.
 
+RECOVERY-01 correspondence, reconstructed on 2026-09-11 under
+[ADR-0027](../../docs/adr/ADR-0027-Brain-Structured-Query-Request-Domain.md):
+the query also accepts the existing caller-supplied `BoundedReasoningQuery`
+with exactly `kind: "exact-text-attribute-value"`, `subjectKey`, and
+`predicateKey`. Brain captures and validates this immutable value using the
+existing governed Core bounded-query semantics and exact data-property request
+conventions. Legacy strings and their 2048-code-point limit remain unchanged;
+no free-text parsing or rule inference is introduced. Query input confers no
+Context, Knowledge, Reasoning, or Security authority. Final response domains
+remain unchanged. This dated recovery annotation restores the supplied ADR
+correspondence; it does not assert an unknown historical specification version.
+
 `executionIntent` is orchestration input, not Planning output and not
 authorization:
 
@@ -106,6 +118,23 @@ transport metadata, timestamp, device/session data, Context object, Memory or
 Knowledge content, callback, or executable handle.
 
 ## Final Cognitive Result
+
+RECOVERY-03 correspondence, reconstructed on 2026-09-11 under
+[ADR-0028](../../docs/adr/ADR-0028-Bounded-Downstream-Response-Domain-Correspondence.md):
+successful bounded Profile B Reasoning3 responses preserve the exact accepted
+`textualScalar`. Planning and Brain must preserve the full valid bounded response
+domain through 4096 Unicode code points, including non-BMP characters counted
+as one code point each. Accepted values, including whitespace, must not be
+truncated, paraphrased, normalized, summarized, or converted to another semantic
+result. Oversized values must not be converted into insufficiency. Unrelated
+legacy 2048 response domains and ADR-0027 request semantics remain unchanged.
+The legacy `CandidateResponse` example below does not constrain the separately
+governed bounded domain. This editorial correspondence selects no new public
+explainability fields, diagnostics, or failure-propagation semantics and claims
+no implementation completion. Failure propagation remains unresolved; the
+bounded-rule supplement remains Draft and deployment remains unauthorized.
+RECOVERY-01's response-preservation statement describes that checkpoint's scope;
+ADR-0028 governs this separate bounded downstream correspondence.
 
 A Final Cognitive Result is one immutable Brain-owned union:
 

@@ -2,16 +2,176 @@
 
 | Field          | Value                                                                       |
 | -------------- | --------------------------------------------------------------------------- |
-| **Status**     | Draft                                                                       |
-| **Version**    | 1.1.1                                                                       |
+| **Status**     | Active                                                                      |
+| **Version**    | 2.0.0                                                                       |
 | **Owner**      | Reasoning Engine                                                            |
 | **Created**    | 2026-08-17                                                                  |
-| **Updated**    | 2026-08-31                                                                  |
+| **Updated**    | 2026-09-14                                                                  |
 | **Applies To** | Reasoning Engine 3.0.0 bounded Profile B executable semantic correspondence |
 
 ---
 
 ## Status and Relationship
+
+This subordinate Engine specification is Active within its bounded supplemental
+scope. It refines the executable semantic rule governed by Active
+[Reasoning Engine 3.0.0](ENGINE-0006-Reasoning-Engine-Revision-3.0.0.md).
+It does not replace, amend, activate, or supersede that Engine revision.
+Version 2.0.0 identifies this supplemental document only; it creates no new
+Engine revision or independent implementation authority.
+
+### Human Exact-Text Authority Correction - 2026-09-14
+
+| Field | Value |
+| --- | --- |
+| Decision maker | Rodrigo Lozano |
+| Decision | PASS - OPTION 2 |
+| Decision date | 2026-09-14 |
+| Review route | SINGLE_MAINTAINER |
+| Selected authority | Established runtime literals R1/R2/R3 |
+| Document transition | Active 1.1.2 -> Active 2.0.0 |
+| INDEPENDENT_REVIEW | NOT_APPLICABLE_SINGLE_MAINTAINER |
+| MAINTAINER_REVIEW | PASS |
+| Implementation change authorized or required | NO |
+| Deployment authorized or performed | NO |
+
+Post-activation reconciliation discovered an exact-text conflict between this
+supplement and the existing runtime. Both wording sets predated recovery:
+the runtime literals existed in commit
+05061e723befb43a3e38fb0fa9fa9a88d08d0885 (2026-08-24); the supplement wording
+existed as Draft 1.0.0 in Git object
+2c67721068a1fe3b5430c8681b916aff180cf723, contained in commit
+6562876a5f6d28c0c33d213292ad57e5a3a9c86f (2026-08-29), and as Draft 1.1.1
+in commit 160ce4fbb817995e604eb351f4748dcddd71c613 (2026-08-31).
+These are the located Git evidence dates, not invented literal-approval dates.
+Historical presence, semantic review, and ADR-0028's exact successful scalar
+correspondence did not automatically select between the competing fixed
+wording sets. In particular, the previous non-applicable response said
+"is required" while the selected response says "may be required".
+
+Rodrigo Lozano resolved that conflict on 2026-09-14 with PASS - OPTION 2:
+retain the established runtime literals R1/R2/R3 and make those exact values
+normative in this supplement. The current Knowledge-Grounded Success and
+Exact-Query Non-Applicable Outcome sections below implement that decision.
+Exact equality remains required; the selected strings are not examples or
+paraphrase permissions. The earlier activation occurred before this conflict
+was reconciled and did not explicitly select the competing literals.
+
+The human maintainer made this bounded decision through SINGLE_MAINTAINER.
+AI assists with recording and validation only; it is not the human reviewer
+or decision maker. No independent reviewer or independent review is fabricated.
+The existing single-maintainer exception remains the applicable review route.
+
+Under [OES-0010 Documentation Versioning](../../../docs/engineering/OES-0010-Versioning-Standards.md#documentation-versioning),
+2.0.0 is a MAJOR document revision because it changes normative exact controlled
+text; it is not an editorial PATCH. The scope is this supplemental document,
+not a new Reasoning Engine revision, architecture decision, or runtime release.
+The correction migrates the three specification literals to established runtime
+values and requires no implementation or test-file change.
+
+Successful Candidate Response remains the exact governed Knowledge textualScalar.
+Anonymous Outcome semantics and exact strings are unchanged. The conditional
+insufficient-evidence strings S4/S5 remain unchanged and are not made reachable.
+Categories, rules, authority checks, public explainability, diagnostics,
+Planning behavior, and Brain behavior remain unchanged.
+
+All seven R4 residuals remain PASS under REVIEW-0004 1.0.11. Failure propagation
+remains resolved under the separately selected Option A. This Option 2 is a
+post-activation exact-text decision, not a replacement of that failure decision.
+No implementation change is authorized or required. Deployment remains a
+separate authorization action and is neither authorized nor performed here.
+Unrelated lifecycle-reference synchronization remains outside this correction.
+
+The following prior values are retained solely as historical evidence; they
+are no longer current normative values for the reachable Outcomes:
+
+| Historical value | Former field | Superseded text |
+| --- | --- | --- |
+| S1 | Knowledge-grounded success conclusion | Bounded Knowledge proposition exactly applicable and sufficient. |
+| S2 | Exact-query non-applicable conclusion | The governed proposition does not apply to the exact bounded query. |
+| S3 | Exact-query non-applicable Candidate Response | Additional applicable authoritative context is required before a bounded response can be produced. |
+
+### Preserved Activation Checkpoint
+
+The following 1.1.2 activation record is preserved as historical evidence.
+Its conformance statement records the assessment at activation, before the
+exact-text discrepancy was discovered. The Option 2 record above resolves
+that discrepancy; it does not retroactively rewrite the activation decision.
+
+### Human Activation Decision - 2026-09-14
+
+| Field | Value |
+| --- | --- |
+| Decision maker | Rodrigo Lozano |
+| Decision | PASS - OPTION A |
+| Decision date | 2026-09-14 |
+| Review route | SINGLE_MAINTAINER |
+| Lifecycle transition | Draft 1.1.1 -> Active 1.1.2 |
+| INDEPENDENT_REVIEW | NOT_APPLICABLE_SINGLE_MAINTAINER |
+| MAINTAINER_REVIEW | PASS |
+| SUPPLEMENT_ACTIVATED | YES |
+| DEPLOYMENT_AUTHORIZED | NO |
+| DEPLOYMENT_PERFORMED | NO |
+
+Rodrigo Lozano explicitly authorized this lifecycle transition on 2026-09-14.
+The human maintainer is the decision maker; AI assists with recording and
+validation only. The existing single-maintainer route follows
+[Documentation Authority](../../../docs/DOCUMENT-AUTHORITY.md#review-independence-and-single-maintainer-governance).
+No qualified independent human reviewer is available under that recorded route;
+no independent reviewer or review is fabricated. No time of day is supplied
+or invented.
+
+Before activation,
+[REVIEW-0004 1.0.11](../../../docs/architecture-review/REVIEW-0004-Reasoning-Engine-Executable-Bounded-Rule.md)
+physically recorded R4-RESIDUAL-01 through R4-RESIDUAL-07 as PASS:
+HUMAN_RESIDUAL_PASS_COUNT is 7, REMAINING_RESIDUALS_WITHOUT_PASS is 0, and
+R4_RESIDUAL_SET_FULLY_RECONCILED is YES. Its Draft and non-activation statements
+describe that preceding residual-reconciliation checkpoint. This separate
+human decision activates the supplement without rewriting that review.
+
+[ADR-0027](../../../docs/adr/ADR-0027-Brain-Structured-Query-Request-Domain.md)
+and [ADR-0028](../../../docs/adr/ADR-0028-Bounded-Downstream-Response-Domain-Correspondence.md)
+remain Active 1.0.1 / PASS and govern their established scopes.
+FAILURE_PROPAGATION_RESOLVED is YES under the accepted R4-07 Option A:
+preserve semantic failure ownership at the originating responsibility while
+retaining existing Brain boundary normalization behavior. Originating internal
+exception identity need not propagate unchanged through Brain. Normalization
+does not transfer semantic ownership. No new public error contract or
+diagnostic taxonomy is introduced.
+
+The human-supplied activation evidence records SA-01 through SA-12 as PASS.
+SA-09 was reconciled against the recovered real production composition path;
+RECOVERY-05 evidence R05_01 through R05_16 is PASS, covering real bounded Brain
+entry, caller-query forwarding, Reasoning3 execution, Context authority,
+Reasoning Outcome verification before Planning, Plan verification before Brain
+result assembly, exact scalar preservation, the 2049 and 4096 value paths,
+anonymous and mismatch paths, legacy preservation, rejection of reconstructed
+and foreign Context and outer clones, and unchanged public explainability.
+These are established supporting results, not new test runs by this recording.
+SUPPLEMENT_ACTIVATION_TECHNICALLY_READY is YES; ADDITIONAL_EVIDENCE_REQUIRED
+is NO. No failed technical gate is waived or reclassified by this decision.
+
+The existing implementation is conformant under the accepted governed
+semantics and established evidence. Activation introduces no implementation
+change and neither requires nor authorizes a new implementation change.
+No new architecture, ADR, public explainability mechanism, or diagnostic
+taxonomy is introduced. Existing governed public explainability remains
+unchanged; activation does not authorize exposing additional fields.
+
+Activation does not authorize deployment. Deployment remains a separate
+explicit authorization action. No deployment is recorded or claimed here.
+This lifecycle record changes no other artifact's status.
+
+Under [OES-0010 Documentation Versioning](../../../docs/engineering/OES-0010-Versioning-Standards.md#documentation-versioning),
+1.1.2 is a PATCH update recording the human lifecycle decision and synchronizing
+status without changing the already-governed semantics. Earlier history is
+preserved below; activation is not attributed to an earlier checkpoint.
+
+### Historical Status and Relationship - Draft 1.1.1
+
+The following status text is preserved from the pre-activation checkpoint.
+Its Draft and unresolved-readiness statements describe that checkpoint only.
+The activation record above governs the current lifecycle and conformance state.
 
 This subordinate Engine specification is a non-authoritative Draft. It refines
 the bounded executable semantic rule governed by the Active
@@ -219,7 +379,7 @@ The broader Reasoning 3.0.0 semantic model retains applicable-but-insufficient
 evidence as a distinct closed Outcome. No valid state in this strict
 textual-only executable subset reaches it. A later approved executable rule may
 make that category reachable without changing its already-governed Planning
-correspondence. This Draft MUST NOT fabricate an insufficiency condition merely
+correspondence. This supplement MUST NOT fabricate an insufficiency condition merely
 to exercise the category.
 
 ## Evaluation Precedence
@@ -294,8 +454,8 @@ Its exact semantic correspondence is:
 - **Outcome category:** `knowledge-grounded-success`;
 - **Rule category:** `authenticated-knowledge-applicable-sufficient`;
 - **Candidate next action:** `none`;
-- **Candidate conclusion:** the exact fixed controlled text `Bounded Knowledge
-proposition exactly applicable and sufficient.`;
+- **Candidate conclusion:** MUST be exactly
+  `The bounded Knowledge tuple satisfies the Reasoning query.` (R1);
 - **Candidate response:** the exact governed textual scalar, preserved
   without prose generation, paraphrase, decoration, qualification, or other
   source material; and
@@ -316,11 +476,10 @@ Its exact semantic correspondence is:
 - **Outcome category:** `knowledge-not-applicable`;
 - **Rule category:** `authenticated-knowledge-not-applicable`;
 - **Candidate next action:** `request-more-context`;
-- **Candidate conclusion:** the controlled semantic conclusion `The governed
-proposition does not apply to the exact bounded query.`;
-- **Candidate response:** the controlled response `Additional applicable
-authoritative context is required before a bounded response can be
-produced.`; and
+- **Candidate conclusion:** MUST be exactly
+  `The bounded Knowledge tuple does not satisfy the Reasoning query.` (R2);
+- **Candidate response:** MUST be exactly
+  `Additional context may be required before another bounded evaluation.` (R3); and
 - **Explainability:** applicability `not-established`; sufficiency
   `not-evaluated`.
 
@@ -603,6 +762,14 @@ or deployment mechanics.
 
 ## Deferred Scope
 
+The deferrals below preserve the original specification-scope checkpoint.
+Statements here and in Knowledge Projection Correspondence, Context
+Executable-Language Requirements, and Planning Correspondence about deferred
+or future executable realization do not describe current implementation
+incompleteness. The activation record above records existing conformance.
+Those implementation concerns remain outside this semantic specification;
+other excluded capabilities remain outside the activated bounded scope.
+
 The reviewed Knowledge executable projection operation establishes the
 semantic projection correspondence, exact target, result cardinality, opaque
 authority boundary, verifier proof boundary, and failure ownership consumed
@@ -656,6 +823,8 @@ The following remain deferred:
 
 | Version | Date       | Description                                                                                                                           |
 | ------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| 2.0.0   | 2026-09-14 | Recorded Rodrigo Lozano PASS Option 2 after post-activation exact-text reconciliation; made established runtime R1/R2/R3 normative, preserving prior wording in history and all other behavior; no implementation change or deployment authorization. |
+| 1.1.2   | 2026-09-14 | Recorded Rodrigo Lozano human PASS Option A through SINGLE_MAINTAINER; activated the supplement after REVIEW-0004 1.0.11 residual closure, preserving governed semantics and existing implementation; no deployment authorization. |
 | 1.1.1   | 2026-08-31 | Recorded governed semantic architecture approval through REVIEW-0004; the bounded-rule specification remains Draft and runtime and implementation gates remain open. |
 | 1.1.0   | 2026-08-31 | Synchronized with Active Reasoning 3.0.0, Active Knowledge 3.0.0, the reviewed Knowledge executable projection, and explicit Context-owned CandidatePreparationAssociation opacity. |
 | 1.0.0   | 2026-08-17 | Drafted the deterministic exact attribute-value query/proposition rule and its closed Reasoning correspondence.                       |

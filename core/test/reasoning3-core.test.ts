@@ -1,3 +1,7 @@
+import {
+  candidateResponse,
+  reasoning3CandidateResponse,
+} from "../src/index.js";
 import { describe, expect, it } from "vitest";
 import {
   InvalidBoundedReasoningQueryValueError,
@@ -181,5 +185,24 @@ describe("Reasoning 3 Core bounded language", () => {
         category: "fallback",
       }),
     ).toThrow();
+  });
+});
+
+describe("RECOVERY-04 isolated response validators", () => {
+  it.each([
+    "x".repeat(2048),
+    "x".repeat(2049),
+    "x".repeat(4096),
+    "\u{1f600}".repeat(4096),
+    "  exact  value  ",
+  ])("preserves bounded response (%#)", (value) =>
+    expect(reasoning3CandidateResponse(value)).toBe(value),
+  );
+  it("rejects 4097 and keeps legacy 2048", () => {
+    expect(() =>
+      reasoning3CandidateResponse("\u{1f600}".repeat(4097)),
+    ).toThrow();
+    expect(candidateResponse("x".repeat(2048))).toBe("x".repeat(2048));
+    expect(() => candidateResponse("x".repeat(2049))).toThrow();
   });
 });

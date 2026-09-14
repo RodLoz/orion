@@ -1,3 +1,4 @@
+import { createCandidatePlan, type CandidatePlan } from "./planning.js";
 import {
   InvalidBrainExecutionStateError,
   InvalidBrainRequestError,
@@ -9,7 +10,11 @@ import {
 } from "./context.js";
 import {
   candidateResponse,
+  reasoning3CandidateResponse,
+  type Reasoning3CandidateResponse,
+  createBoundedReasoningQuery,
   reasoningQuery,
+  type BoundedReasoningQuery,
   type CandidateResponse,
   type ReasoningQuery,
 } from "./reasoning.js";
@@ -51,7 +56,7 @@ export interface NormalizedCognitiveRequest {
   readonly intent: "orchestrate-cognitive-request";
   readonly requestId: BrainRequestIdentifier;
   readonly contextLineageId: ContextLineageIdentity;
-  readonly query: ReasoningQuery;
+  readonly query: ReasoningQuery | BoundedReasoningQuery;
   readonly executionIntent: BrainExecutionIntent;
 }
 
@@ -59,7 +64,7 @@ export interface FinalCognitiveResponse {
   readonly status: "completed";
   readonly kind: "response";
   readonly requestId: BrainRequestIdentifier;
-  readonly response: CandidateResponse;
+  readonly response: CandidateResponse | Reasoning3CandidateResponse;
 }
 
 export interface FinalCognitiveRequestMoreContext {
@@ -154,7 +159,16 @@ export function createNormalizedCognitiveRequest(
       intent: "orchestrate-cognitive-request",
       requestId: brainRequestIdentifier(source.requestId),
       contextLineageId: contextLineageIdentity(source.contextLineageId),
-      query: reasoningQuery(source.query),
+      query:
+        typeof source.query === "string"
+          ? reasoningQuery(source.query)
+          : createBoundedReasoningQuery(
+              exactDataRecord(source.query, [
+                "kind",
+                "subjectKey",
+                "predicateKey",
+              ]),
+            ),
       executionIntent: createBrainExecutionIntent(source.executionIntent),
     });
   } catch {
@@ -185,6 +199,7 @@ export function createBrainExecutionIntent(
 
 export function createFinalCognitiveResult(
   input: unknown,
+  correspondence?: CandidatePlan,
 ): FinalCognitiveResult {
   try {
     const kind = ownDataValue(input, "kind");
@@ -196,11 +211,25 @@ export function createFinalCognitiveResult(
         "response",
       ]);
       if (source.status !== "completed") throw new Error();
+      const plan =
+        correspondence === undefined
+          ? undefined
+          : createCandidatePlan(correspondence);
+      if (
+        plan !== undefined &&
+        (plan.category !== "respond" ||
+          plan.steps[0].kind !== "respond" ||
+          plan.steps[0].candidateResponse !== source.response)
+      )
+        throw new Error();
       return Object.freeze({
         status: "completed",
         kind,
         requestId: brainRequestIdentifier(source.requestId),
-        response: candidateResponse(source.response),
+        response:
+          plan?.source.reasoningCategory === "knowledge-grounded-success"
+            ? reasoning3CandidateResponse(source.response)
+            : candidateResponse(source.response),
       });
     }
     if (kind === "request-more-context") {

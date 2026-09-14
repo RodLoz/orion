@@ -130,15 +130,6 @@ export class PlanningEngine
         outcome.nextAction,
       );
       const requestMoreContext = category === "request-more-context";
-      const step = createCandidatePlanStep(
-        requestMoreContext
-          ? { ordinal: 1, kind: "request-more-context" }
-          : {
-              ordinal: 1,
-              kind: "respond",
-              candidateResponse: outcome.response,
-            },
-      );
       const source = createReasoningConsumptionReference({
         reasoningStatus: outcome.status,
         reasoningCategory: outcome.category,
@@ -147,6 +138,16 @@ export class PlanningEngine
         reasoningRuleCategory: outcome.explainability.ruleCategory,
         authoritativeCapability: "reasoning",
       });
+      const step = createCandidatePlanStep(
+        requestMoreContext
+          ? { ordinal: 1, kind: "request-more-context" }
+          : {
+              ordinal: 1,
+              kind: "respond",
+              candidateResponse: outcome.response,
+            },
+        source,
+      );
       const explainability = createPlanningExplainabilitySummary({
         consumedReasoningCategory: outcome.category,
         consumedCandidateNextAction: outcome.nextAction,

@@ -3,12 +3,12 @@
 | Field                         | Value                                                                                                         |
 | ----------------------------- | ------------------------------------------------------------------------------------------------------------- |
 | **Status**                    | Active                                                                                                        |
-| **Document Version**          | 1.1.5                                                                                                         |
+| **Document Version** | 1.1.6 |
 | **Engine**                    | ENGINE-0005 — Knowledge Engine                                                                                |
 | **Governing Engine Revision** | Active Knowledge Engine 3.0.0                                                                                 |
 | **Owner**                     | Project Maintainers                                                                                           |
 | **Created**                   | 2026-08-17                                                                                                    |
-| **Updated**                   | 2026-09-06                                                                                                    |
+| **Updated** | 2026-09-14 |
 | **Applies To**                | Knowledge Engine 3.0.0 structured textual projection operation and preparation-cycle Source Currentness input |
 
 ---
@@ -16,7 +16,7 @@
 ## Document Authority and Lifecycle
 
 This document is an Active subordinate executable semantic refinement of the
-Active Knowledge Engine 3.0.0 revision. `1.1.5` is this document's version; it is not
+Active Knowledge Engine 3.0.0 revision. `1.1.6` is this document's version; it is not
 an ENGINE-0005 Engine revision.
 
 This document:
@@ -1186,8 +1186,8 @@ CONTRACT-0001, Active Knowledge Engine 3.0.0, or production activation.
 - [REVIEW-0005 - Knowledge Engine Projection Diagnostic Observer Boundary](../../../docs/architecture-review/REVIEW-0005-Knowledge-Engine-Projection-Diagnostic-Observer-Boundary.md)
 - [Knowledge Engine 1.2.0](ENGINE-0005-Knowledge-Engine-Revision-1.2.0.md)
 - [Active Context Engine 5.1.0](../context/ENGINE-0003-Context-Engine-Revision-5.1.0.md)
-- [Reasoning Engine 3.0.0 Draft](../reasoning/ENGINE-0006-Reasoning-Engine-Revision-3.0.0.md)
-- [Reasoning Executable Bounded Rule Draft](../reasoning/ENGINE-0006-Reasoning-Engine-Executable-Bounded-Rule.md)
+- [Active Reasoning Engine 3.0.0](../reasoning/ENGINE-0006-Reasoning-Engine-Revision-3.0.0.md)
+- [Active Reasoning Executable Bounded Rule 2.0.0](../reasoning/ENGINE-0006-Reasoning-Engine-Executable-Bounded-Rule.md)
 - [ADR-0008 — Context Collaboration, Source Ownership, and Reference Authority](../../../docs/adr/ADR-0008-Context-Collaboration-Source-Ownership-and-Reference-Authority.md)
 - [ADR-0011 — Source Currentness, Contextual Currentness, and Currentness Change](../../../docs/adr/ADR-0011-Source-Currentness-Contextual-Currentness-and-Currentness-Change.md)
 - [ADR-0013 — Failure Ownership, Propagation, and Candidate Context Revision Consequences](../../../docs/adr/ADR-0013-Failure-Ownership-Propagation-and-Candidate-Context-Revision-Consequences.md)
@@ -1209,6 +1209,7 @@ CONTRACT-0001, Active Knowledge Engine 3.0.0, or production activation.
 
 | Version | Date       | Description                                                                                                                                                                                                                                                                           |
 | ------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1.1.6 | 2026-09-14 | Synchronized current lifecycle references with established Active authority; document-only PATCH, preserving semantic revision identities, historical checkpoints, implementation gates, and deployment separation. |
 | 1.1.5 | 2026-09-06 | Recorded Rodrigo Lozano's separate single-maintainer F08 PASS from reconciled 20/20 bounded production-code-path evidence; synchronized current disposition without semantic changes, deployment authority, unrelated gate changes, or historical nonproduction reclassification. |
 | 1.1.4   | 2026-09-03 | Activated this subordinate executable specification within Active Knowledge Engine 3.0.0 after REVIEW-0003 and REVIEW-0005 approval and F03-F07 conformance; K13-IMPL-F08 remains OPEN, and no production Bootstrap, Profile B, deployment, Reasoning, or Brain authority is granted. |
 | 1.1.3   | 2026-08-31 | Synchronized K13-IMPL-F03 through F06 to PASS after executable evidence satisfied the projection semantics approved by REVIEW-0003; F07 remains PASS, F08 remains OPEN, and Draft and Active Knowledge Engine 3.0.0 status are preserved.                                             |

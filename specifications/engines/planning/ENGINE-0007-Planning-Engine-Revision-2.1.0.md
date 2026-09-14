@@ -4,10 +4,11 @@
 | -------------- | ----------------------------------------------------------------- |
 | **Status**     | Active                                                            |
 | **Supersedes** | 2.0.0                                                             |
-| **Version**    | 2.1.0                                                             |
+| **Document Version** | 2.1.1 |
+| **Engine Revision** | Planning Engine 2.1.0 |
 | **Owner**      | Planning Engine                                                   |
 | **Created**    | 2026-08-17                                                        |
-| **Updated**    | 2026-08-17                                                        |
+| **Updated** | 2026-09-14 |
 | **Applies To** | Candidate Plan construction, issuance, and authority verification |
 
 ---
@@ -18,11 +19,12 @@ This specification is Active and is the sole current canonical ENGINE-0007
 revision. It supersedes versions 1.0.0, 1.1.0, and 2.0.0. Those revisions
 remain historical and non-authoritative.
 
-Reasoning Engine 2.0.0 remains Active. Reasoning Engine 3.0.0 is an
-architecturally approved Draft and remains non-authoritative. This revision
-defines future correspondence with the approved Reasoning 3.0.0 semantic
-categories without presenting that revision as Active and without depending
-on its activation for compatibility with Reasoning 2.0.0.
+Reasoning Engine 3.0.0 is Active and authoritative within its governed scope.
+Reasoning Engine 2.0.0 is its historical predecessor. Planning 2.1.0 preserves
+legacy 2.0.0 compatibility and defines the closed correspondence for Active
+Reasoning 3.0.0 without depending on that activation for legacy compatibility.
+The bounded Reasoning supplement is Active 2.0.0; this synchronization changes
+no category mapping, implementation prerequisite, or deployment authority.
 
 Planning remains the semantic owner of Candidate Plan construction and
 Planning Outcome semantics. Core remains the schema custodian. The Planning
@@ -35,8 +37,8 @@ Planning Engine 2.1.0 defines a source-opaque successor correspondence that:
 
 - accepts every authoritative Reasoning 2.0.0 Outcome accepted by Planning
   2.0.0 with unchanged Planning consequences;
-- adds explicit future correspondence for the three new semantic Outcome
-  categories approved in the Reasoning 3.0.0 Draft;
+- adds explicit governed correspondence for the three new semantic Outcome
+  categories approved in the Active Reasoning 3.0.0;
 - retains a closed, governed category and next-action model;
 - constructs one deterministic immutable advisory Candidate Plan; and
 - preserves Planning ownership, exact Reasoning correspondence, authority,
@@ -58,7 +60,7 @@ backward-compatible:
   remain unchanged;
 - the existing exact Reasoning correspondence and Planning authority model
   remain unchanged; and
-- three future Reasoning semantic categories receive explicit deterministic
+- three governed Reasoning semantic categories receive explicit deterministic
   correspondence without making acceptance open-ended.
 
 No existing valid caller is required to provide new evidence or migrate the
@@ -95,7 +97,7 @@ Version 2.1.0 specifies only:
 
 - backward-compatible acceptance of the complete Planning 2.0.0 Reasoning
   correspondence;
-- additive acceptance of the three approved future Reasoning 3.0.0 semantic
+- additive acceptance of the three approved governed Reasoning 3.0.0 semantic
   categories;
 - one closed semantic category and next-action compatibility matrix;
 - unchanged deterministic `respond` and `request-more-context` Candidate Plan
@@ -135,10 +137,10 @@ Planning 2.1.0 accepts exactly the following semantic categories:
 
 1. the preserved Reasoning 2.0.0 `anonymous-context` category;
 2. the preserved Reasoning 2.0.0 `context-only` category;
-3. bounded Knowledge-grounded success, as approved for future Reasoning
+3. bounded Knowledge-grounded success, as approved for governed Reasoning
    3.0.0;
-4. exact-query non-applicability, as approved for future Reasoning 3.0.0; and
-5. applicable but insufficient evidence, as approved for future Reasoning
+4. exact-query non-applicability, as approved for governed Reasoning 3.0.0; and
+5. applicable but insufficient evidence, as approved for governed Reasoning
    3.0.0.
 
 This list is closed. A category not explicitly included by this specification
@@ -146,13 +148,14 @@ must be rejected as an unsupported Reasoning category even when it carries a
 familiar candidate next action, candidate response, identity state, or rule
 category.
 
-The future Reasoning semantic categories remain distinct. The fact that two
+The governed Reasoning semantic categories remain distinct. The fact that two
 of them share `request-more-context` does not merge their Reasoning meaning or
 authorize Planning to accept an arbitrary category with that next action.
 
-Concrete literals for the future Reasoning categories and rule categories
-remain deferred by the Reasoning 3.0.0 Draft. This specification governs the
-closed semantic set and correspondence; it does not invent executable names.
+Concrete category and rule literals are established by Active Reasoning 3.0.0
+and its Active bounded supplement 2.0.0. This specification preserves the closed
+semantic set and correspondence; it does not independently select executable
+names or make the conditional insufficient-evidence rule reachable.
 
 ## Compatibility Matrix
 
@@ -163,11 +166,11 @@ The semantic matrix is closed.
 | ------------------ | ------------------------------------ | ------------------------------------------------------------------- | -------------------------------- | ---------------------------------------------------------- | ------------------------------------------------------------ | --------------------------------------------------------------------------------- |
 | 2.0.0              | `anonymous-context`                  | `anonymous` and `anonymous-identity`                                | `request-more-context`           | `request-more-context`                                     | `request-more-context`                                       | `reasoning-requested-more-context`                                                |
 | 2.0.0              | `context-only`                       | `authenticated` and `authenticated-context-only`                    | `request-more-context` or `none` | `request-more-context` when requested; otherwise `respond` | same as Candidate Plan category                              | `reasoning-requested-more-context` or `reasoning-produced-response`, respectively |
-| Future 3.0.0 Draft | bounded Knowledge-grounded success   | approved applicable-and-sufficient bounded Knowledge Reasoning rule | `none`                           | `respond`                                                  | `respond`, preserving the exact validated candidate response | `reasoning-produced-response`                                                     |
-| Future 3.0.0 Draft | exact-query non-applicability        | approved non-applicable Reasoning rule                              | `request-more-context`           | `request-more-context`                                     | `request-more-context`                                       | `reasoning-requested-more-context`                                                |
-| Future 3.0.0 Draft | applicable but insufficient evidence | approved insufficient-evidence Reasoning rule                       | `request-more-context`           | `request-more-context`                                     | `request-more-context`                                       | `reasoning-requested-more-context`                                                |
+| Active 3.0.0 | bounded Knowledge-grounded success   | approved applicable-and-sufficient bounded Knowledge Reasoning rule | `none`                           | `respond`                                                  | `respond`, preserving the exact validated candidate response | `reasoning-produced-response`                                                     |
+| Active 3.0.0 | exact-query non-applicability        | approved non-applicable Reasoning rule                              | `request-more-context`           | `request-more-context`                                     | `request-more-context`                                       | `reasoning-requested-more-context`                                                |
+| Active 3.0.0 | applicable but insufficient evidence | approved insufficient-evidence Reasoning rule                       | `request-more-context`           | `request-more-context`                                     | `request-more-context`                                       | `reasoning-requested-more-context`                                                |
 
-The future rule descriptions in this table identify Reasoning-owned semantic
+The governed rule descriptions in this table identify Reasoning-owned semantic
 correspondence only. They do not permit Planning to inspect a Context profile,
 Context fragment, Knowledge proposition, or evidence state. Planning validates
 only the authoritative Reasoning Outcome fields that represent the applicable
@@ -194,11 +197,12 @@ or Candidate Plan meaning is renamed, narrowed, broadened, or reinterpreted.
 Activation of Planning 2.1.0 therefore does not require activation or migration
 of Reasoning 3.0.0.
 
-## Future Reasoning 3.0.0 Correspondence
+## Active Reasoning 3.0.0 Correspondence
 
-The Reasoning 3.0.0 Draft is a future dependency and remains
-non-authoritative. If its approved semantic categories become Active,
-Planning 2.1.0 provides the following source-opaque correspondence.
+Reasoning 3.0.0 is Active under its own lifecycle. Planning 2.1.0 provides the
+following source-opaque correspondence for its approved semantic categories.
+The insufficient-evidence category remains conditional and is not made
+reachable by this lifecycle synchronization.
 
 ### Bounded Knowledge-Grounded Success
 
@@ -439,7 +443,7 @@ Memory, Security, or Skill.
 
 Planning 2.1.0 preserves the Candidate Plan categories and advisory branch
 semantics consumed by Active Brain 2.0.3. Brain 2.0.3 explicitly supports
-Reasoning 2.0.0 with Planning 2.1.0 and conditionally supports future Reasoning
+Reasoning 2.0.0 with Planning 2.1.0 and conditionally supports governed Reasoning
 3.0.0 with Planning 2.1.0. This satisfies Planning's Brain specification
 correspondence without changing Brain behavior or making Brain source-aware.
 
@@ -486,15 +490,22 @@ correspondence, and this specification makes no claim that the future path execu
 
 ## Lifecycle Compatibility
 
-Planning 2.1.0 is Active while Reasoning 2.0.0 remains Active. Its authority
-for existing operation does not depend on the Reasoning
-3.0.0 Draft becoming Active.
+Planning 2.1.0 and Reasoning 3.0.0 are Active. Reasoning 2.0.0 is the historical
+predecessor whose legacy correspondence remains preserved. Planning's legacy
+compatibility did not depend on activation of Reasoning 3.0.0.
+
+Historical activation-order rationale (preserved):
 
 This supports a dependency-safe future lifecycle sequence in which Planning
 correspondence may be approved before Reasoning 3.0.0 activation. A compatible
 Brain specification/reference update and all implementation readiness must be
 established through later review before the future Reasoning categories cross
 the production Brain and Planning boundaries.
+
+That paragraph records the earlier dependency-safe sequence. The named
+specification activations have since occurred. Implementation conformance and
+production composition remain separately governed, and deployment still
+requires explicit authorization.
 
 This activation does not activate Reasoning or any implementation, and it does
 not finalize the repository-wide activation order.
@@ -530,13 +541,17 @@ authority-registry mechanics.
 
 The following remain deferred:
 
+Reasoning 3.0.0 activation was formerly listed here and is now complete under
+its own lifecycle. The remaining list describes this specification's separate
+scope deferrals; synchronization does not assert that any other item is
+complete or change a governed implementation gate.
+
 - runtime implementation;
 - Core executable language;
-- concrete literals for future Reasoning outcome and rule categories unless
+- concrete literals for additional Reasoning outcome and rule categories unless
   established by later governing Reasoning work;
 - concrete Planning API, request, result, reference, explainability, and
   verifier-shape changes;
-- Reasoning 3.0.0 activation;
 - a Brain specification/reference successor;
 - Bootstrap wiring;
 - production Profile B reachability;
@@ -559,7 +574,7 @@ establishes that:
 
 1. Planning accepts every valid authoritative Reasoning 2.0.0 Outcome accepted
    by Planning 2.0.0 with unchanged mapping;
-2. the three future Reasoning 3.0.0 semantic additions each have one explicit,
+2. the three governed Reasoning 3.0.0 semantic additions each have one explicit,
    deterministic Planning correspondence;
 3. category validation remains closed and cannot be bypassed by a familiar
    next action;
@@ -582,9 +597,10 @@ Planning 2.1.0 is backward-compatible with Planning 2.0.0 callers operating
 with authoritative Reasoning 2.0.0 Outcomes. No currently valid Reasoning
 2.0.0 Outcome loses acceptance or changes its Candidate Plan consequence.
 
-Planning 2.1.0 adds future semantic compatibility with the approved Reasoning
-3.0.0 Draft. That future compatibility does not activate Reasoning 3.0.0,
-authorize its runtime use, or make the Draft authoritative.
+Planning 2.1.0 provides semantic compatibility with Active Reasoning 3.0.0.
+Planning's earlier activation did not itself activate Reasoning 3.0.0 or
+authorize its runtime use. The established separate lifecycle decisions do
+not remove implementation, conformance, or deployment prerequisites.
 
 A future Reasoning revision that introduces any additional category or changes
 an accepted category, rule, identity, next action, or candidate-field
@@ -596,6 +612,7 @@ never sufficient.
 
 | Version | Date       | Description                                                                                                                                    |
 | ------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2.1.1 | 2026-09-14 | Synchronized current lifecycle references with established Active authority; document-only PATCH, preserving semantic revision identities, historical checkpoints, implementation gates, and deployment separation. |
 | 1.0.0   | 2026-07-20 | Established the original Planning Engine vertical slice.                                                                                       |
 | 1.1.0   | 2026-07-29 | Added issuer-owned Candidate Plan authority verification.                                                                                      |
 | 2.0.0   | 2026-08-10 | Aligned Planning with the narrowed Reasoning output and removed parallel evidence correspondence from Planning and authority verification.     |
@@ -627,6 +644,6 @@ never sufficient.
 - [Context Engine 5.0.0](../context/ENGINE-0003-Context-Engine-Revision-5.0.0.md)
 - [Knowledge Engine 1.2.0](../knowledge/ENGINE-0005-Knowledge-Engine-Revision-1.2.0.md)
 - [Reasoning Engine 2.0.0](../reasoning/ENGINE-0006-Reasoning-Engine-Revision-2.0.0.md)
-- [Reasoning Engine 3.0.0 Draft](../reasoning/ENGINE-0006-Reasoning-Engine-Revision-3.0.0.md)
+- [Active Reasoning Engine 3.0.0](../reasoning/ENGINE-0006-Reasoning-Engine-Revision-3.0.0.md)
 - [Planning Engine 2.0.0](ENGINE-0007-Planning-Engine-Revision-2.0.0.md)
 - [Brain Engine 2.0.2](../ENGINE-0001-Brain-Engine.md)

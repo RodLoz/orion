@@ -723,3 +723,70 @@ describe("Brain Engine complete M10 runtime", () => {
     expect(ports.lifecycleObserver.mock.calls[5]![0].sequence).toBe(1);
   });
 });
+
+function boundedPlan(response: string) {
+  return createCandidatePlan({
+    status: "completed",
+    category: "respond",
+    steps: [{ ordinal: 1, kind: "respond", candidateResponse: response }],
+    source: {
+      reasoningStatus: "completed",
+      reasoningCategory: "knowledge-grounded-success",
+      candidateNextAction: "none",
+      identityState: "authenticated",
+      reasoningRuleCategory: "authenticated-knowledge-applicable-sufficient",
+      authoritativeCapability: "reasoning",
+    },
+    explainability: {
+      consumedReasoningCategory: "knowledge-grounded-success",
+      consumedCandidateNextAction: "none",
+      resultingPlanCategory: "respond",
+      candidateStepCount: 1,
+      planningRuleCategory: "reasoning-produced-response",
+    },
+  });
+}
+
+describe("RECOVERY-04 Brain bounded forwarding", () => {
+  it.each([
+    "x".repeat(2048),
+    "x".repeat(2049),
+    "x".repeat(4096),
+    "\u{1f600}".repeat(4096),
+    "  exact  value  ",
+  ])("preserves verified response (%#)", (response) => {
+    const f = fixture();
+    const plan = boundedPlan(response);
+    const reasoning = createReasoningOutcome({
+      ...f.reasoning,
+      category: "knowledge-grounded-success",
+      response,
+      explainability: {
+        ...f.reasoning.explainability,
+        ruleCategory: "authenticated-knowledge-applicable-sufficient",
+      },
+    });
+    f.ports.reasoning.evaluateReasoning.mockReturnValue(reasoning);
+    f.ports.planning.createCandidatePlan.mockReturnValue(plan);
+    const engine = running(f.ports);
+    const result = engine.orchestrateCognitiveRequest(
+      createNormalizedCognitiveRequest({
+        intent: "orchestrate-cognitive-request",
+        requestId: "r04",
+        contextLineageId: f.context.lineageIdentity,
+        query: "query",
+        executionIntent: { kind: "none" },
+      }),
+    );
+    expect(result).toEqual({
+      status: "completed",
+      kind: "response",
+      requestId: "r04",
+      response,
+    });
+    expect(
+      f.ports.reasoning.verifyReasoningOutcomeAuthority,
+    ).toHaveBeenCalled();
+    expect(f.ports.planning.verifyCandidatePlanAuthority).toHaveBeenCalled();
+  });
+});

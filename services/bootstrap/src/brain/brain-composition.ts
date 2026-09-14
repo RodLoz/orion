@@ -108,6 +108,80 @@ export function composeBrainCapability(preparation: {
   });
 }
 
+export function composeBoundedReasoning3BrainCapability(preparation: {
+  readonly contextLineageId: string;
+  readonly context: BrainConfiguration["context"];
+  readonly lifecycleObserver?: ObserveBrainOrchestrationLifecycle;
+}): BrainCapabilityComposition {
+  const contextAuthority = Object.freeze({
+    getActiveContextRevision: preparation.context.getActiveContextRevision.bind(
+      preparation.context,
+    ),
+    verifyActiveContextRevisionAuthority:
+      preparation.context.verifyActiveContextRevisionAuthority.bind(
+        preparation.context,
+      ),
+  });
+  const verifyActiveContextRevisionAuthority =
+    contextAuthority.verifyActiveContextRevisionAuthority;
+  const activeContextRevision = contextAuthority.getActiveContextRevision({
+    lineageIdentity: contextLineageIdentity(preparation.contextLineageId),
+  });
+  const reasoning = composeReasoningCapability(contextAuthority);
+  const planning = composePlanningCapability();
+  const security = composeSecurityCapability(
+    activeContextRevision.fragments[0].projection.state === "authenticated"
+      ? Object.freeze({
+          kind: "authenticated" as const,
+          identityId:
+            activeContextRevision.fragments[0].projection.identityIdentifier,
+        })
+      : Object.freeze({ kind: "anonymous" as const }),
+  );
+  const skill = composeConfiguredM9SkillCapability(
+    (candidate) =>
+      verifyContextAuthority(candidate, verifyActiveContextRevisionAuthority),
+    security.authorizationEvaluation,
+  );
+  const operationAllocator = createProcessLocalBrainOperationAllocator();
+  const configuration = Object.freeze({
+    context: contextAuthority,
+    reasoning: Object.freeze({
+      evaluateReasoning: reasoning.evaluateReasoning3.evaluateReasoning3,
+      verifyReasoningOutcomeAuthority:
+        reasoning.verifyReasoningOutcomeAuthority
+          .verifyReasoningOutcomeAuthority,
+    }),
+    planning: Object.freeze({
+      createCandidatePlan: planning.createCandidatePlan.createCandidatePlan,
+      verifyCandidatePlanAuthority:
+        planning.verifyCandidatePlanAuthority.verifyCandidatePlanAuthority,
+    }),
+    selectSkill: skill.selectSkill,
+    operationAllocator,
+    bindSkillToOperation: skill.bindSkillToOperation,
+    resolveSkillExecutionContext: skill.resolveSkillExecutionContext,
+    resolveSkillInvocationRequirements:
+      skill.resolveSkillInvocationRequirements,
+    resolveGovernedAuthorizationEvaluation:
+      skill.resolveGovernedAuthorizationEvaluation,
+    protectedInvokeSkill: skill.protectedInvokeSkill,
+    verifyNormalizedSkillExecutionResult:
+      skill.verifyNormalizedSkillExecutionResult,
+    ...(preparation.lifecycleObserver === undefined
+      ? {}
+      : { lifecycleObserver: preparation.lifecycleObserver }),
+  }) satisfies BrainConfiguration;
+  const engine = new BrainEngine(configuration);
+  engine.initialize();
+  engine.start();
+
+  return Object.freeze({
+    orchestrateCognitiveRequest:
+      engine.orchestrateCognitiveRequest.bind(engine),
+  });
+}
+
 function capturePreparation(preparation: {
   readonly contextLineageId: string;
   readonly identityResolutionRequest: IdentityResolutionRequest;

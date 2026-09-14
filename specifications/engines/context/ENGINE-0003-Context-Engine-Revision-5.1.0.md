@@ -4,11 +4,11 @@
 | -------------------- | ---------------------------------------------------------- |
 | **Status**           | Active                                                     |
 | **Supersedes**       | 5.0.1                                                      |
-| **Document Version** | 5.1.1                                                      |
+| **Document Version** | 5.1.2 |
 | **Engine Revision**  | Context Engine 5.1.0                                       |
 | **Owner**            | Context Engine                                             |
 | **Created**          | 2026-08-18                                                 |
-| **Updated**          | 2026-08-31                                                 |
+| **Updated** | 2026-09-14 |
 | **Applies To**       | Context preparation and Profile B contextual applicability |
 
 ---
@@ -316,8 +316,9 @@ issuance/verifier correspondence, authority correspondence, provenance,
 acceptance evidence, KnowledgeRecord internals, credentials, source payloads,
 and authority internals remain opaque correspondence or excluded material.
 
-Reasoning 2 remains compatible; Reasoning 3.0.0 remains Draft and is not
-activated or changed.
+Reasoning 2 compatibility is preserved. Reasoning 3.0.0 is now Active under
+its own later lifecycle; this Context specification's activation did not
+activate or change Reasoning 3.0.0.
 
 ## Contracts and ADRs
 
@@ -345,9 +346,9 @@ production Profile B reachable.
 ## Related sources
 
 - [Context Engine 5.0.1](ENGINE-0003-Context-Engine-Revision-5.0.1.md)
-- [Knowledge Engine 1.3.0 Draft](../knowledge/ENGINE-0005-Knowledge-Engine-Revision-1.3.0.md)
-- [Knowledge executable projection Draft](../knowledge/ENGINE-0005-Knowledge-Engine-Executable-Projection-Operation.md)
-- [Reasoning Engine 3.0.0 Draft](../reasoning/ENGINE-0006-Reasoning-Engine-Revision-3.0.0.md)
+- [Superseded Knowledge Engine 1.3.0](../knowledge/ENGINE-0005-Knowledge-Engine-Revision-1.3.0.md)
+- [Active Knowledge executable projection](../knowledge/ENGINE-0005-Knowledge-Engine-Executable-Projection-Operation.md)
+- [Active Reasoning Engine 3.0.0](../reasoning/ENGINE-0006-Reasoning-Engine-Revision-3.0.0.md)
 - [ADR-0020](../../../docs/adr/ADR-0020-Knowledge-Evidence-Boundary-for-Source-Aware-Reasoning.md)
 - [ADR-0021](../../../docs/adr/ADR-0021-Knowledge-Source-Currentness-and-Projection-Attribution.md)
 - [CONTRACT-0001](../../../docs/contracts/CONTRACT-0001-Context-Source-Retrieval.md)
@@ -357,5 +358,6 @@ production Profile B reachable.
 
 | Version | Date       | Description                                                                                                                                                                                                            |
 | ------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 5.1.2 | 2026-09-14 | Synchronized current lifecycle references with established Active authority; document-only PATCH, preserving semantic revision identities, historical checkpoints, implementation gates, and deployment separation. |
 | 5.1.1   | 2026-08-31 | Corrected stale Draft/non-authoritative lifecycle wording while preserving Active Context Engine 5.1.0 status with no semantic or authority change.                                                                    |
 | 5.1.0   | 2026-08-18 | Activated successor synchronized with Active ADR-0022: ContextPreparationSemanticScope origin/ownership, exact S2 applicability predicate, prerequisite boundary, preparation binding, and stable-reuse clarification. |

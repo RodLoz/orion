@@ -157,12 +157,15 @@ export class BrainEngine {
         const step = plan.steps[0];
         if (step.kind !== "respond") throw new InvalidBrainPlanError();
         return this.#completeNoSkill(
-          createFinalCognitiveResult({
-            status: "completed",
-            kind: "response",
-            requestId: normalized.requestId,
-            response: step.candidateResponse,
-          }),
+          createFinalCognitiveResult(
+            {
+              status: "completed",
+              kind: "response",
+              requestId: normalized.requestId,
+              response: step.candidateResponse,
+            },
+            plan,
+          ),
           lifecycle,
         );
       }
@@ -760,7 +763,8 @@ function validateContext(
     exactRecord(sourceFragment, ["kind", "authoritativeOwner", "projection"]);
     const sourceFragmentRecord = sourceFragment as Record<string, unknown>;
     if (!(
-      (sourceFragmentRecord.kind === "knowledge" &&
+      ((sourceFragmentRecord.kind === "knowledge" ||
+        sourceFragmentRecord.kind === "structured-knowledge") &&
         sourceFragmentRecord.authoritativeOwner === "knowledge") ||
       (sourceFragmentRecord.kind === "memory" &&
         sourceFragmentRecord.authoritativeOwner === "memory")

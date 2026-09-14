@@ -4,10 +4,11 @@
 | -------------- | ------------------------------------------------------------------ |
 | **Status**     | Active                                                             |
 | **Supersedes** | 2.0.0                                                              |
-| **Version**    | 3.0.0                                                              |
+| **Document Version** | 3.0.1 |
+| **Engine Revision** | Reasoning Engine 3.0.0 |
 | **Owner**      | Reasoning Engine                                                   |
 | **Created**    | 2026-08-16                                                         |
-| **Updated**    | 2026-08-20                                                         |
+| **Updated** | 2026-09-14 |
 | **Applies To** | Reasoning evaluation, outcome issuance, and authority verification |
 
 ---
@@ -281,7 +282,7 @@ and a valid structured proposition necessarily supplies that scalar. Missing,
 empty, malformed, or non-text scalar material is invalid or unsupported input,
 not an insufficient outcome. A later approved rule may admit a reachable
 insufficient state only by an explicit specification correction; no such rule
-is part of this Draft.
+is part of this Active specification.
 
 Sufficiency is not implied by Profile B, fragment presence, identifiers,
 accepted state, version correspondence, issuer verification, Source
@@ -518,7 +519,7 @@ candidate state, and independent retrieval handles are opaque or prohibited.
 
 The Outcome must not copy unnecessary source material. Successful bounded
 reasoning does not automatically expose the complete proposition or private
-source correspondence. Response rendering remains outside this Draft.
+source correspondence. Response rendering remains outside this Active specification.
 Possession of any safe identity, correspondence, or opaque pointer confers
 neither authority nor authorization and cannot create a retrieval path.
 
@@ -629,7 +630,7 @@ The following remain deferred:
 - provider and model policy; and
 - persistence, transport, and serialization policy.
 
-No deferred item is implied to be implemented or Active by this Draft.
+No deferred item is implied to be implemented or Active by this Active specification.
 
 ## Acceptance Criteria
 
@@ -660,13 +661,14 @@ bounded Knowledge-aware results that 2.0.0 and Planning 2.0.0 do not recognize.
 
 Profile A and Profile C remain semantically preserved where applicable.
 Knowledge, Context, source, Security, Planning, and Brain ownership does not
-transfer. Planning 2.1.0 provides semantic future correspondence; executable
+transfer. Active Planning 2.1.0 provides already-governed semantic correspondence; executable
 Core/runtime implementation and production reachability remain separate.
 
 ## Change History
 
 | Version | Date       | Description                                                                                                                                    |
 | ------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| 3.0.1 | 2026-09-14 | Synchronized current lifecycle references with established Active authority; document-only PATCH, preserving semantic revision identities, historical checkpoints, implementation gates, and deployment separation. |
 | 1.0.0   | 2026-07-20 | Established the original Reasoning Engine vertical slice.                                                                                      |
 | 1.1.0   | 2026-07-29 | Added issuer-owned Reasoning Outcome authority verification.                                                                                   |
 | 2.0.0   | 2026-08-10 | Aligned Reasoning with the authoritative Context boundary and narrowed its request, outcome, explainability, failure, and authority semantics. |

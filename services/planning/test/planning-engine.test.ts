@@ -414,3 +414,66 @@ describe("PlanningEngine", () => {
     expect(running().createCandidatePlan(request()).status).toBe("completed");
   });
 });
+
+describe("RECOVERY-04 exact bounded forwarding", () => {
+  it.each([
+    "x".repeat(2048),
+    "x".repeat(2049),
+    "x".repeat(4096),
+    "\u{1f600}".repeat(4096),
+    "  exact  value  ",
+  ])("forwards accepted response (%#)", (response) => {
+    const source = createReasoningOutcome({ ...outcome(2), response });
+    const engine = running();
+    const plan = engine.createCandidatePlan(request(source));
+    expect(plan.steps[0]).toEqual({
+      ordinal: 1,
+      kind: "respond",
+      candidateResponse: response,
+    });
+    expect(Object.keys(plan.explainability).sort()).toEqual(
+      [
+        "consumedReasoningCategory",
+        "consumedCandidateNextAction",
+        "resultingPlanCategory",
+        "candidateStepCount",
+        "planningRuleCategory",
+      ].sort(),
+    );
+    expect(
+      engine.verifyCandidatePlanAuthority({
+        intent: "verify-candidate-plan-authority",
+        candidate: plan,
+        consumedReasoningOutcome: source,
+        expectedReasoningStatus: source.status,
+        expectedReasoningCategory: source.category,
+        expectedCandidateNextAction: source.nextAction,
+        expectedIdentityState: source.explainability.identityState,
+        expectedReasoningRuleCategory: source.explainability.ruleCategory,
+      }),
+    ).toBe(plan);
+  });
+  it("rejects oversized, legacy oversized and malformed bounded outcomes", () => {
+    expect(() =>
+      running().createCandidatePlan(
+        request({ ...outcome(2), response: "x".repeat(4097) }),
+      ),
+    ).toThrow(InvalidReasoningOutcomeError);
+    expect(() =>
+      running().createCandidatePlan(
+        request({ ...outcome(1), response: "x".repeat(2049) }),
+      ),
+    ).toThrow(InvalidReasoningOutcomeError);
+    expect(() =>
+      running().createCandidatePlan(
+        request({
+          ...outcome(2),
+          explainability: {
+            ...outcome(2).explainability,
+            identityState: "anonymous",
+          },
+        }),
+      ),
+    ).toThrow(InvalidReasoningOutcomeError);
+  });
+});

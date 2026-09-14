@@ -1,3 +1,4 @@
+import { createCandidatePlan } from "../src/index.js";
 import { describe, expect, it } from "vitest";
 import {
   createReasoningConsumptionReference,
@@ -68,6 +69,69 @@ describe("Planning correspondence for Reasoning 3", () => {
         ...valid,
         reasoningCategory: "unknown" as ReasoningOutcomeCategory,
         reasoningRuleCategory: "authenticated-context-only",
+      }),
+    ).toThrow();
+  });
+});
+
+function boundedPlan(response: string) {
+  return createCandidatePlan({
+    status: "completed",
+    category: "respond",
+    steps: [{ ordinal: 1, kind: "respond", candidateResponse: response }],
+    source: {
+      reasoningStatus: "completed",
+      reasoningCategory: "knowledge-grounded-success",
+      candidateNextAction: "none",
+      identityState: "authenticated",
+      reasoningRuleCategory: "authenticated-knowledge-applicable-sufficient",
+      authoritativeCapability: "reasoning",
+    },
+    explainability: {
+      consumedReasoningCategory: "knowledge-grounded-success",
+      consumedCandidateNextAction: "none",
+      resultingPlanCategory: "respond",
+      candidateStepCount: 1,
+      planningRuleCategory: "reasoning-produced-response",
+    },
+  });
+}
+
+describe("RECOVERY-04 Planning response domain", () => {
+  it.each([
+    "x".repeat(2048),
+    "x".repeat(2049),
+    "x".repeat(4096),
+    "\u{1f600}".repeat(4096),
+    "  exact  value  ",
+  ])("preserves bounded response (%#)", (value) => {
+    expect(boundedPlan(value).steps[0]).toEqual({
+      ordinal: 1,
+      kind: "respond",
+      candidateResponse: value,
+    });
+  });
+  it("rejects oversized and malformed bounded correspondence", () => {
+    expect(() => boundedPlan("x".repeat(4097))).toThrow();
+    const plan = boundedPlan("x".repeat(2049));
+    expect(() =>
+      createCandidatePlan({
+        ...plan,
+        source: { ...plan.source, identityState: "anonymous" },
+      }),
+    ).toThrow();
+    expect(() =>
+      createCandidatePlan({
+        ...plan,
+        source: {
+          ...plan.source,
+          reasoningCategory: "context-only",
+          reasoningRuleCategory: "authenticated-context-only",
+        },
+        explainability: {
+          ...plan.explainability,
+          consumedReasoningCategory: "context-only",
+        },
       }),
     ).toThrow();
   });

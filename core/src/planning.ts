@@ -1,6 +1,8 @@
 import { InvalidPlanningStateError } from "./planning-errors.js";
 import {
   candidateResponse,
+  reasoning3CandidateResponse,
+  type Reasoning3CandidateResponse,
   type CandidateResponse,
   type CandidateNextAction,
   type ReasoningOutcomeCategory,
@@ -14,7 +16,7 @@ export type PlanningRuleCategory =
 export interface RespondCandidatePlanStep {
   readonly ordinal: 1;
   readonly kind: "respond";
-  readonly candidateResponse: CandidateResponse;
+  readonly candidateResponse: CandidateResponse | Reasoning3CandidateResponse;
 }
 export interface RequestMoreContextCandidatePlanStep {
   readonly ordinal: 1;
@@ -48,9 +50,16 @@ export interface CandidatePlan {
   readonly explainability: PlanningExplainabilitySummary;
 }
 
-export function createCandidatePlanStep(input: unknown): CandidatePlanStep {
+export function createCandidatePlanStep(
+  input: unknown,
+  correspondence?: ReasoningConsumptionReference,
+): CandidatePlanStep {
   try {
     if (!plainRecord(input)) throw new Error();
+    const source =
+      correspondence === undefined
+        ? undefined
+        : createReasoningConsumptionReference(correspondence);
     const kind = Reflect.get(input, "kind");
     if (kind === "respond") {
       exactKeys(input, ["ordinal", "kind", "candidateResponse"]);
@@ -58,9 +67,12 @@ export function createCandidatePlanStep(input: unknown): CandidatePlanStep {
       return Object.freeze({
         ordinal: 1,
         kind: "respond",
-        candidateResponse: candidateResponse(
-          Reflect.get(input, "candidateResponse"),
-        ),
+        candidateResponse:
+          source?.reasoningCategory === "knowledge-grounded-success"
+            ? reasoning3CandidateResponse(
+                Reflect.get(input, "candidateResponse"),
+              )
+            : candidateResponse(Reflect.get(input, "candidateResponse")),
       });
     }
     exactKeys(input, ["ordinal", "kind"]);
@@ -160,8 +172,8 @@ export function createCandidatePlan(input: unknown): CandidatePlan {
     ]);
     if (value.status !== "completed" || !planCategory(value.category))
       throw new Error();
-    const steps = exactSteps(value.steps);
     const source = createReasoningConsumptionReference(value.source);
+    const steps = exactSteps(value.steps, source);
     const explainability = createPlanningExplainabilitySummary(
       value.explainability,
     );
@@ -200,7 +212,10 @@ export function createCandidatePlan(input: unknown): CandidatePlan {
   }
 }
 
-function exactSteps(value: unknown): readonly [CandidatePlanStep] {
+function exactSteps(
+  value: unknown,
+  source: ReasoningConsumptionReference,
+): readonly [CandidatePlanStep] {
   if (!Array.isArray(value)) throw new Error();
   const keys = Reflect.ownKeys(value);
   const indexDescriptor = Reflect.getOwnPropertyDescriptor(value, "0");
@@ -221,7 +236,7 @@ function exactSteps(value: unknown): readonly [CandidatePlanStep] {
       throw new Error();
   }
   return Object.freeze([
-    createCandidatePlanStep(Reflect.get(value, "0")),
+    createCandidatePlanStep(Reflect.get(value, "0"), source),
   ]) as readonly [CandidatePlanStep];
 }
 

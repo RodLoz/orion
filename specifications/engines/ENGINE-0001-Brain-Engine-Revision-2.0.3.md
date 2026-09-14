@@ -4,10 +4,11 @@
 | -------------- | ------------------------------------------------------------------- |
 | **Status**     | Active                                                              |
 | **Supersedes** | 2.0.2                                                               |
-| **Version**    | 2.0.3                                                               |
+| **Document Version** | 2.0.4 |
+| **Engine Revision** | Brain Engine 2.0.3 |
 | **Owner**      | Project Maintainers                                                 |
 | **Created**    | 2026-08-17                                                          |
-| **Updated**    | 2026-08-17                                                          |
+| **Updated** | 2026-09-14 |
 | **Applies To** | Brain prerequisite, lifecycle, and capability-output correspondence |
 
 ---
@@ -18,16 +19,46 @@ This specification is Active and is the sole current canonical ENGINE-0001
 revision. It supersedes versions 1.0.0, 2.0.0, 2.0.1, and 2.0.2. Those
 revisions remain historical and non-authoritative.
 
-Planning Engine 2.0.0 and Reasoning Engine 2.0.0 remain Active. Planning Engine
-2.1.0 and Reasoning Engine 3.0.0 are architecturally approved Drafts and remain
-non-authoritative. This revision defines controlled future correspondence
-with those Drafts without presenting them as Active or authorizing their use
-before their applicable lifecycle and implementation prerequisites are met.
+Planning Engine 2.1.0 and Reasoning Engine 3.0.0 are Active under their own
+lifecycles. Their 2.0.0 predecessors remain historical specifications; preserved
+legacy compatibility does not make those predecessors current authority.
+The bounded Reasoning supplement is Active 2.0.0. Brain's closed correspondence
+model and applicable implementation and conformance prerequisites remain
+unchanged. Specification activation does not authorize deployment.
 
 Applicable Active ADRs, Concepts, Engineering Standards, Contract
 Specifications, and Engine Specifications govern in a conflict.
 
 ## Purpose
+
+RECOVERY-03 correspondence, reconstructed on 2026-09-11:
+[ADR-0028](../../docs/adr/ADR-0028-Bounded-Downstream-Response-Domain-Correspondence.md)
+selects exact successful bounded Reasoning3 `textualScalar` preservation through
+Planning and Brain across the full valid domain of up to 4096 Unicode code
+points. Accepted responses must not be truncated, paraphrased, normalized,
+summarized, or converted into another semantic result; oversized responses must
+not become insufficiency. Unrelated legacy 2048 response domains remain isolated.
+Brain retains orchestration and final assembly, Planning retains planning,
+Reasoning retains reasoning semantics, and Bootstrap remains composition only.
+Public explainability and failure semantics do not change. Failure propagation
+remains unresolved, the supplement remains Draft, and deployment is unauthorized.
+This editorial note retains Engine Revision 2.0.3 and claims no response-code
+change or runtime completion. Active Reasoning 3.0.0 governs this recovered
+correspondence; earlier lifecycle descriptions below record the original bridge
+scope and do not override current Active authority. ADR-0027's request-domain
+correspondence remains intact.
+
+RECOVERY-01 correspondence, reconstructed on 2026-09-11:
+[ADR-0027](../../docs/adr/ADR-0027-Brain-Structured-Query-Request-Domain.md)
+permits the existing Brain `query` field to carry the caller-supplied governed
+`BoundedReasoningQuery` as well as the legacy textual `ReasoningQuery`.
+Brain captures and validates the request without inferring structured rules
+from free text or acquiring Reasoning semantics. Legacy query limits, final
+response domains, authority verification, and failure behavior are preserved.
+This restores the supplied historical ADR correspondence; it does not assert
+an unknown historical specification version or bounded runtime completion.
+The original revision description below remains its historical scope; the
+request-domain correspondence is governed by ADR-0027.
 
 Brain Engine 2.0.3 is a specification-correspondence bridge. It permits the
 Brain specification to remain semantically stable while the governed
@@ -502,6 +533,7 @@ readiness. Draft status alone never authorizes runtime composition.
 
 | Version | Date       | Description                                                                                                                                                                       |
 | ------- | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2.0.4 | 2026-09-14 | Synchronized current lifecycle references with established Active authority; document-only PATCH, preserving semantic revision identities, historical checkpoints, implementation gates, and deployment separation. |
 | 1.0.0   | 2026-07-29 | Established the Brain orchestration foundation and final cognitive result boundary.                                                                                               |
 | 2.0.0   | 2026-08-10 | Aligned Brain orchestration with the authoritative Context-to-Reasoning and exact Reasoning-to-Planning boundaries.                                                               |
 | 2.0.1   | 2026-08-11 | Aligned prerequisite and reference correspondence with Active Context 3.0.0, Reasoning 2.0.0, and Planning 2.0.0 revisions and removed the stale implementation-status statement. |

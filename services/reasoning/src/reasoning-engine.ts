@@ -34,7 +34,9 @@ import { ReasoningAuthority } from "./reasoning-authority.js";
 
 interface NormalizedRequest {
   readonly context: ActiveContextRevision;
-  readonly query: ReturnType<typeof reasoningQuery>;
+  readonly query:
+    | ReturnType<typeof reasoningQuery>
+    | ReturnType<typeof createBoundedReasoningQuery>;
 }
 
 interface ValidatedRequestShape {
@@ -90,6 +92,11 @@ export class ReasoningEngine
     if (context.lifecycleState !== "active") throw new InactiveContextError();
     const structured = this.validateStructuredProfile(context);
     const query = this.validateBoundedQueryField(top.source);
+    if (context.fragments[0].projection.state === "anonymous") {
+      const outcome = this.evaluateRules(Object.freeze({ context, query }));
+      this.#authority.register(outcome, suppliedContext);
+      return outcome;
+    }
     let tuple: ReturnType<typeof createReasoning3StructuredKnowledgeTuple>;
     try {
       tuple = createReasoning3StructuredKnowledgeTuple({
@@ -119,7 +126,7 @@ export class ReasoningEngine
               "authenticated-knowledge-applicable-sufficient",
               "none",
               "The bounded Knowledge tuple satisfies the Reasoning query.",
-              "The grounded result is available for advisory planning.",
+              tuple.textualScalar,
             );
           })();
     this.#authority.register(outcome, suppliedContext);
@@ -379,10 +386,8 @@ export class ReasoningEngine
   private validateStructuredProfile(
     context: ActiveContextRevision,
   ): StructuredKnowledgeContextFragment {
-    const identity = context.fragments[0].projection;
     const fragment = context.fragments[1];
     if (
-      identity.state !== "authenticated" ||
       fragment === undefined ||
       fragment.kind !== "structured-knowledge" ||
       context.fragments.length !== 2

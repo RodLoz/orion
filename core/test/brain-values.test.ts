@@ -1,3 +1,4 @@
+import { createCandidatePlan } from "../src/index.js";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -62,6 +63,111 @@ describe("Brain Core values", () => {
     expect(request.executionIntent).not.toBe(source.executionIntent);
     expect(Object.isFrozen(request)).toBe(true);
     expect(Object.isFrozen(request.executionIntent)).toBe(true);
+  });
+
+  it("captures the existing bounded query as an exact immutable value", () => {
+    const query = {
+      kind: "exact-text-attribute-value",
+      subjectKey: "subject.person",
+      predicateKey: "attribute.name",
+    };
+    const expected = { ...query };
+    const request = createNormalizedCognitiveRequest({
+      ...validRequest(),
+      query,
+    });
+    expect(request.query).toEqual(expected);
+    expect(request.query).not.toBe(query);
+    expect(Object.isFrozen(request)).toBe(true);
+    expect(Object.isFrozen(request.query)).toBe(true);
+    expect(Object.isFrozen(query)).toBe(false);
+    query.subjectKey = "changed";
+    expect(request.query).toEqual(expected);
+  });
+
+  it.each([
+    null,
+    [],
+    1,
+    {},
+    { kind: "exact-text-attribute-value", subjectKey: "subject" },
+    { kind: "fuzzy", subjectKey: "subject", predicateKey: "predicate" },
+    { kind: "exact-text-attribute-value", subjectKey: "", predicateKey: "p" },
+    { kind: "exact-text-attribute-value", subjectKey: " s", predicateKey: "p" },
+    {
+      kind: "exact-text-attribute-value",
+      subjectKey: "s".repeat(129),
+      predicateKey: "p",
+    },
+    {
+      kind: "exact-text-attribute-value",
+      subjectKey: "s",
+      predicateKey: "p\u0000",
+    },
+    {
+      kind: "exact-text-attribute-value",
+      subjectKey: "s",
+      predicateKey: "p",
+      extra: true,
+    },
+  ])("rejects malformed bounded request queries", (query) => {
+    expect(() =>
+      createNormalizedCognitiveRequest({ ...validRequest(), query }),
+    ).toThrow(InvalidBrainRequestError);
+  });
+
+  it("rejects hostile bounded structure without invoking query getters", () => {
+    let calls = 0;
+    const query = {
+      kind: "exact-text-attribute-value",
+      subjectKey: "s",
+      predicateKey: "p",
+    };
+    const accessor = {
+      ...query,
+      get subjectKey() {
+        calls += 1;
+        return "s";
+      },
+    };
+    const revoked = Proxy.revocable(query, {});
+    revoked.revoke();
+    const hostile = [
+      accessor,
+      revoked.proxy,
+      new Proxy(query, {
+        ownKeys() {
+          throw new Error("private");
+        },
+      }),
+      Object.assign(Object.create({ inherited: true }), query),
+      { ...query, [Symbol("extra")]: true },
+      Object.defineProperty({ ...query }, "hidden", { value: true }),
+    ];
+    for (const value of hostile) {
+      expect(() =>
+        createNormalizedCognitiveRequest({ ...validRequest(), query: value }),
+      ).toThrow(InvalidBrainRequestError);
+    }
+    expect(calls).toBe(0);
+  });
+
+  it("preserves textual queries and their legacy code-point limit without inference", () => {
+    for (const query of [
+      "  Find the exact name for subject.person.  ",
+      '{"kind":"exact-text-attribute-value","subjectKey":"s","predicateKey":"p"}',
+      "x".repeat(2048),
+      "\u{1F600}".repeat(2048),
+    ]) {
+      expect(
+        createNormalizedCognitiveRequest({ ...validRequest(), query }).query,
+      ).toBe(query);
+    }
+    for (const query of ["", "   ", "x".repeat(2049)]) {
+      expect(() =>
+        createNormalizedCognitiveRequest({ ...validRequest(), query }),
+      ).toThrow(InvalidBrainRequestError);
+    }
   });
 
   it("constructs and canonicalizes an exact Skill execution intent", () => {
@@ -446,5 +552,71 @@ describe("Brain Core values", () => {
         sequence: 0,
       }),
     ).toThrow(InvalidBrainExecutionStateError);
+  });
+});
+
+function boundedPlan(response: string) {
+  return createCandidatePlan({
+    status: "completed",
+    category: "respond",
+    steps: [{ ordinal: 1, kind: "respond", candidateResponse: response }],
+    source: {
+      reasoningStatus: "completed",
+      reasoningCategory: "knowledge-grounded-success",
+      candidateNextAction: "none",
+      identityState: "authenticated",
+      reasoningRuleCategory: "authenticated-knowledge-applicable-sufficient",
+      authoritativeCapability: "reasoning",
+    },
+    explainability: {
+      consumedReasoningCategory: "knowledge-grounded-success",
+      consumedCandidateNextAction: "none",
+      resultingPlanCategory: "respond",
+      candidateStepCount: 1,
+      planningRuleCategory: "reasoning-produced-response",
+    },
+  });
+}
+
+describe("RECOVERY-04 Brain response domain", () => {
+  it.each([
+    "x".repeat(2048),
+    "x".repeat(2049),
+    "x".repeat(4096),
+    "\u{1f600}".repeat(4096),
+    "  exact  value  ",
+  ])("preserves matching bounded Plan response (%#)", (response) => {
+    expect(
+      createFinalCognitiveResult(
+        { status: "completed", kind: "response", requestId: "r04", response },
+        boundedPlan(response),
+      ),
+    ).toEqual({
+      status: "completed",
+      kind: "response",
+      requestId: "r04",
+      response,
+    });
+  });
+  it("retains legacy limits and rejects mismatched correspondence", () => {
+    const result = {
+      status: "completed",
+      kind: "response",
+      requestId: "r04",
+      response: "x".repeat(2048),
+    };
+    expect(createFinalCognitiveResult(result)).toEqual(result);
+    expect(() =>
+      createFinalCognitiveResult({ ...result, response: "x".repeat(2049) }),
+    ).toThrow();
+    expect(() =>
+      createFinalCognitiveResult(result, boundedPlan("different")),
+    ).toThrow();
+    expect(() =>
+      createFinalCognitiveResult(
+        { ...result, response: "x".repeat(4097) },
+        boundedPlan("x".repeat(4096)),
+      ),
+    ).toThrow();
   });
 });
