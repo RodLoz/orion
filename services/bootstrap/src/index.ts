@@ -1,5 +1,10 @@
 export { RuntimeCapabilityRegistry } from "./capability-registry.js";
 export {
+  composeBoundedApplicationCapability,
+  type BoundedApplicationCapabilityComposition,
+  type BoundedBrainPreparation,
+} from "./brain/bounded-application-composition.js";
+export {
   composeBrainCapability,
   type BrainCapabilityComposition,
 } from "./brain/brain-composition.js";
