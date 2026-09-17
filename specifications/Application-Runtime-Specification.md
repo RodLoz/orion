@@ -2,8 +2,8 @@
 
 | Field | Value |
 |--------|--------|
-| **Status** | Draft |
-| **Version** | 1.0.0 |
+| **Status** | Active |
+| **Version** | 1.0.1 |
 | **Owner** | Project Maintainers |
 | **Created** | 2026-09-15 |
 | **Updated** | 2026-09-15 |
@@ -262,11 +262,23 @@ Implementations must:
 
 ---
 
+# Human Lifecycle Approval
+
+| Field | Value |
+| ------- | ------- |
+| **Decision maker** | Rodrigo Lozano |
+| **Decision** | PASS — lifecycle activation |
+| **Reviewed version** | Draft 1.0.0 |
+| **Transition** | Draft -> Active |
+| **Recorded version** | Active 1.0.1 |
+
+---
 # Version History
 
 | Version | Date       | Description |
 | ------- | ---------- | ----------- |
 | 1.0.0   | 2026-09-15 | Initial Draft based on ADR-0030 decisions |
+| 1.0.1   | 2026-09-17 | Lifecycle activation following human review and approval; no semantic change |
 
 ---
 
