@@ -93,7 +93,7 @@ The implementation must:
 - Reject subsequent preparation attempts within the same runtime
 - Preserve the result of the first preparation attempt (success or failure)
 - Require a new runtime instance for re-preparation
-- Maintain the Context/Brain binding established during successful preparation
+- Maintain only the resulting preparation/binding needed to use its approved C1 composition for later explicitly caller-initiated turns
 
 ---
 
