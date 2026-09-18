@@ -2,8 +2,8 @@
 
 | Field | Value |
 |--------|--------|
-| **Status** | Draft |
-| **Version** | 1.0.0 |
+| **Status** | Active |
+| **Version** | 1.0.1 |
 | **Owner** | Project Maintainers |
 | **Created** | 2026-09-18 |
 | **Updated** | 2026-09-18 |
@@ -223,10 +223,30 @@ Implementations must:
 
 ---
 
+# Human Lifecycle Approval
+
+| Field | Value |
+|-------|--------|
+| Decision maker | Rodrigo Lozano |
+| Decision | PASS — lifecycle activation |
+| Decision date | 2026-09-18 |
+| Review route | SINGLE_MAINTAINER |
+| INDEPENDENT_REVIEW | NOT_APPLICABLE_SINGLE_MAINTAINER |
+| MAINTAINER_REVIEW | PASS |
+| Reviewed version | Draft 1.0.0 |
+| Transition | Draft -> Active |
+| Recorded version | Active 1.0.1 |
+| Blocking findings | 0 |
+
+The previous F1 finding was remediated before the human PASS and therefore must NOT be recorded as an accepted blocking finding.
+
+---
+
 # Version History
 
 | Version | Date       | Description |
 | ------- | ---------- | ----------- |
 | 1.0.0   | 2026-09-18 | Initial Draft based on approved runtime semantics |
+| 1.0.1   | 2026-09-18 | Lifecycle activation following human review and approval; no semantic change |
 
 ---
