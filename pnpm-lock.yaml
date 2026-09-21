@@ -116,6 +116,16 @@ importers:
         specifier: workspace:*
         version: link:../../core
 
+  services/runtime:
+    dependencies:
+      "@orion/bootstrap":
+        specifier: workspace:*
+        version: link:../bootstrap
+    devDependencies:
+      "@orion/core":
+        specifier: workspace:*
+        version: link:../../core
+
   services/security:
     dependencies:
       "@orion/core":
