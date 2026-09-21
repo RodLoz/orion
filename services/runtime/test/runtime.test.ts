@@ -38,13 +38,17 @@ const input = Object.freeze({
 function useMockComposition(lineageIdentity = "test-lineage") {
   const revision = { lineageIdentity } as PreparationResult;
   const prepare = vi.fn(() => revision);
-  const bind = vi.fn(() => ({}) as ReturnType<Composition["composeBrain"]>);
+  const orchestrate = vi.fn();
+  const binding = {
+    orchestrateCognitiveRequest: orchestrate,
+  } as ReturnType<Composition["composeBrain"]>;
+  const bind = vi.fn(() => binding);
   const composition = {
     prepareContextRevisionWithStructuredKnowledge: prepare,
     composeBrain: bind,
   } as unknown as Composition;
   vi.mocked(composeBoundedApplicationCapability).mockResolvedValue(composition);
-  return { prepare, bind };
+  return { prepare, bind, orchestrate };
 }
 
 beforeEach(() => vi.mocked(composeBoundedApplicationCapability).mockReset());
@@ -137,6 +141,44 @@ describe("bounded runtime preparation", () => {
     expect(second.state).toBe("ready");
     expect(prepare).toHaveBeenCalledTimes(2);
     expect(composeBoundedApplicationCapability).toHaveBeenCalledTimes(2);
+  });
+
+  it("rejects turn admission before Ready without changing state", async () => {
+    useMockComposition();
+    const admission = await createPreparationAdmission();
+
+    expect(() => admission.admitTurn()).toThrow();
+    expect(admission.state).toBe("not-prepared");
+  });
+
+  it("admits one explicit turn from Ready without executing Brain", async () => {
+    const { orchestrate } = useMockComposition();
+    const admission = await createPreparationAdmission();
+    admission.begin(input);
+    expect(admission.state).toBe("ready");
+
+    admission.admitTurn();
+
+    expect(admission.state).toBe("turn-in-progress");
+    expect(orchestrate).not.toHaveBeenCalled();
+    expect(() => admission.admitTurn()).toThrow();
+    expect(admission.state).toBe("turn-in-progress");
+    expect(orchestrate).not.toHaveBeenCalled();
+  });
+
+  it("keeps turn admission independent between runtime instances", async () => {
+    useMockComposition();
+    const first = await createPreparationAdmission();
+    const second = await createPreparationAdmission();
+    first.begin(input);
+    second.begin(input);
+
+    first.admitTurn();
+
+    expect(first.state).toBe("turn-in-progress");
+    expect(second.state).toBe("ready");
+    second.admitTurn();
+    expect(second.state).toBe("turn-in-progress");
   });
 
   it("prepares and binds through the real fixed Profile B C1 path", async () => {
