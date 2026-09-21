@@ -20,7 +20,11 @@ type RuntimeRecord =
   | Readonly<{ state: "preparing" }>
   | Readonly<{ state: "ready"; binding: BrainBinding }>
   | Readonly<{ state: "preparation-failed" }>
-  | Readonly<{ state: "turn-in-progress"; binding: BrainBinding }>;
+  | Readonly<{
+      state: "turn-in-progress";
+      binding: BrainBinding;
+      executionStarted: boolean;
+    }>;
 
 // Internal application coordination; no package or transport entry point is added.
 export async function createPreparationAdmission() {
@@ -56,7 +60,29 @@ export async function createPreparationAdmission() {
         throw new Error("Runtime is not ready to admit a turn");
       }
 
-      runtime = { state: "turn-in-progress", binding: runtime.binding };
+      runtime = {
+        state: "turn-in-progress",
+        binding: runtime.binding,
+        executionStarted: false,
+      };
+    },
+
+    executeTurn(
+      request: Parameters<BrainBinding["orchestrateCognitiveRequest"]>[0],
+    ): ReturnType<BrainBinding["orchestrateCognitiveRequest"]> {
+      if (runtime.state !== "turn-in-progress" || runtime.executionStarted) {
+        throw new Error("Runtime has no admitted turn awaiting execution");
+      }
+
+      const binding = runtime.binding;
+      // Consume this admission before calling Brain, including reentrant calls.
+      runtime = { state: "turn-in-progress", binding, executionStarted: true };
+      try {
+        return binding.orchestrateCognitiveRequest(request);
+      } finally {
+        // Synchronous settlement precedes observation of either return or throw.
+        runtime = { state: "ready", binding };
+      }
     },
   };
 }

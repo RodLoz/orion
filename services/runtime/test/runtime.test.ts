@@ -6,6 +6,8 @@ import {
   createContextPreparationSemanticScope,
   createMemoryKnowledgeSourceBinding,
   createMemorySourcePropositionTuple,
+  createNormalizedCognitiveRequest,
+  createFinalCognitiveResult,
 } from "@orion/core";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createPreparationAdmission } from "../src/runtime.js";
@@ -25,6 +27,7 @@ vi.mock("@orion/bootstrap/dist/index.js", async (importOriginal) => {
 });
 
 type Composition = BoundedApplicationCapabilityComposition;
+type BrainBinding = ReturnType<Composition["composeBrain"]>;
 type PreparationInput = Parameters<
   Composition["prepareContextRevisionWithStructuredKnowledge"]
 >[0];
@@ -38,7 +41,7 @@ const input = Object.freeze({
 function useMockComposition(lineageIdentity = "test-lineage") {
   const revision = { lineageIdentity } as PreparationResult;
   const prepare = vi.fn(() => revision);
-  const orchestrate = vi.fn();
+  const orchestrate = vi.fn<BrainBinding["orchestrateCognitiveRequest"]>();
   const binding = {
     orchestrateCognitiveRequest: orchestrate,
   } as ReturnType<Composition["composeBrain"]>;
@@ -181,15 +184,23 @@ describe("bounded runtime preparation", () => {
     expect(second.state).toBe("turn-in-progress");
   });
 
-  it("prepares and binds through the real fixed Profile B C1 path", async () => {
+  it("prepares, binds, and executes through the real fixed Profile B C1 path", async () => {
     const actual = await vi.importActual<BootstrapCompositionExport>(
       "@orion/bootstrap/dist/index.js",
     );
     let composition: Composition | undefined;
+    const execute = vi.fn<BrainBinding["orchestrateCognitiveRequest"]>();
+    const bind = vi.fn(
+      (preparation: Parameters<Composition["composeBrain"]>[0]) => {
+        const binding = composition!.composeBrain(preparation);
+        execute.mockImplementation(binding.orchestrateCognitiveRequest);
+        return { ...binding, orchestrateCognitiveRequest: execute };
+      },
+    );
     vi.mocked(composeBoundedApplicationCapability).mockImplementation(
       async () => {
         composition = await actual.composeBoundedApplicationCapability();
-        return composition;
+        return { ...composition, composeBrain: bind };
       },
     );
     try {
@@ -271,8 +282,226 @@ describe("bounded runtime preparation", () => {
       ).toBe("orion.context.lineage.1");
       expect(() => admission.begin(request)).toThrow();
       expect(admission.state).toBe("ready");
+
+      const cognitiveRequest = createNormalizedCognitiveRequest({
+        intent: "orchestrate-cognitive-request",
+        requestId: "runtime-c1-turn",
+        contextLineageId: "orion.context.lineage.1",
+        query: {
+          kind: "exact-text-attribute-value",
+          subjectKey: "user.preference",
+          predicateKey: "theme",
+        },
+        executionIntent: { kind: "none" },
+      });
+      for (let turn = 1; turn <= 2; turn++) {
+        expect(() => admission.executeTurn(cognitiveRequest)).toThrow();
+        expect(execute).toHaveBeenCalledTimes(turn - 1);
+        admission.admitTurn();
+        const result = admission.executeTurn(cognitiveRequest);
+        expect(admission.state).toBe("ready");
+        expect(execute).toHaveBeenCalledTimes(turn);
+        expect(execute.mock.calls[turn - 1]![0]).toBe(cognitiveRequest);
+        expect(execute.mock.calls[turn - 1]).toHaveLength(1);
+        expect(result).toBe(execute.mock.results[turn - 1]!.value);
+        expect(result).toEqual({
+          status: "completed",
+          kind: "request-more-context",
+          requestId: cognitiveRequest.requestId,
+          reason: "planning-requested-more-context",
+        });
+      }
+      expect(bind).toHaveBeenCalledExactlyOnceWith({
+        contextLineageId: cognitiveRequest.contextLineageId,
+      });
+      expect(composeBoundedApplicationCapability).toHaveBeenCalledTimes(1);
     } finally {
       if (composition !== undefined) await composition.shutdown();
     }
+  });
+});
+
+describe("bounded synchronous turn execution and settlement", () => {
+  const request = createNormalizedCognitiveRequest({
+    intent: "orchestrate-cognitive-request",
+    requestId: "runtime-turn",
+    contextLineageId: "test-lineage",
+    query: {
+      kind: "exact-text-attribute-value",
+      subjectKey: "user.preference",
+      predicateKey: "theme",
+    },
+    executionIntent: { kind: "none" },
+  });
+  // Test double output only; Runtime must never construct a Brain result.
+  const result = createFinalCognitiveResult({
+    status: "completed",
+    kind: "request-more-context",
+    requestId: request.requestId,
+    reason: "planning-requested-more-context",
+  });
+
+  it("rejects execution before preparation, during preparation, and before admission", async () => {
+    const { prepare, bind, orchestrate } = useMockComposition();
+    const runtime = await createPreparationAdmission();
+    expect(() => runtime.executeTurn(request)).toThrow();
+    expect(runtime.state).toBe("not-prepared");
+    prepare.mockImplementationOnce(() => {
+      expect(() => runtime.executeTurn(request)).toThrow();
+      expect(() => runtime.admitTurn()).toThrow();
+      expect(runtime.state).toBe("preparing");
+      return { lineageIdentity: "test-lineage" } as PreparationResult;
+    });
+    runtime.begin(input);
+    expect(() => runtime.executeTurn(request)).toThrow();
+    expect(runtime.state).toBe("ready");
+    expect(orchestrate).not.toHaveBeenCalled();
+    expect(prepare).toHaveBeenCalledTimes(1);
+    expect(bind).toHaveBeenCalledTimes(1);
+  });
+
+  it.each(["context", "binding"] as const)(
+    "rejects execution and re-preparation after %s preparation failure",
+    async (stage) => {
+      const { prepare, bind, orchestrate } = useMockComposition();
+      const runtime = await createPreparationAdmission();
+      const fail = () => {
+        throw new Error("Preparation failed");
+      };
+      if (stage === "context") prepare.mockImplementationOnce(fail);
+      else bind.mockImplementationOnce(fail);
+      expect(() => runtime.begin(input)).toThrow();
+      expect(() => runtime.executeTurn(request)).toThrow();
+      expect(() => runtime.admitTurn()).toThrow();
+      expect(() => runtime.begin(input)).toThrow();
+      expect(runtime.state).toBe("preparation-failed");
+      expect(orchestrate).not.toHaveBeenCalled();
+      expect(prepare).toHaveBeenCalledTimes(1);
+      expect(bind).toHaveBeenCalledTimes(stage === "context" ? 0 : 1);
+    },
+  );
+
+  it("forwards exact objects once, rejects reentrancy, and settles before synchronous return", async () => {
+    const { prepare, bind, orchestrate } = useMockComposition();
+    const runtime = await createPreparationAdmission();
+    runtime.begin(input);
+    const query = request.query;
+    const executionIntent = request.executionIntent;
+    orchestrate.mockImplementation((received) => {
+      expect(received).toBe(request);
+      expect(received.query).toBe(query);
+      expect(received.executionIntent).toBe(executionIntent);
+      expect(runtime.state).toBe("turn-in-progress");
+      expect(() => runtime.admitTurn()).toThrow();
+      expect(runtime.state).toBe("turn-in-progress");
+      expect(() => runtime.executeTurn(request)).toThrow();
+      expect(runtime.state).toBe("turn-in-progress");
+      expect(() => runtime.begin(input)).toThrow();
+      expect(runtime.state).toBe("turn-in-progress");
+      return result;
+    });
+
+    for (let turn = 1; turn <= 2; turn++) {
+      expect(() => runtime.executeTurn(request)).toThrow();
+      runtime.admitTurn();
+      expect(orchestrate).toHaveBeenCalledTimes(turn - 1);
+      const observed = runtime.executeTurn(request);
+      expect(runtime.state).toBe("ready");
+      expect(observed).toBe(result);
+      expect(orchestrate).toHaveBeenCalledTimes(turn);
+      expect(orchestrate.mock.calls[turn - 1]).toHaveLength(1);
+      expect(orchestrate.mock.calls[turn - 1]![0]).toBe(request);
+      expect(() => runtime.executeTurn(request)).toThrow();
+      expect(() => runtime.begin(input)).toThrow();
+      expect(runtime.state).toBe("ready");
+      expect(orchestrate).toHaveBeenCalledTimes(turn);
+    }
+    expect(prepare).toHaveBeenCalledTimes(1);
+    expect(bind).toHaveBeenCalledTimes(1);
+    expect(composeBoundedApplicationCapability).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([
+    new Error("Originating Brain failure"),
+    Object.freeze({ originatingFailure: "opaque value" }),
+    "originating thrown string",
+    null,
+    undefined,
+  ])(
+    "settles before surfacing the exact thrown value (%#)",
+    async (failure) => {
+      const { prepare, bind, orchestrate } = useMockComposition();
+      const runtime = await createPreparationAdmission();
+      runtime.begin(input);
+      runtime.admitTurn();
+      orchestrate.mockImplementationOnce((received) => {
+        expect(received).toBe(request);
+        expect(runtime.state).toBe("turn-in-progress");
+        expect(() => runtime.admitTurn()).toThrow();
+        expect(() => runtime.executeTurn(request)).toThrow();
+        expect(runtime.state).toBe("turn-in-progress");
+        throw failure;
+      });
+      let caught = false;
+      try {
+        runtime.executeTurn(request);
+      } catch (observed: unknown) {
+        caught = true;
+        expect(runtime.state).toBe("ready");
+        expect(observed).toBe(failure);
+      }
+      expect(caught).toBe(true);
+      expect(orchestrate).toHaveBeenCalledTimes(1);
+      expect(orchestrate.mock.calls[0]).toHaveLength(1);
+      expect(() => runtime.executeTurn(request)).toThrow();
+      expect(() => runtime.begin(input)).toThrow();
+      expect(runtime.state).toBe("ready");
+      expect(orchestrate).toHaveBeenCalledTimes(1);
+
+      orchestrate.mockReturnValueOnce(result);
+      runtime.admitTurn();
+      const observed = runtime.executeTurn(request);
+      expect(runtime.state).toBe("ready");
+      expect(observed).toBe(result);
+      expect(orchestrate).toHaveBeenCalledTimes(2);
+      expect(orchestrate.mock.calls[1]![0]).toBe(request);
+      expect(() => runtime.executeTurn(request)).toThrow();
+      expect(orchestrate).toHaveBeenCalledTimes(2);
+      expect(prepare).toHaveBeenCalledTimes(1);
+      expect(bind).toHaveBeenCalledTimes(1);
+    },
+  );
+
+  it("keeps execution, settlement, and retained bindings independent per instance", async () => {
+    const firstComposition = useMockComposition();
+    const first = await createPreparationAdmission();
+    const secondComposition = useMockComposition();
+    const second = await createPreparationAdmission();
+    first.begin(input);
+    second.begin(input);
+    first.admitTurn();
+    second.admitTurn();
+    const failure = new Error("First instance failure");
+    firstComposition.orchestrate.mockImplementationOnce(() => {
+      expect(first.state).toBe("turn-in-progress");
+      expect(second.state).toBe("turn-in-progress");
+      throw failure;
+    });
+    expect(() => first.executeTurn(request)).toThrow(failure);
+    expect(first.state).toBe("ready");
+    expect(second.state).toBe("turn-in-progress");
+    expect(secondComposition.orchestrate).not.toHaveBeenCalled();
+    secondComposition.orchestrate.mockImplementationOnce(() => {
+      expect(second.state).toBe("turn-in-progress");
+      expect(first.state).toBe("ready");
+      return result;
+    });
+    expect(second.executeTurn(request)).toBe(result);
+    expect(second.state).toBe("ready");
+    expect(first.state).toBe("ready");
+    expect(firstComposition.orchestrate).toHaveBeenCalledTimes(1);
+    expect(secondComposition.orchestrate).toHaveBeenCalledTimes(1);
+    expect(firstComposition.bind).toHaveBeenCalledTimes(1);
+    expect(secondComposition.bind).toHaveBeenCalledTimes(1);
   });
 });
