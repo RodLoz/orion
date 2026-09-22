@@ -46,15 +46,404 @@ function useMockComposition(lineageIdentity = "test-lineage") {
     orchestrateCognitiveRequest: orchestrate,
   } as ReturnType<Composition["composeBrain"]>;
   const bind = vi.fn(() => binding);
+  const cleanup = vi.fn<Composition["shutdown"]>().mockResolvedValue(undefined);
   const composition = {
     prepareContextRevisionWithStructuredKnowledge: prepare,
     composeBrain: bind,
+    shutdown: cleanup,
   } as unknown as Composition;
   vi.mocked(composeBoundedApplicationCapability).mockResolvedValue(composition);
-  return { prepare, bind, orchestrate };
+  return { prepare, bind, orchestrate, cleanup };
 }
 
 beforeEach(() => vi.mocked(composeBoundedApplicationCapability).mockReset());
+
+type Runtime = Awaited<ReturnType<typeof createPreparationAdmission>>;
+
+function controlledCleanup() {
+  let resolve!: () => void;
+  let reject!: (failure: unknown) => void;
+  const promise = new Promise<void>((onSuccess, onFailure) => {
+    resolve = onSuccess;
+    reject = onFailure;
+  });
+  return { promise, resolve, reject };
+}
+
+function expectClosed(runtime: Runtime) {
+  const state = runtime.state;
+  expect(() => runtime.begin(input)).toThrow();
+  expect(() => runtime.admitTurn()).toThrow();
+  expect(runtime.state).toBe(state);
+}
+
+function observeShutdown(runtime: Runtime, completion: Promise<void>) {
+  return completion.then(
+    (value) => {
+      expect(runtime.state).toBe("terminal-closed");
+      expect(value).toBeUndefined();
+      expectClosed(runtime);
+      return { outcome: "success" as const };
+    },
+    (failure: unknown) => {
+      expect(runtime.state).toBe("terminal-closed");
+      expectClosed(runtime);
+      return { outcome: "failure" as const, failure };
+    },
+  );
+}
+
+describe("bounded shutdown and cleanup coordination", () => {
+  const request = createNormalizedCognitiveRequest({
+    intent: "orchestrate-cognitive-request",
+    requestId: "runtime-shutdown-turn",
+    contextLineageId: "test-lineage",
+    query: {
+      kind: "exact-text-attribute-value",
+      subjectKey: "user.preference",
+      predicateKey: "theme",
+    },
+    executionIntent: { kind: "none" },
+  });
+  const result = createFinalCognitiveResult({
+    status: "completed",
+    kind: "request-more-context",
+    requestId: request.requestId,
+    reason: "planning-requested-more-context",
+  });
+  const cleanupForms = ["success", "reject", "throw"] as const;
+
+  it.each(["not-prepared", "ready", "context-failed", "binding-failed"])(
+    "closes %s immediately and delegates one cleanup even with reentrant shutdown",
+    async (initial) => {
+      const { prepare, bind, cleanup, orchestrate } = useMockComposition();
+      const runtime = await createPreparationAdmission();
+      const control = controlledCleanup();
+      if (initial.endsWith("failed")) {
+        const fail = () => {
+          throw new Error("preparation");
+        };
+        if (initial === "context-failed") prepare.mockImplementationOnce(fail);
+        else bind.mockImplementationOnce(fail);
+        expect(() => runtime.begin(input)).toThrow();
+        expect(runtime.state).toBe("preparation-failed");
+      } else if (initial === "ready") {
+        expect(runtime.begin(input)).toBeUndefined();
+      }
+      const observers: ReturnType<typeof observeShutdown>[] = [];
+      cleanup.mockImplementation(() => {
+        expect(runtime.state).toBe("cleanup-in-progress");
+        expectClosed(runtime);
+        observers.push(observeShutdown(runtime, runtime.shutdown()));
+        return control.promise;
+      });
+      observers.push(observeShutdown(runtime, runtime.shutdown()));
+      expect(runtime.state).toBe("cleanup-in-progress");
+      expectClosed(runtime);
+      expect(() => runtime.executeTurn(request)).toThrow();
+      observers.push(observeShutdown(runtime, runtime.shutdown()));
+      expect(cleanup).toHaveBeenCalledTimes(1);
+      control.resolve();
+      for (const observer of observers)
+        expect(await observer).toEqual({ outcome: "success" });
+      expect(await observeShutdown(runtime, runtime.shutdown())).toEqual({
+        outcome: "success",
+      });
+      expect(cleanup).toHaveBeenCalledTimes(1);
+      expect(orchestrate).not.toHaveBeenCalled();
+      expect(prepare).toHaveBeenCalledTimes(initial === "not-prepared" ? 0 : 1);
+      expect(bind).toHaveBeenCalledTimes(
+        initial === "not-prepared" || initial === "context-failed" ? 0 : 1,
+      );
+      expect(() => runtime.executeTurn(request)).toThrow();
+    },
+  );
+
+  for (const stage of ["context", "binding"] as const) {
+    for (const operationFails of [false, true]) {
+      it.each(cleanupForms)(
+        `${stage} reentrant shutdown: preparation ${operationFails ? "fails" : "succeeds"}, cleanup %s`,
+        async (cleanupForm) => {
+          const { prepare, bind, cleanup, orchestrate } = useMockComposition();
+          const runtime = await createPreparationAdmission();
+          const control = controlledCleanup();
+          const operationFailure = Object.freeze({ origin: "preparation" });
+          const cleanupFailure = Object.freeze({ origin: "cleanup" });
+          const events: string[] = [];
+          const observers: ReturnType<typeof observeShutdown>[] = [];
+          const revision = prepare.getMockImplementation()!();
+          const binding = bind.getMockImplementation()!();
+          const requestShutdown = () => {
+            expect(runtime.state).toBe("preparing");
+            observers.push(observeShutdown(runtime, runtime.shutdown()));
+            expect(runtime.state).toBe("admission-closed");
+            expectClosed(runtime);
+            expect(() => runtime.executeTurn(request)).toThrow();
+            observers.push(observeShutdown(runtime, runtime.shutdown()));
+            expect(cleanup).not.toHaveBeenCalled();
+          };
+          prepare.mockImplementation(() => {
+            events.push("context");
+            if (stage === "context") {
+              requestShutdown();
+              if (operationFails) {
+                events.push("operation-throw");
+                throw operationFailure;
+              }
+            }
+            return revision;
+          });
+          bind.mockImplementation(() => {
+            events.push("binding");
+            if (stage === "binding") requestShutdown();
+            expect(runtime.state).toBe("admission-closed");
+            expect(cleanup).not.toHaveBeenCalled();
+            if (operationFails) {
+              events.push("operation-throw");
+              throw operationFailure;
+            }
+            events.push("operation-return");
+            return binding;
+          });
+          cleanup.mockImplementation(() => {
+            expect(runtime.state).toBe("cleanup-in-progress");
+            expect(events.at(-1)).toBe(
+              operationFails ? "operation-throw" : "operation-return",
+            );
+            events.push("cleanup");
+            expectClosed(runtime);
+            observers.push(observeShutdown(runtime, runtime.shutdown()));
+            if (cleanupForm === "throw") throw cleanupFailure;
+            return control.promise;
+          });
+          if (operationFails) {
+            let caught = false;
+            try {
+              runtime.begin(input);
+            } catch (failure: unknown) {
+              caught = true;
+              expect(failure).toBe(operationFailure);
+            }
+            expect(caught).toBe(true);
+          } else {
+            // Direct return assertion proves begin did not become asynchronous.
+            expect(runtime.begin(input)).toBeUndefined();
+          }
+          expect(prepare).toHaveBeenCalledExactlyOnceWith(input);
+          expect(bind).toHaveBeenCalledTimes(
+            stage === "context" && operationFails ? 0 : 1,
+          );
+          expect(orchestrate).not.toHaveBeenCalled();
+          expect(cleanup).toHaveBeenCalledTimes(1);
+          expect(runtime.state).toBe(
+            cleanupForm === "throw" ? "terminal-closed" : "cleanup-in-progress",
+          );
+          expectClosed(runtime);
+          observers.push(observeShutdown(runtime, runtime.shutdown()));
+          if (cleanupForm === "success") control.resolve();
+          else if (cleanupForm === "reject") control.reject(cleanupFailure);
+          for (const observer of observers) {
+            const observed = await observer;
+            if (cleanupForm === "success")
+              expect(observed).toEqual({ outcome: "success" });
+            else {
+              expect(observed.outcome).toBe("failure");
+              if (observed.outcome === "failure")
+                expect(observed.failure).toBe(cleanupFailure);
+            }
+          }
+          const later = await observeShutdown(runtime, runtime.shutdown());
+          expect(later.outcome).toBe(
+            cleanupForm === "success" ? "success" : "failure",
+          );
+          if (later.outcome === "failure")
+            expect(later.failure).toBe(cleanupFailure);
+          expect(cleanup).toHaveBeenCalledTimes(1);
+          expect(prepare).toHaveBeenCalledTimes(1);
+          expect(bind).toHaveBeenCalledTimes(
+            stage === "context" && operationFails ? 0 : 1,
+          );
+          expect(() => runtime.executeTurn(request)).toThrow();
+        },
+      );
+    }
+  }
+
+  for (const timing of ["before-execution", "during-execution"] as const) {
+    for (const operationFails of [false, true]) {
+      it.each(cleanupForms)(
+        `${timing}: turn ${operationFails ? "fails" : "succeeds"}, cleanup %s`,
+        async (cleanupForm) => {
+          const { cleanup, orchestrate, prepare, bind } = useMockComposition();
+          const runtime = await createPreparationAdmission();
+          runtime.begin(input);
+          expect(runtime.admitTurn()).toBeUndefined();
+          const control = controlledCleanup();
+          const failure = Object.freeze({ origin: "turn" });
+          const cleanupFailure = Object.freeze({ origin: "cleanup" });
+          const observers: ReturnType<typeof observeShutdown>[] = [];
+          let operationSettled = false;
+          const close = () => {
+            observers.push(observeShutdown(runtime, runtime.shutdown()));
+            expect(runtime.state).toBe("admission-closed");
+            expectClosed(runtime);
+            observers.push(observeShutdown(runtime, runtime.shutdown()));
+            expect(cleanup).not.toHaveBeenCalled();
+          };
+          cleanup.mockImplementation(() => {
+            expect(operationSettled).toBe(true);
+            expect(runtime.state).toBe("cleanup-in-progress");
+            expectClosed(runtime);
+            observers.push(observeShutdown(runtime, runtime.shutdown()));
+            if (cleanupForm === "throw") throw cleanupFailure;
+            return control.promise;
+          });
+          if (timing === "before-execution") {
+            close();
+            let shutdownObserved = false;
+            void observers[0]!.then(() => {
+              shutdownObserved = true;
+            });
+            await Promise.resolve();
+            await Promise.resolve();
+            expect(shutdownObserved).toBe(false);
+            expect(runtime.state).toBe("admission-closed");
+            expect(orchestrate).not.toHaveBeenCalled();
+            expect(cleanup).not.toHaveBeenCalled();
+          }
+          orchestrate.mockImplementation((received) => {
+            expect(received).toBe(request);
+            expect(received.query).toBe(request.query);
+            if (timing === "during-execution") {
+              expect(runtime.state).toBe("turn-in-progress");
+              close();
+            }
+            expect(runtime.state).toBe("admission-closed");
+            expectClosed(runtime);
+            expect(() => runtime.executeTurn(request)).toThrow();
+            expect(cleanup).not.toHaveBeenCalled();
+            operationSettled = true;
+            if (operationFails) throw failure;
+            return result;
+          });
+          if (operationFails) {
+            let caught = false;
+            try {
+              runtime.executeTurn(request);
+            } catch (observed: unknown) {
+              caught = true;
+              expect(observed).toBe(failure);
+            }
+            expect(caught).toBe(true);
+          } else expect(runtime.executeTurn(request)).toBe(result);
+          expect(orchestrate).toHaveBeenCalledTimes(1);
+          expect(orchestrate.mock.calls[0]).toHaveLength(1);
+          expect(orchestrate.mock.calls[0]![0]).toBe(request);
+          expect(() => runtime.executeTurn(request)).toThrow();
+          expectClosed(runtime);
+          expect(runtime.state).toBe(
+            cleanupForm === "throw" ? "terminal-closed" : "cleanup-in-progress",
+          );
+          observers.push(observeShutdown(runtime, runtime.shutdown()));
+          if (cleanupForm === "success") control.resolve();
+          else if (cleanupForm === "reject") control.reject(cleanupFailure);
+          for (const observer of observers) {
+            const observed = await observer;
+            expect(observed.outcome).toBe(
+              cleanupForm === "success" ? "success" : "failure",
+            );
+            if (observed.outcome === "failure")
+              expect(observed.failure).toBe(cleanupFailure);
+          }
+          const later = await observeShutdown(runtime, runtime.shutdown());
+          expect(later.outcome).toBe(
+            cleanupForm === "success" ? "success" : "failure",
+          );
+          if (later.outcome === "failure")
+            expect(later.failure).toBe(cleanupFailure);
+          expect(cleanup).toHaveBeenCalledTimes(1);
+          expect(orchestrate).toHaveBeenCalledTimes(1);
+          expect(prepare).toHaveBeenCalledTimes(1);
+          expect(bind).toHaveBeenCalledTimes(1);
+          expect(() => runtime.executeTurn(request)).toThrow();
+        },
+      );
+    }
+  }
+
+  it("leaves an unexecuted admission pending without starting work or cleanup", async () => {
+    const { cleanup, orchestrate } = useMockComposition();
+    const runtime = await createPreparationAdmission();
+    runtime.begin(input);
+    runtime.admitTurn();
+    let observed = false;
+    void runtime.shutdown().then(() => {
+      observed = true;
+    });
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(observed).toBe(false);
+    expect(runtime.state).toBe("admission-closed");
+    expectClosed(runtime);
+    expect(cleanup).not.toHaveBeenCalled();
+    expect(orchestrate).not.toHaveBeenCalled();
+    // No timers or resources are associated with this deliberately pending turn.
+  });
+
+  it("does not cancel preserved work or cleanup when the first Promise is ignored", async () => {
+    const { cleanup, orchestrate } = useMockComposition();
+    const runtime = await createPreparationAdmission();
+    const control = controlledCleanup();
+    cleanup.mockReturnValue(control.promise);
+    runtime.begin(input);
+    runtime.admitTurn();
+    void runtime.shutdown();
+    expect(runtime.state).toBe("admission-closed");
+    orchestrate.mockReturnValue(result);
+    expect(runtime.executeTurn(request)).toBe(result);
+    expect(runtime.state).toBe("cleanup-in-progress");
+    control.resolve();
+    expect(await observeShutdown(runtime, runtime.shutdown())).toEqual({
+      outcome: "success",
+    });
+    expect(cleanup).toHaveBeenCalledTimes(1);
+    expect(orchestrate).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps shutdown completion, cleanup failure, and preserved admissions instance-local", async () => {
+    const firstMocks = useMockComposition();
+    const first = await createPreparationAdmission();
+    const secondMocks = useMockComposition("second-lineage");
+    const second = await createPreparationAdmission();
+    const control = controlledCleanup();
+    const failure = new Error("first cleanup");
+    firstMocks.cleanup.mockReturnValue(control.promise);
+    first.begin(input);
+    first.admitTurn();
+    const firstDone = observeShutdown(first, first.shutdown());
+    expect(second.state).toBe("not-prepared");
+    second.begin(input);
+    second.admitTurn();
+    firstMocks.orchestrate.mockReturnValue(result);
+    expect(first.executeTurn(request)).toBe(result);
+    control.reject(failure);
+    const observed = await firstDone;
+    expect(observed.outcome).toBe("failure");
+    if (observed.outcome === "failure") expect(observed.failure).toBe(failure);
+    expect(second.state).toBe("turn-in-progress");
+    expect(secondMocks.cleanup).not.toHaveBeenCalled();
+    secondMocks.orchestrate.mockReturnValue(result);
+    expect(second.executeTurn(request)).toBe(result);
+    expect(second.state).toBe("ready");
+    await second.shutdown();
+    expect(first.state).toBe("terminal-closed");
+    expect(second.state).toBe("terminal-closed");
+    expect(firstMocks.cleanup).toHaveBeenCalledTimes(1);
+    expect(secondMocks.cleanup).toHaveBeenCalledTimes(1);
+    expect(firstMocks.orchestrate).toHaveBeenCalledTimes(1);
+    expect(secondMocks.orchestrate).toHaveBeenCalledTimes(1);
+  });
+});
 
 describe("bounded runtime preparation", () => {
   it("acquires one C1 composition and forwards one explicit attempt from Not Prepared", async () => {
@@ -315,6 +704,11 @@ describe("bounded runtime preparation", () => {
         contextLineageId: cognitiveRequest.contextLineageId,
       });
       expect(composeBoundedApplicationCapability).toHaveBeenCalledTimes(1);
+      await admission.shutdown();
+      expect(admission.state).toBe("terminal-closed");
+      expect(() => admission.begin(request)).toThrow();
+      expect(() => admission.admitTurn()).toThrow();
+      await admission.shutdown();
     } finally {
       if (composition !== undefined) await composition.shutdown();
     }

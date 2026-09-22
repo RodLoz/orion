@@ -8,7 +8,10 @@ type RuntimeState =
   | "preparing"
   | "ready"
   | "preparation-failed"
-  | "turn-in-progress";
+  | "turn-in-progress"
+  | "admission-closed"
+  | "cleanup-in-progress"
+  | "terminal-closed";
 type PreparationInput = Parameters<
   BoundedApplicationCapabilityComposition["prepareContextRevisionWithStructuredKnowledge"]
 >[0];
@@ -20,6 +23,7 @@ type RuntimeRecord =
   | Readonly<{ state: "preparing" }>
   | Readonly<{ state: "ready"; binding: BrainBinding }>
   | Readonly<{ state: "preparation-failed" }>
+  | Readonly<{ state: "cleanup-in-progress" | "terminal-closed" }>
   | Readonly<{
       state: "turn-in-progress";
       binding: BrainBinding;
@@ -30,14 +34,77 @@ type RuntimeRecord =
 export async function createPreparationAdmission() {
   const composition = await composeBoundedApplicationCapability();
   let runtime: RuntimeRecord = { state: "not-prepared" };
+  let shutdownCompletion:
+    | {
+        promise: Promise<void>;
+        resolve: () => void;
+        reject: (failure: unknown) => void;
+      }
+    | undefined;
+
+  // Called only with no outstanding work, or after its synchronous settlement.
+  function beginCleanup(): void {
+    const completion = shutdownCompletion;
+    if (
+      completion === undefined ||
+      runtime.state === "cleanup-in-progress" ||
+      runtime.state === "terminal-closed"
+    ) {
+      return;
+    }
+    runtime = { state: "cleanup-in-progress" };
+    const fail = (failure: unknown): void => {
+      runtime = { state: "terminal-closed" };
+      completion.reject(failure);
+    };
+    try {
+      void composition.shutdown().then(() => {
+        runtime = { state: "terminal-closed" };
+        completion.resolve();
+      }, fail);
+    } catch (failure: unknown) {
+      // Cleanup failure belongs to shutdown, never to begin/executeTurn.
+      fail(failure);
+    }
+  }
 
   return {
     get state(): RuntimeState {
+      if (
+        shutdownCompletion !== undefined &&
+        runtime.state !== "cleanup-in-progress" &&
+        runtime.state !== "terminal-closed"
+      ) {
+        return "admission-closed";
+      }
       return runtime.state;
     },
 
+    shutdown(): Promise<void> {
+      if (shutdownCompletion === undefined) {
+        let resolve!: () => void;
+        let reject!: (failure: unknown) => void;
+        const promise = new Promise<void>((onSuccess, onFailure) => {
+          resolve = onSuccess;
+          reject = onFailure;
+        });
+        // Retain completion before delegation, including reentrant shutdown.
+        shutdownCompletion = { promise, resolve, reject };
+        if (
+          runtime.state !== "preparing" &&
+          runtime.state !== "turn-in-progress"
+        ) {
+          beginCleanup();
+        }
+      }
+      return shutdownCompletion.promise;
+    },
+
     begin(input: PreparationInput): void {
-      if (runtime.state !== "not-prepared") {
+      if (
+        shutdownCompletion !== undefined ||
+        runtime.state !== "not-prepared"
+      ) {
         throw new Error("Preparation attempt already admitted");
       }
 
@@ -48,15 +115,19 @@ export async function createPreparationAdmission() {
         const binding = composition.composeBrain({
           contextLineageId: revision.lineageIdentity,
         });
-        runtime = { state: "ready", binding };
+        if (shutdownCompletion === undefined)
+          runtime = { state: "ready", binding };
       } catch (error: unknown) {
-        runtime = { state: "preparation-failed" };
+        if (shutdownCompletion === undefined)
+          runtime = { state: "preparation-failed" };
         throw error;
+      } finally {
+        beginCleanup();
       }
     },
 
     admitTurn(): void {
-      if (runtime.state !== "ready") {
+      if (shutdownCompletion !== undefined || runtime.state !== "ready") {
         throw new Error("Runtime is not ready to admit a turn");
       }
 
@@ -81,7 +152,9 @@ export async function createPreparationAdmission() {
         return binding.orchestrateCognitiveRequest(request);
       } finally {
         // Synchronous settlement precedes observation of either return or throw.
-        runtime = { state: "ready", binding };
+        if (shutdownCompletion === undefined)
+          runtime = { state: "ready", binding };
+        beginCleanup();
       }
     },
   };
