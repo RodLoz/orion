@@ -11,6 +11,7 @@
     { "path": "./services/brain" },
     { "path": "./services/skill" },
     { "path": "./services/security" },
-    { "path": "./services/bootstrap" }
+    { "path": "./services/bootstrap" },
+    { "path": "./services/runtime" }
   ]
 }

@@ -344,6 +344,45 @@ module.exports = {
       to: { path: "^(apps|infrastructure|infraestructure)/" },
     },
     {
+      name: "runtime-must-not-depend-on-concrete-engines-or-outer-layers",
+      comment:
+        "Runtime coordinates only through the approved Bootstrap/C1 boundary and cannot import concrete Engines or outer layers.",
+      severity: "error",
+      from: { path: "^services/runtime/(src|architecture-fixtures)" },
+      to: {
+        path: "^services/(?!runtime/|bootstrap/)|^(apps|packages|infrastructure|infraestructure)/",
+      },
+    },
+    {
+      name: "runtime-must-use-approved-bootstrap-entrypoint",
+      comment:
+        "Runtime may reach Bootstrap only through its existing package entrypoint; named C1 imports are verified separately.",
+      severity: "error",
+      from: { path: "^services/runtime/(src|architecture-fixtures)" },
+      to: {
+        path: "^services/bootstrap/",
+        pathNot: "^services/bootstrap/dist/index(?:\\.d)?\\.(?:ts|js)$",
+      },
+    },
+    {
+      name: "runtime-must-not-depend-on-unrelated-external-packages",
+      comment:
+        "Runtime production and architecture evidence may not acquire unrelated external package dependencies.",
+      severity: "error",
+      from: { path: "^services/runtime/(src|architecture-fixtures)" },
+      to: {
+        dependencyTypes: [
+          "npm",
+          "npm-dev",
+          "npm-no-pkg",
+          "npm-optional",
+          "npm-peer",
+          "npm-bundled",
+        ],
+        pathNot: "^@orion/bootstrap(?:/dist/index\\.js)?$",
+      },
+    },
+    {
       name: "no-circular-dependencies",
       severity: "error",
       from: {},
