@@ -15,6 +15,9 @@ type RuntimeState =
 type PreparationInput = Parameters<
   BoundedApplicationCapabilityComposition["prepareContextRevisionWithStructuredKnowledge"]
 >[0];
+type PreparedLineageIdentity = ReturnType<
+  BoundedApplicationCapabilityComposition["prepareContextRevisionWithStructuredKnowledge"]
+>["lineageIdentity"];
 type BrainBinding = ReturnType<
   BoundedApplicationCapabilityComposition["composeBrain"]
 >;
@@ -100,7 +103,7 @@ export async function createPreparationAdmission() {
       return shutdownCompletion.promise;
     },
 
-    begin(input: PreparationInput): void {
+    begin(input: PreparationInput): PreparedLineageIdentity {
       if (
         shutdownCompletion !== undefined ||
         runtime.state !== "not-prepared"
@@ -117,6 +120,7 @@ export async function createPreparationAdmission() {
         });
         if (shutdownCompletion === undefined)
           runtime = { state: "ready", binding };
+        return revision.lineageIdentity;
       } catch (error: unknown) {
         if (shutdownCompletion === undefined)
           runtime = { state: "preparation-failed" };

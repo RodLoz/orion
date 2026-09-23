@@ -53,7 +53,7 @@ function useMockComposition(lineageIdentity = "test-lineage") {
     shutdown: cleanup,
   } as unknown as Composition;
   vi.mocked(composeBoundedApplicationCapability).mockResolvedValue(composition);
-  return { prepare, bind, orchestrate, cleanup };
+  return { revision, prepare, binding, bind, orchestrate, cleanup };
 }
 
 beforeEach(() => vi.mocked(composeBoundedApplicationCapability).mockReset());
@@ -116,7 +116,8 @@ describe("bounded shutdown and cleanup coordination", () => {
   it.each(["not-prepared", "ready", "context-failed", "binding-failed"])(
     "closes %s immediately and delegates one cleanup even with reentrant shutdown",
     async (initial) => {
-      const { prepare, bind, cleanup, orchestrate } = useMockComposition();
+      const { revision, prepare, bind, cleanup, orchestrate } =
+        useMockComposition();
       const runtime = await createPreparationAdmission();
       const control = controlledCleanup();
       if (initial.endsWith("failed")) {
@@ -128,7 +129,7 @@ describe("bounded shutdown and cleanup coordination", () => {
         expect(() => runtime.begin(input)).toThrow();
         expect(runtime.state).toBe("preparation-failed");
       } else if (initial === "ready") {
-        expect(runtime.begin(input)).toBeUndefined();
+        expect(runtime.begin(input)).toBe(revision.lineageIdentity);
       }
       const observers: ReturnType<typeof observeShutdown>[] = [];
       cleanup.mockImplementation(() => {
@@ -227,7 +228,7 @@ describe("bounded shutdown and cleanup coordination", () => {
             expect(caught).toBe(true);
           } else {
             // Direct return assertion proves begin did not become asynchronous.
-            expect(runtime.begin(input)).toBeUndefined();
+            expect(runtime.begin(input)).toBe(revision.lineageIdentity);
           }
           expect(prepare).toHaveBeenCalledExactlyOnceWith(input);
           expect(bind).toHaveBeenCalledTimes(
@@ -452,17 +453,21 @@ describe("bounded runtime preparation", () => {
     expect(admission.state).toBe("not-prepared");
     expect(composeBoundedApplicationCapability).toHaveBeenCalledTimes(1);
 
+    const revision = {
+      lineageIdentity: "test-lineage",
+    } as PreparationResult;
     prepare.mockImplementationOnce(() => {
       expect(admission.state).toBe("preparing");
       expect(bind).not.toHaveBeenCalled();
-      return { lineageIdentity: "test-lineage" } as PreparationResult;
+      return revision;
     });
-    admission.begin(input);
+    const lineageIdentity = admission.begin(input);
 
     expect(prepare).toHaveBeenCalledExactlyOnceWith(input);
     expect(bind).toHaveBeenCalledExactlyOnceWith({
       contextLineageId: "test-lineage",
     });
+    expect(lineageIdentity).toBe(revision.lineageIdentity);
     expect(prepare.mock.invocationCallOrder[0]).toBeLessThan(
       bind.mock.invocationCallOrder[0]!,
     );
@@ -661,21 +666,22 @@ describe("bounded runtime preparation", () => {
         },
         memorySourceBinding,
       };
-      admission.begin(request);
+      const lineageIdentity = admission.begin(request);
 
       expect(admission.state).toBe("ready");
+      expect(lineageIdentity).toBe("orion.context.lineage.1");
       expect(
         c1.getActiveContextRevision({
-          lineageIdentity: "orion.context.lineage.1",
+          lineageIdentity,
         }).lineageIdentity,
-      ).toBe("orion.context.lineage.1");
+      ).toBe(lineageIdentity);
       expect(() => admission.begin(request)).toThrow();
       expect(admission.state).toBe("ready");
 
       const cognitiveRequest = createNormalizedCognitiveRequest({
         intent: "orchestrate-cognitive-request",
         requestId: "runtime-c1-turn",
-        contextLineageId: "orion.context.lineage.1",
+        contextLineageId: lineageIdentity,
         query: {
           kind: "exact-text-attribute-value",
           subjectKey: "user.preference",

@@ -3,10 +3,10 @@
 | Field          | Value                                                       |
 | -------------- | ----------------------------------------------------------- |
 | **Status**     | Active                                                      |
-| **Version**    | 2.0.1                                                       |
+| **Version**    | 3.0.1                                                       |
 | **Owner**      | Project Maintainers                                         |
 | **Created**    | 2026-09-18                                                  |
-| **Updated**    | 2026-09-21                                                  |
+| **Updated**    | 2026-09-22                                                  |
 | **Applies To** | Caller-driven multi-turn application runtime implementation |
 
 ---
@@ -17,7 +17,7 @@ This specification defines the implementation obligations for the caller-driven 
 
 The implementation must translate the approved semantic contract into bounded, process-local behavior while preserving all authority boundaries and operational invariants.
 
-This specification accompanies the Application Runtime Specification Active 2.0.1 shutdown reconciliation. Rodrigo Lozano reviewed Draft 2.0.0 and supplied the human PASS recorded below; this lifecycle-only update activates that reviewed revision as Active 2.0.1 without semantic expansion or modification. The prior Active 1.0.1 versions remain recorded at code checkpoint `29736c0a295f361582fd564cf25533e2935c08c1`. This specification grants no shutdown implementation, production, or deployment authorization.
+This Active 3.0.1 records Rodrigo Lozano's human PASS on Draft 3.0.0 without semantic expansion during activation. It supersedes Active 2.0.1 at the specification lifecycle level, while the current Runtime implementation remains conformant only to the previously implemented Active 2.0.1 scope until a separately authorized implementation establishes executable conformance to the successful-preparation lineage result. This specification grants no implementation, production, or deployment authorization.
 
 ---
 
@@ -102,6 +102,43 @@ The implementation must:
 - Maintain only the resulting preparation/binding needed to use its approved C1 composition for later explicitly caller-initiated turns
 - If shutdown is requested during admitted preparation, allow that one preparation/binding operation to settle without cancellation; preserve its outcome while remaining Admission Closed rather than overwriting closure with Ready or Preparation Failed
 
+The internal `begin(input)` implementation MUST continue to invoke the existing
+authorized Context preparation path exactly once. On success it MUST:
+
+1. receive the exact successful prepared Context result;
+2. directly reference the `ContextLineageIdentity` present in that result;
+3. establish the Brain binding from that same prepared result and identity;
+4. settle preparation under the existing lifecycle rules; and
+5. only after successful preparation and binding settlement, synchronously
+   return that exact lineage identity to the trusted internal application-side
+   caller.
+
+When shutdown has not begun, Runtime MUST enter Ready before the successful
+return becomes observable. If shutdown begins during the admitted preparation,
+Runtime MUST preserve Admission Closed, settle the preparation/binding outcome,
+and follow existing cleanup ordering without restoring Ready. In that case the
+exact lineage may be returned only after successful preparation/binding
+settlement; cleanup may already have begun before the synchronous caller
+observes it. No lineage may be exposed from failed or incomplete preparation.
+
+The implementation SHOULD directly project the existing lineage value. It MUST
+NOT fabricate, infer, substitute, normalize, or clone it into a semantically
+different identity. It need not retain a second independent lineage field after
+the return; the retained Brain binding remains the preparation state needed for
+turn execution.
+
+On preparation failure, `begin(input)` MUST return no lineage, preserve the
+originating failure semantics, and settle Preparation Failed before failure
+observation when admission remains open. It MUST NOT retry, perform a second
+preparation, or return a fallback, guessed, or fabricated lineage.
+
+The return value is non-authoritative internal application integration data.
+The implementation MUST NOT expose a complete Context revision, Context state,
+Brain binding, C1 composition, preparation handle, Engine reference, mutable
+preparation object, or transport metadata. It MUST NOT publish the lineage,
+accept it from an external caller, treat it as authorization evidence, or make
+it a caller-controlled selector.
+
 ---
 
 # Admission Control
@@ -131,6 +168,15 @@ The implementation must:
 - Preserve the existing turn execution boundaries and outcome correspondence
 - Keep cognitive execution synchronous, forwarding the existing caller request unchanged and returning the exact Brain result or surfacing the originating execution failure
 - When shutdown has begun, settle the admitted turn without restoring Ready; preserve closed admission before its result or failure becomes observable
+
+Internal application mapping remains responsible for constructing the complete
+`NormalizedCognitiveRequest`, including the exact private lineage obtained from
+successful preparation. Runtime MUST NOT construct that request, infer or inject
+application or transport fields, reinterpret caller intent, independently
+choose a lineage, repair a mismatched request, normalize lineage correspondence,
+or substitute its retained binding identity. It continues to accept one
+caller-constructed request for an admitted turn and forward that exact request
+unchanged to Brain.
 
 ---
 
@@ -227,6 +273,9 @@ This specification explicitly prohibits:
 - Session abstraction or durable conversational state
 - Transport selection or authentication redesign
 - Production authorization or deployment authorization
+- Public Runtime API or transport-visible preparation result
+- Preparation handle, session identifier, or conversation identifier
+- Runtime construction, repair, normalization, or transformation of the caller request
 
 ---
 
@@ -243,11 +292,136 @@ Implementations must:
 7. Ensure atomicity of state management operations
 8. Prevent concurrent access violations
 
+Future executable evidence for this Draft MUST demonstrate:
+
+- successful `begin(input)` invokes Context preparation exactly once, returns
+  the exact `ContextLineageIdentity` from the successful prepared result, and
+  establishes the retained Brain binding from that same result;
+- Runtime reaches Ready before the successful return is observable when
+  admission remains open;
+- failed preparation returns no lineage, preserves the originating failure,
+  settles Preparation Failed before observation when admission remains open,
+  preserves Admission Closed when shutdown has begun, and performs no retry or
+  fallback;
+- reentrant shutdown during preparation preserves closure and cleanup ordering,
+  returns a lineage only after successful preparation/binding settlement, never
+  restores Ready after closure, and exposes no lineage for failed or incomplete
+  preparation;
+- no complete Context revision, Context state, Brain binding, C1 composition,
+  preparation handle, Engine reference, mutable preparation object, public
+  Runtime API, or transport-visible lineage is introduced;
+- turn execution still accepts a caller-constructed
+  `NormalizedCognitiveRequest` and forwards the exact request object unchanged,
+  without lineage substitution, repair, normalization, or inferred fields.
+
+The later implementation evidence MUST exercise the following closure-aware
+matrix deterministically and observe the preparation operation and shutdown
+completion through their separate channels.
+
+## Shutdown requested during Context preparation
+
+1. **Preparation succeeds; cleanup succeeds.** `begin(input)` returns the exact
+   lineage from the successful Context result; Brain binding uses that same
+   result; closure remains effective without restoring Ready; shutdown fulfills;
+   and the lineage and shutdown outcomes remain separate.
+2. **Preparation succeeds; cleanup Promise rejects.** `begin(input)` still
+   returns that exact lineage; cleanup rejection neither replaces nor alters
+   it; Runtime reaches Terminal Closed before shutdown rejects with the
+   originating cleanup failure; and cleanup is not retried.
+3. **Preparation succeeds; cleanup invocation throws synchronously.**
+   `begin(input)` still returns that exact lineage; the invocation failure
+   neither replaces nor suppresses it; Runtime preserves terminal-failure
+   ordering; shutdown rejects with the originating cleanup failure; and cleanup
+   is not retried.
+4. **Preparation fails; cleanup succeeds.** `begin(input)` produces no lineage
+   result and surfaces the originating preparation failure; cleanup still runs;
+   shutdown fulfills; and the two outcomes remain separate.
+5. **Preparation fails; cleanup Promise rejects.** `begin(input)` produces no
+   lineage result and surfaces the originating preparation failure; shutdown
+   independently rejects with the originating cleanup failure; neither failure
+   replaces the other; and cleanup is not retried.
+6. **Preparation fails; cleanup invocation throws synchronously.**
+   `begin(input)` produces no lineage result and surfaces the originating
+   preparation failure; shutdown independently rejects with the originating
+   cleanup failure; neither failure replaces the other; and cleanup is not
+   retried.
+
+## Shutdown requested during Brain binding
+
+After Context preparation succeeds, evidence MUST request shutdown reentrantly
+during establishment of the retained Brain binding and cover:
+
+1. binding success with cleanup success;
+2. binding success with a rejecting cleanup Promise;
+3. binding success with a synchronous cleanup invocation throw;
+4. binding failure with cleanup success;
+5. binding failure with a rejecting cleanup Promise; and
+6. binding failure with a synchronous cleanup invocation throw.
+
+In each successful-binding case, `begin(input)` MUST return the exact lineage
+from the same successful prepared Context result, closure MUST remain effective
+without restoring Ready, and cleanup outcome MUST NOT replace or suppress the
+lineage result. In each failed-binding case, `begin(input)` MUST produce no
+lineage result and surface the originating preparation failure while shutdown
+independently exposes cleanup success or the originating cleanup failure.
+Cleanup success MUST NOT erase the operation failure; cleanup failure MUST NOT
+replace it; and cleanup MUST NOT be retried. These cases use the existing
+preparation-failure model and introduce no new failure taxonomy.
+
+## Ordinary preparation and regression evidence
+
+Without shutdown, evidence MUST show that successful `begin(input)` returns the
+exact prepared lineage, establishes Brain binding from the same result, and
+enters Ready before the return is observable. Failed `begin(input)` MUST expose
+no lineage, settle Preparation Failed before the originating failure is
+observable, and perform no retry, fallback, or second preparation attempt.
+
+All unaffected Active 2.0.1 behavioral evidence MUST remain passing. Assertions
+whose sole purpose is to require successful `begin(input)` to return `undefined`
+are superseded by Draft 3.0.0 and MUST be replaced during a later authorized
+implementation by assertions for the exact successful
+`ContextLineageIdentity` return. Synchronous invocation, single-attempt
+preparation, lifecycle ordering, failure behavior, retained Brain binding, turn
+admission, exact request forwarding, synchronous execution, exact result and
+originating execution-failure identity, shutdown admission closure, preserved
+admitted work, exactly-once cleanup, terminal settlement, operation/cleanup
+outcome separation, repeated shutdown, instance independence, architecture and
+dependency enforcement, and aggregate repository validation remain regression
+obligations. This Draft does not itself authorize test modification.
+
 Shutdown evidence MUST cover all five pre-closure states; reentrant closure during synchronous preparation, binding, and turn execution; the admitted-but-not-executing case and its pending completion; rejection of new work; closure-preserving success/failure settlement; cleanup ordering and shared completion; repeated requests before/during/after cleanup; successful and failed terminal closure; separate operation and cleanup outcomes; and unchanged instance independence, privacy, authority boundaries, and synchronous execution. These are obligations for a later separately authorized implementation, not claims of current executable conformance.
 
 ---
 
 # Human Lifecycle Approval
+
+Rodrigo Lozano supplied the human PASS for the corrected Draft 3.0.0 revisions
+of both Runtime specifications after the final focused audit reported
+`PASS_READY` and no blockers. This lifecycle recording activates the reviewed
+semantics as Active 3.0.1 without alteration. AI/Codex records the supplied
+decision; it is not the decision maker or an independent reviewer.
+
+| Field                                   | Value                                     |
+| --------------------------------------- | ----------------------------------------- |
+| REVIEW_ROUTE                            | SINGLE_MAINTAINER                         |
+| INDEPENDENT_REVIEW                      | NOT_APPLICABLE_SINGLE_MAINTAINER          |
+| MAINTAINER_REVIEW                       | PASS                                      |
+| REVIEWER                                | Rodrigo Lozano                            |
+| DECISION                                | PASS                                      |
+| Decision date                           | 2026-09-22                                |
+| Reviewed version                        | Draft 3.0.0                               |
+| Transition                              | Draft 3.0.0 -> Active 3.0.1               |
+| Recorded version                        | Active 3.0.1                              |
+| HUMAN_REVIEW_REQUIRED                   | YES — satisfied by this recorded decision |
+| HUMAN_DECISION_RECORDED                 | YES                                       |
+| IMPLEMENTATION_AUTHORITY_GRANTED        | NO                                        |
+| Executable conformance to Active 3.0.1  | NOT_ESTABLISHED                           |
+| Semantic expansion during activation    | NONE                                      |
+| Current implemented/conformant baseline | Previous Active 2.0.1 scope               |
+| Production authorization                | NONE                                      |
+| Deployment authorization                | NONE                                      |
+
+## Historical approval of Active 2.0.1
 
 Rodrigo Lozano supplied the human PASS for the Draft 2.0.0 revision presented in the immediately preceding human-review preparation. AI/Codex records the supplied decision; it is not the decision maker or an independent reviewer.
 
@@ -291,11 +465,13 @@ The previous F1 finding was remediated before the human PASS and therefore must 
 
 # Version History
 
-| Version | Date       | Description                                                                                                                                                                                                                                    |
-| ------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1.0.0   | 2026-09-18 | Initial Draft based on approved runtime semantics                                                                                                                                                                                              |
-| 1.0.1   | 2026-09-18 | Lifecycle activation following human review and approval; no semantic change                                                                                                                                                                   |
-| 2.0.0   | 2026-09-21 | Draft for human review: align closure-aware state bookkeeping, admitted-work settlement, shared asynchronous cleanup completion, and terminal success/failure with the ADR-0030 specification reconciliation; no implementation authorization. |
-| 2.0.1   | 2026-09-21 | Rodrigo Lozano's human SINGLE_MAINTAINER PASS for Draft 2.0.0 recorded; lifecycle activated as Active 2.0.1 without semantic expansion or modification; no shutdown implementation, production, or deployment authorization.                   |
+| Version | Date       | Description                                                                                                                                                                                                                                                                                        |
+| ------- | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1.0.0   | 2026-09-18 | Initial Draft based on approved runtime semantics                                                                                                                                                                                                                                                  |
+| 1.0.1   | 2026-09-18 | Lifecycle activation following human review and approval; no semantic change                                                                                                                                                                                                                       |
+| 2.0.0   | 2026-09-21 | Draft for human review: align closure-aware state bookkeeping, admitted-work settlement, shared asynchronous cleanup completion, and terminal success/failure with the ADR-0030 specification reconciliation; no implementation authorization.                                                     |
+| 2.0.1   | 2026-09-21 | Rodrigo Lozano's human SINGLE_MAINTAINER PASS for Draft 2.0.0 recorded; lifecycle activated as Active 2.0.1 without semantic expansion or modification; no shutdown implementation, production, or deployment authorization.                                                                       |
+| 3.0.0   | 2026-09-22 | Draft for human review: return the exact successful prepared Context lineage identity to the trusted internal application caller after preparation/binding settlement, preserving existing request forwarding, lifecycle, ownership, public API, transport, production, and deployment boundaries. |
+| 3.0.1   | 2026-09-22 | Rodrigo Lozano's human SINGLE_MAINTAINER PASS for corrected Draft 3.0.0 recorded; lifecycle activated as Active 3.0.1 without semantic expansion; implementation authority and executable conformance to the new lineage-result requirement remain unestablished.                                  |
 
 ---
